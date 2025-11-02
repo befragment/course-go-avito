@@ -35,7 +35,6 @@ func LoadConfig() (*Config, error) {
 	if err := getCmd(cfg).Run(context.Background(), os.Args); err != nil {
 		return nil, err
 	}
-
 	cfg.Port = ":" + cfg.Port
 
 	cfg.DBCfg = DBConfig{
@@ -63,24 +62,21 @@ func getCmd(cfg *Config) *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error { return nil },
-
 	}
 }
 
-func getDBConnectionString() string {
-	host := os.Getenv("POSTGRES_HOST")
-	port := os.Getenv("POSTGRES_PORT")
-	user := os.Getenv("POSTGRES_USER")
-	password := os.Getenv("POSTGRES_PASSWORD")
-	dbname := os.Getenv("POSTGRES_DB")
-
-	sslmode := os.Getenv("POSTGRES_SSLMODE")
-	if sslmode == "" {
-		sslmode = "disable"
+func (c *Config) DBConnString() string {
+	ssl := c.DBCfg.SSLMode
+	if ssl == "" {
+		ssl = "disable"
 	}
-
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		user, password, host, port, dbname, sslmode,
+		c.DBCfg.User,
+		c.DBCfg.Password,
+		c.DBCfg.Host,
+		c.DBCfg.Port,
+		c.DBCfg.Name,
+		ssl,
 	)
 }
