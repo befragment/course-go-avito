@@ -22,7 +22,10 @@ func RegisterHealthcheck(r chi.Router) {
 
 func RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
+	
 	RegisterPing(r)
 	RegisterHealthcheck(r)
+
+	RegisterCouriersRoutes(r)
 	return r
 }

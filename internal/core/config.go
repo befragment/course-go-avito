@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	// "log"	
 	"os"
 	"context"	
 
@@ -25,11 +24,13 @@ type Config struct {
 	DBCfg	DBConfig
 }
 
-func initEnv() {
-	_ = godotenv.Load("configs/.env")
-}
+var (
+	PhoneRegex = `^\+[0-9]{11}$`
+)
 
 func LoadConfig() (*Config, error) {
+	_ = godotenv.Load(".env")
+
 	cfg := &Config{}
 
 	if err := getCmd(cfg).Run(context.Background(), os.Args); err != nil {

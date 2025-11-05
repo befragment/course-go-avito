@@ -6,7 +6,7 @@ import (
 	"time"
 	"log"
 
-	"github.com/Avito-courses/course-go-avito-befragment/internal/routes"
+	"courier-service/internal/routes"
 )
 
 type App struct {
