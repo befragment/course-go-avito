@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
+	"log"
 	"os/signal"
 	"syscall"
-	"log"
 
 	"courier-service/internal/app"
 	"courier-service/internal/core"
 )
-
 
 func main() {
 	cfg, _ := core.LoadConfig()

@@ -1,13 +1,12 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"context"	
 
-	"github.com/urfave/cli/v3"
 	"github.com/joho/godotenv"
-
+	"github.com/urfave/cli/v3"
 )
 
 type DBConfig struct {
@@ -20,8 +19,8 @@ type DBConfig struct {
 }
 
 type Config struct {
-	Port 	string
-	DBCfg	DBConfig
+	Port  string
+	DBCfg DBConfig
 }
 
 var (

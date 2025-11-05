@@ -10,10 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 
+	"courier-service/internal/core"
 	"courier-service/internal/database"
 	"courier-service/internal/models"
-	"courier-service/internal/core"
-
 )
 
 func getCourier(w http.ResponseWriter, r *http.Request) {

@@ -1,9 +1,9 @@
 package core
 
 import (
+	"context"
 	"log"
 	"time"
-	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
