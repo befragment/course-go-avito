@@ -8,17 +8,24 @@ import (
 
 	"courier-service/internal/app"
 	"courier-service/internal/core"
+	"courier-service/internal/handlers"
+	"courier-service/internal/repository"
+	"courier-service/internal/usecase"
 )
 
-func main() {
+func main() {	
 	cfg, _ := core.LoadConfig()
+
+	dbPool := core.InitPool(context.Background())
+	courierRepository := repository.NewCourierRepository(dbPool)
+	courierUseCase := usecase.NewCourierUseCase(courierRepository)
+	courierController := handlers.NewCourierController(courierUseCase)
+
+	app := app.New(cfg.Port, courierController)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-
-	a := app.New(cfg.Port)
-
-	if err := a.Run(ctx); err != nil {
+	if err := app.Run(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

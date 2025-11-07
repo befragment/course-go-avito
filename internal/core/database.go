@@ -25,8 +25,10 @@ func InitPool(ctx context.Context) *pgxpool.Pool {
 
 	err = pool.Ping(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to ping database: %v\n", err)
 	}
+
+	log.Println("Database connection pool established")
 
 	return pool
 }

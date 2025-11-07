@@ -6,18 +6,19 @@ import (
 	"net/http"
 	"time"
 
-	"courier-service/internal/routes"
+	"courier-service/internal/handlers"
+	"courier-service/internal/routing"
 )
 
 type App struct {
 	server *http.Server
 }
 
-func New(address string) *App {
+func New(address string, courierController *handlers.CourierController) *App {
 	return &App{
 		server: &http.Server{
 			Addr:    address,
-			Handler: routes.RegisterRoutes(),
+			Handler: routing.InitCourierRoutes(courierController),
 		},
 	}
 }
