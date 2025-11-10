@@ -5,7 +5,7 @@ import (
 	"courier-service/internal/model"
 )
 
-type CourierUseCase interface {
+type сourierUseCase interface {
 	GetById(ctx context.Context, id int64) (*model.Courier, error)
 	GetAll(ctx context.Context) ([]model.Courier, error)
 	Create(ctx context.Context, req *model.CourierCreateRequest) (int64, error)

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"log"
 	"strings"
 	"fmt"
 	"time"
@@ -127,6 +128,8 @@ func (r *CourierRepository) Update(ctx context.Context, courier *model.CourierDB
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
+
+	log.Printf("Query: %s, Args: %v", query, args)
 	if err != nil {
 		return err
 	}

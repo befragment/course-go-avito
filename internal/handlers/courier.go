@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -14,129 +13,87 @@ import (
 )
 
 type CourierController struct {
-	useCase CourierUseCase
+	useCase сourierUseCase
 }
 
-func NewCourierController(useCase CourierUseCase) *CourierController {
+func NewCourierController(useCase сourierUseCase) *CourierController {
 	return &CourierController{useCase: useCase}
 }
 
 func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		http.Error(w, `{"error": "invalid id"}`, http.StatusBadRequest)
+		respondWithError(w, http.StatusBadRequest, ErrInvalidID)
 		return
 	}
 
 	courier, err := c.useCase.GetById(ctx, id)
 	if err != nil {
 		if errors.Is(err, usecase.ErrCourierNotFound) {
-			http.Error(w, `{"error": "courier not found"}`, http.StatusNotFound)
+			respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
 			return
 		}
-		http.Error(w, `{"error": "` + err.Error() + `"}`, http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(courier)
+	respondWithJSON(w, http.StatusOK, courier)
 }
 
 func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	couriers, err := c.useCase.GetAll(ctx)
-	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		http.Error(w, `{"error": "` + err.Error() + `"}`, http.StatusInternalServerError)
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(couriers)
+	respondWithJSON(w, http.StatusOK, couriers)
 }
 
 func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var courier model.Courier
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&courier); err != nil {
-		http.Error(w, `{"error": "` + err.Error() + `"}`, http.StatusBadRequest)
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	id, err := c.useCase.Create(ctx, &model.CourierCreateRequest{
-		Name: courier.Name,
-		Phone: courier.Phone,
+		Name:   courier.Name,
+		Phone:  courier.Phone,
 		Status: courier.Status,
 	})
 	if err != nil {
-		switch err {
-		case usecase.ErrInvalidCreate: 
-			http.Error(w, `{"error": "Missing required fields"}`, http.StatusBadRequest)
-		case usecase.ErrInvalidPhoneNumber:
-			http.Error(w, `{"error": "Invalid phone number"}`, http.StatusBadRequest)
-		case usecase.ErrPhoneNumberExists:
-			http.Error(w, `{"error": "Phone number already exists"}`, http.StatusConflict)
-		default:
-			log.Printf("Internal server error: %v\n", err)
-			http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
-		}
+		handleCreateError(w, err)
 		return
 	}
-	
-	response := map[string]interface{}{
-		"id":      id,
-		"message": "Profile created successfully",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(response)
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{
+		"id":      strconv.FormatInt(id, 10),
+		"message": "Courier created successfully",
+	})
 }
 
 func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var courier model.Courier
-	if err := json.NewDecoder(r.Body).Decode(&courier); err != nil {
-		http.Error(w, `{"error": "` + err.Error() + `"}`, http.StatusBadRequest)
+	var req model.CourierUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if courier.ID == 0 {
-		http.Error(w, `{"error": "id is required"}`, http.StatusBadRequest)
+
+	if req.ID == 0 {
+		respondWithError(w, http.StatusBadRequest, ErrIDRequired)
 		return
 	}
-	
-	err := c.useCase.Update(ctx, &model.CourierUpdateRequest{
-		ID: courier.ID,
-		Name: &courier.Name,
-		Phone: &courier.Phone,
-		Status: &courier.Status,
-	})
+
+	err := c.useCase.Update(ctx, &req)
 	if err != nil {
-		switch err {
-		case usecase.ErrInvalidUpdate:
-			http.Error(w, `{"error": "Missing required fields"}`, http.StatusBadRequest)
-		case usecase.ErrInvalidPhoneNumber:
-			http.Error(w, `{"error": "Invalid phone number"}`, http.StatusBadRequest)
-		case usecase.ErrPhoneNumberExists:
-			http.Error(w, `{"error": "Phone number already exists"}`, http.StatusConflict)
-		default:
-			log.Printf("Internal server error: %v\n", err)
-			http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
-		}
+		handleUpdateError(w, err)
 		return
 	}
 
-	response := map[string]interface{}{
+	respondWithJSON(w, http.StatusOK, map[string]string{
 		"message": "Courier updated successfully",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	})
 }
-
-// func RegisterCouriersRoutes(r chi.Router) {
-// 	r.Get("/courier/{id}", c.GetById)
-// 	r.Get("/couriers", c.GetAll)
-// 	r.Post("/courier", c.Create)
-// 	r.Put("/courier", c.Update)
-// }

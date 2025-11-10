@@ -9,18 +9,14 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-type DBConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Name     string
-	SSLMode  string
-}
-
 type Config struct {
-	Port  string
-	DBCfg DBConfig
+	Port       string
+	DBHost     string
+	DBPort     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBSSLMode  string
 }
 
 var (
@@ -37,14 +33,12 @@ func LoadConfig() (*Config, error) {
 	}
 	cfg.Port = ":" + cfg.Port
 
-	cfg.DBCfg = DBConfig{
-		Host:     os.Getenv("POSTGRES_HOST"),
-		Port:     os.Getenv("POSTGRES_PORT"),
-		User:     os.Getenv("POSTGRES_USER"),
-		Password: os.Getenv("POSTGRES_PASSWORD"),
-		Name:     os.Getenv("POSTGRES_DB"),
-		SSLMode:  os.Getenv("POSTGRES_SSLMODE"),
-	}
+	cfg.DBHost = os.Getenv("POSTGRES_HOST")
+	cfg.DBPort = os.Getenv("POSTGRES_PORT")
+	cfg.DBUser = os.Getenv("POSTGRES_USER")
+	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
+	cfg.DBName = os.Getenv("POSTGRES_DB")
+	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
 
 	return cfg, nil
 }
@@ -66,17 +60,17 @@ func getCmd(cfg *Config) *cli.Command {
 }
 
 func (c *Config) DBConnString() string {
-	ssl := c.DBCfg.SSLMode
+	ssl := c.DBSSLMode
 	if ssl == "" {
 		ssl = "disable"
 	}
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		c.DBCfg.User,
-		c.DBCfg.Password,
-		c.DBCfg.Host,
-		c.DBCfg.Port,
-		c.DBCfg.Name,
+		c.DBUser,
+		c.DBPassword,
+		c.DBHost,
+		c.DBPort,
+		c.DBName,
 		ssl,
 	)
 }

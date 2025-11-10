@@ -3,7 +3,7 @@ info:
   title: courier-service API
   version: 1.0.0
 servers:
-  - url
+  - url: /
 tags:
   - name: Couriers
 paths:
@@ -78,9 +78,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Courier'
+                $ref: '#/components/schemas/CreateCourierResponse'
         '400':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Phone already exists
           content:
             application/json:
               schema:
@@ -106,9 +112,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Courier'
+                $ref: '#/components/schemas/UpdateCourierResponse'
         '400':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Courier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Phone already exists
           content:
             application/json:
               schema:
@@ -168,7 +186,7 @@ components:
         status:
           type: string
           enum: [active, inactive]
-      required: [id, name, phone, status]
+      required: [id]
     ErrorResponse:
       type: object
       properties:
@@ -176,4 +194,21 @@ components:
           type: string
           example: message
       required: [error]
+    CreateCourierResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        message:
+          type: string
+          example: Courier created successfully
+      required: [id, message]
+    UpdateCourierResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Courier updated successfully
+      required: [message]
 

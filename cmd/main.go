@@ -17,6 +17,7 @@ func main() {
 	cfg, _ := core.LoadConfig()
 
 	dbPool := core.InitPool(context.Background())
+	defer dbPool.Close()
 	courierRepository := repository.NewCourierRepository(dbPool)
 	courierUseCase := usecase.NewCourierUseCase(courierRepository)
 	courierController := handlers.NewCourierController(courierUseCase)
