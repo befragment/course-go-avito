@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: courier-service API
+  version: 1.0.0
+servers:
+  - url: /
+tags:
+  - name: Couriers
+paths:
+  /courier/{id}:
+    get:
+      tags: [Couriers]
+      summary: Get courier by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Courier found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Courier'
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Courier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /couriers:
+    get:
+      tags: [Couriers]
+      summary: List couriers
+      responses:
+        '200':
+          description: Couriers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Courier'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /courier:
+    post:
+      tags: [Couriers]
+      summary: Create courier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourierRequest'
+      responses:
+        '201':
+          description: Courier created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateCourierResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Phone already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags: [Couriers]
+      summary: Update courier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourierRequest'
+      responses:
+        '200':
+          description: Courier updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateCourierResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Courier not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Phone already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Courier:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Peter
+        phone:
+          type: string
+          description: Phone number with optional leading +, 10-15 digits
+          pattern: '^\+[0-9]{11}$'
+          example: +79991234567
+        status:
+          type: string
+          description: Courier status
+          enum: [active, inactive]
+          example: active
+      required: [id, name, phone, status]
+    CreateCourierRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+[0-9]{11}$'
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [name, phone, status]
+    UpdateCourierRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+[0-9]{11}$'
+        status:
+          type: string
+          enum: [active, inactive]
+      required: [id]
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: message
+      required: [error]
+    CreateCourierResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        message:
+          type: string
+          example: Courier created successfully
+      required: [id, message]
+    UpdateCourierResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Courier updated successfully
+      required: [message]
+

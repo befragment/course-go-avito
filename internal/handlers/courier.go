@@ -1,0 +1,99 @@
+package handlers
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
+
+	"courier-service/internal/model"
+	"courier-service/internal/usecase"
+)
+
+type CourierController struct {
+	useCase сourierUseCase
+}
+
+func NewCourierController(useCase сourierUseCase) *CourierController {
+	return &CourierController{useCase: useCase}
+}
+
+func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, ErrInvalidID)
+		return
+	}
+
+	courier, err := c.useCase.GetById(ctx, id)
+	if err != nil {
+		if errors.Is(err, usecase.ErrCourierNotFound) {
+			respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, courier)
+}
+
+func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	couriers, err := c.useCase.GetAll(ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, couriers)
+}
+
+func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var courier model.Courier
+	if err := json.NewDecoder(r.Body).Decode(&courier); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := c.useCase.Create(ctx, &model.CourierCreateRequest{
+		Name:   courier.Name,
+		Phone:  courier.Phone,
+		Status: courier.Status,
+	})
+	if err != nil {
+		handleCreateError(w, err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{
+		"id":      strconv.FormatInt(id, 10),
+		"message": "Courier created successfully",
+	})
+}
+
+func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req model.CourierUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if req.ID == 0 {
+		respondWithError(w, http.StatusBadRequest, ErrIDRequired)
+		return
+	}
+
+	err := c.useCase.Update(ctx, &req)
+	if err != nil {
+		handleUpdateError(w, err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Courier updated successfully",
+	})
+}
