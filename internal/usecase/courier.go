@@ -2,11 +2,13 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"regexp"
 	"courier-service/internal/core"
 	"courier-service/internal/model"
 	"courier-service/internal/repository"
-	"errors"
-	"regexp"
+	"time"
+	"log"
 )
 
 type CourierUseCase struct {
@@ -15,6 +17,24 @@ type CourierUseCase struct {
 
 func NewCourierUseCase(repository сourierRepository) *CourierUseCase {
 	return &CourierUseCase{repository: repository}
+}
+
+
+func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) {
+	ticker := time.NewTicker(core.CheckFreeCouriersInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case t := <-ticker.C:
+			if err := u.repository.FreeCouriers(ctx); err != nil {
+				log.Printf("Failed to check free couriers: %v", err)
+			}
+			log.Printf("Checked free couriers at %s", t.Format(time.RFC3339))
+		}
+	}
 }
 
 func (u CourierUseCase) GetById(ctx context.Context, id int64) (*model.Courier, error) {
@@ -27,7 +47,7 @@ func (u CourierUseCase) GetById(ctx context.Context, id int64) (*model.Courier, 
 		return nil, err
 	}
 
-	courier := courierDBToCourier(*courierDB)
+	courier := model.Courier(*courierDB)
 	return &courier, nil
 }
 
@@ -40,15 +60,19 @@ func (u CourierUseCase) GetAll(ctx context.Context) ([]model.Courier, error) {
 
 	couriers := make([]model.Courier, len(couriersDB))
 	for i, c := range couriersDB {
-		couriers[i] = courierDBToCourier(c)
+		couriers[i] = model.Courier(c)
 	}
 
 	return couriers, nil
 }
 
 func (u CourierUseCase) Create(ctx context.Context, req *model.CourierCreateRequest) (int64, error) {
-	if req.Name == "" || req.Phone == "" || req.Status == "" {
+	if req.Name == "" || req.Phone == "" || req.Status == "" || req.TransportType == "" {
 		return 0, ErrInvalidCreate
+	}
+
+	if _, err := transportTypeTime(req.TransportType); err != nil {
+		return 0, ErrUnknownTransportType
 	}
 
 	if !ValidPhoneNumber(req.Phone) {
@@ -66,10 +90,14 @@ func (u CourierUseCase) Create(ctx context.Context, req *model.CourierCreateRequ
 }
 
 func (u CourierUseCase) Update(ctx context.Context, req *model.CourierUpdateRequest) error {
-	if req.Name == nil && req.Phone == nil && req.Status == nil {
+	if req.Name == nil && req.Phone == nil && req.Status == nil && req.TransportType == nil {
 		return ErrInvalidUpdate
 	}
-
+	if req.TransportType != nil {
+		if _, err := transportTypeTime(*req.TransportType); err != nil {
+			return ErrUnknownTransportType
+		}
+	}
 	if req.Phone != nil {
 		if !ValidPhoneNumber(*req.Phone) {
 			return ErrInvalidPhoneNumber

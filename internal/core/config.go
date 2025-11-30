@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
@@ -20,7 +21,8 @@ type Config struct {
 }
 
 var (
-	PhoneRegex = `^\+[0-9]{11}$`
+	PhoneRegex 					= `^\+[0-9]{11}$`
+	CheckFreeCouriersInterval 	= 10 * time.Second
 )
 
 func LoadConfig() (*Config, error) {

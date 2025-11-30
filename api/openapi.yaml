@@ -137,6 +137,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /delievery/assign:
+    post:
+
+  /delievery/unassign:
+    post:
+
 components:
   schemas:
     Courier:
@@ -151,15 +157,20 @@ components:
           example: Peter
         phone:
           type: string
-          description: Phone number with optional leading +, 10-15 digits
+          description: Phone number with optional leading +, 11 digits
           pattern: '^\+[0-9]{11}$'
           example: +79991234567
         status:
           type: string
           description: Courier status
-          enum: [active, inactive]
-          example: active
-      required: [id, name, phone, status]
+          enum: [available, busy]
+          example: available
+        transport_type:
+          type: string
+          description: Courier transport type
+          enum: [car, scooter, on_foot]
+          example: scooter
+      required: [id, name, phone, status, transport_type]
     CreateCourierRequest:
       type: object
       properties:
@@ -170,8 +181,11 @@ components:
           pattern: '^\+[0-9]{11}$'
         status:
           type: string
-          enum: [active, inactive]
-      required: [name, phone, status]
+          enum: [available, busy]
+        transport_type:
+          type: string
+          enum: [car, scooter, on_foot]
+      required: [name, phone, status, transport_type]
     UpdateCourierRequest:
       type: object
       properties:
@@ -185,7 +199,10 @@ components:
           pattern: '^\+[0-9]{11}$'
         status:
           type: string
-          enum: [active, inactive]
+          enum: [available, busy]
+        transport_type:
+          type: string
+          enum: [car, scooter, on_foot]
       required: [id]
     ErrorResponse:
       type: object

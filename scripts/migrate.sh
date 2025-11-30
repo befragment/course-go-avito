@@ -9,7 +9,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 ENV_FILE="${PROJECT_ROOT}/.env"
 
 if [ ! -f "$ENV_FILE" ]; then
-  echo "❌ .env not found at $ENV_FILE"
+  echo ".env not found at $ENV_FILE"
   exit 1
 fi
 
@@ -19,8 +19,8 @@ set -a
 set +a
 
 GOOSE_DRIVER="postgres"
-GOOSE_DBSTRING="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
-MIGRATIONS_DIR="${PROJECT_ROOT}/internal/migrations"
+GOOSE_DBSTRING="${GOOSE_DRIVER}://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+MIGRATIONS_DIR="${PROJECT_ROOT}/migrations"
 
 apply_migrations() {
   echo "🚀 Applying migrations from ${MIGRATIONS_DIR}..."

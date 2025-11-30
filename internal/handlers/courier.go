@@ -34,7 +34,7 @@ func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
 			respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
 			return
 		}
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondInternalServerError(w, err)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, courier)
@@ -44,7 +44,7 @@ func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	couriers, err := c.useCase.GetAll(ctx)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondInternalServerError(w, err)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, couriers)
@@ -52,17 +52,13 @@ func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var courier model.Courier
-	if err := json.NewDecoder(r.Body).Decode(&courier); err != nil {
+	var req model.CourierCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := c.useCase.Create(ctx, &model.CourierCreateRequest{
-		Name:   courier.Name,
-		Phone:  courier.Phone,
-		Status: courier.Status,
-	})
+	id, err := c.useCase.Create(ctx, &req)
 	if err != nil {
 		handleCreateError(w, err)
 		return

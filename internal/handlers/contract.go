@@ -11,3 +11,8 @@ type сourierUseCase interface {
 	Create(ctx context.Context, req *model.CourierCreateRequest) (int64, error)
 	Update(ctx context.Context, req *model.CourierUpdateRequest) error
 }
+
+type deliveryUseCase interface {
+	AssignDelivery(ctx context.Context, req *model.DeliveryAssignRequest) (model.DeliveryAssignResponse, error)
+	UnassignDelivery(ctx context.Context, req *model.DeliveryUnassignRequest) (model.DeliveryUnassignResponse, error)
+}
