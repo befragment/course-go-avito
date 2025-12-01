@@ -19,7 +19,7 @@ func NewDeliveryRepository(pool *pgxpool.Pool) *DeliveryRepository {
 	return &DeliveryRepository{pool: pool}
 }
 
-func (r *DeliveryRepository) Create(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) {
+func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) {
 	queryBuilder := sq.
 		Insert("delivery").
 		Columns("order_id", "courier_id", "assigned_at", "deadline").
@@ -72,7 +72,7 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
 	return &delivery, nil
 }
 
-func (r *DeliveryRepository) Delete(ctx context.Context, orderID string) error {
+func (r *DeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error {
 	queryBuilder := sq.
 		Delete("delivery").
 		Where(sq.Eq{"order_id": orderID}).

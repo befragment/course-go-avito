@@ -50,7 +50,7 @@ func (u *DelieveryUseCase) AssignDelivery(
 	var resp model.DeliveryAssignResponse
 
 	err := u.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courierDB, err := u.courierRepository.FindAvailiable(txCtx)
+		courierDB, err := u.courierRepository.FindAvailableCourier(txCtx)
 		if err != nil {
 			if errors.Is(err, repository.ErrCouriersBusy) {
 				return ErrCouriersBusy
@@ -63,7 +63,7 @@ func (u *DelieveryUseCase) AssignDelivery(
 			return err
 		}
 
-		delivery, err := u.deliveryRepository.Create(txCtx, &deliveryDB)
+		delivery, err := u.deliveryRepository.CreateDelivery(txCtx, &deliveryDB)
 		if err != nil {
 			if errors.Is(err, repository.ErrOrderIDExists) {
 				return ErrOrderIDExists
@@ -72,7 +72,7 @@ func (u *DelieveryUseCase) AssignDelivery(
 		}
 
 		courierDB.Status = "busy"
-		if err := u.courierRepository.Update(txCtx, courierDB); err != nil {
+		if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil {
 			return err
 		}
 
@@ -106,20 +106,20 @@ func (u *DelieveryUseCase) UnassignDelivery(
 			return err
 		}
 
-		if err := u.deliveryRepository.Delete(txCtx, req.OrderID); err != nil {
+		if err := u.deliveryRepository.DeleteDelivery(txCtx, req.OrderID); err != nil {
 			if errors.Is(err, repository.ErrOrderIDNotFound) {
 				return ErrOrderIDNotFound
 			}
 			return err
 		}
 
-		courierDB, err := u.courierRepository.GetById(txCtx, couriersDelivery.CourierID)
+		courierDB, err := u.courierRepository.GetCourierById(txCtx, couriersDelivery.CourierID)
 		if err != nil {
 			return err
 		}
 
 		courierDB.Status = "available"
-		if err := u.courierRepository.Update(txCtx, courierDB); err != nil {
+		if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil {
 			return err
 		}
 

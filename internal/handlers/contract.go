@@ -6,10 +6,10 @@ import (
 )
 
 type сourierUseCase interface {
-	GetById(ctx context.Context, id int64) (*model.Courier, error)
-	GetAll(ctx context.Context) ([]model.Courier, error)
-	Create(ctx context.Context, req *model.CourierCreateRequest) (int64, error)
-	Update(ctx context.Context, req *model.CourierUpdateRequest) error
+	GetCourierById(ctx context.Context, id int64) (*model.Courier, error)
+	GetAllCouriers(ctx context.Context) ([]model.Courier, error)
+	CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error)
+	UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error
 }
 
 type deliveryUseCase interface {

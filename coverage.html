@@ -1,0 +1,1948 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>core: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">courier-service/internal/core/config.go (0.0%)</option>
+				
+				<option value="file1">courier-service/internal/core/database.go (0.0%)</option>
+				
+				<option value="file2">courier-service/internal/core/server.go (0.0%)</option>
+				
+				<option value="file3">courier-service/internal/handlers/common.go (100.0%)</option>
+				
+				<option value="file4">courier-service/internal/handlers/courier.go (100.0%)</option>
+				
+				<option value="file5">courier-service/internal/handlers/delivery.go (100.0%)</option>
+				
+				<option value="file6">courier-service/internal/handlers/errors.go (100.0%)</option>
+				
+				<option value="file7">courier-service/internal/handlers/mocks/usecase_mock.go (100.0%)</option>
+				
+				<option value="file8">courier-service/internal/handlers/utils.go (100.0%)</option>
+				
+				<option value="file9">courier-service/internal/repository/courier.go (82.2%)</option>
+				
+				<option value="file10">courier-service/internal/repository/delivery.go (84.8%)</option>
+				
+				<option value="file11">courier-service/internal/repository/repository_test_suite.go (82.8%)</option>
+				
+				<option value="file12">courier-service/internal/repository/txrunner.go (88.9%)</option>
+				
+				<option value="file13">courier-service/internal/routing/courier.go (0.0%)</option>
+				
+				<option value="file14">courier-service/internal/routing/delivery.go (0.0%)</option>
+				
+				<option value="file15">courier-service/internal/routing/root.go (0.0%)</option>
+				
+				<option value="file16">courier-service/internal/usecase/courier.go (90.9%)</option>
+				
+				<option value="file17">courier-service/internal/usecase/delivery.go (89.7%)</option>
+				
+				<option value="file18">courier-service/internal/usecase/dto.go (76.5%)</option>
+				
+				<option value="file19">courier-service/internal/usecase/mocks/repository_mock.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package core
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "time"
+
+        "github.com/joho/godotenv"
+        "github.com/urfave/cli/v3"
+)
+
+type Config struct {
+        Port       string
+        DBHost     string
+        DBPort     string
+        DBUser     string
+        DBPassword string
+        DBName     string
+        DBSSLMode  string
+}
+
+var (
+        PhoneRegex                = `^\+[0-9]{11}$`
+        CheckFreeCouriersInterval = 10 * time.Second
+)
+
+func LoadConfig() (*Config, error) <span class="cov0" title="0">{
+        _ = godotenv.Load(".env")
+
+        cfg := &amp;Config{}
+
+        if err := getCmd(cfg).Run(context.Background(), os.Args); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">cfg.Port = ":" + cfg.Port
+
+        cfg.DBHost = os.Getenv("POSTGRES_HOST")
+        cfg.DBPort = os.Getenv("POSTGRES_PORT")
+        cfg.DBUser = os.Getenv("POSTGRES_USER")
+        cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
+        cfg.DBName = os.Getenv("POSTGRES_DB")
+        cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+
+        return cfg, nil</span>
+}
+
+func getCmd(cfg *Config) *cli.Command <span class="cov0" title="0">{
+        return &amp;cli.Command{
+                Flags: []cli.Flag{
+                        &amp;cli.StringFlag{
+                                Name:        "port",
+                                Aliases:     []string{"p"},
+                                Value:       cfg.Port,
+                                Usage:       "server port",
+                                Sources:     cli.EnvVars("PORT"),
+                                Destination: &amp;cfg.Port,
+                        },
+                },
+                Action: func(ctx context.Context, cmd *cli.Command) error </span><span class="cov0" title="0">{ return nil }</span>,
+        }
+}
+
+func (c *Config) DBConnString() string <span class="cov0" title="0">{
+        ssl := c.DBSSLMode
+        if ssl == "" </span><span class="cov0" title="0">{
+                ssl = "disable"
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf(
+                "postgres://%s:%s@%s:%s/%s?sslmode=%s",
+                c.DBUser,
+                c.DBPassword,
+                c.DBHost,
+                c.DBPort,
+                c.DBName,
+                ssl,
+        )</span>
+}
+
+func DBConnStringFromEnv() string <span class="cov0" title="0">{
+        cfg, _ := LoadConfig()
+        return fmt.Sprintf(
+                "postgres://%s:%s@%s:%s/%s?sslmode=%s",
+                cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
+        )
+}</span>
+
+func TestDBConnString() string <span class="cov0" title="0">{
+        // Игнорируем ошибку если .env не найден - переменные могут быть в окружении
+        _ = godotenv.Load(".env")
+
+        host := getEnvOrDefault("POSTGRES_HOST_TEST", "localhost")
+        port := getEnvOrDefault("POSTGRES_PORT_TEST", "5432")
+        user := getEnvOrDefault("POSTGRES_USER_TEST", "postgres")
+        password := getEnvOrDefault("POSTGRES_PASSWORD_TEST", "postgres")
+        dbname := getEnvOrDefault("POSTGRES_DB_TEST", "courier_service_test")
+        sslmode := "disable"
+
+        connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+                user,
+                password,
+                host,
+                port,
+                dbname,
+                sslmode,
+        )
+
+        log.Printf("TestDBConnString: %s", connStr)
+        return connStr
+}</span>
+
+func getEnvOrDefault(key, defaultValue string) string <span class="cov0" title="0">{
+        if value := os.Getenv(key); value != "" </span><span class="cov0" title="0">{
+                return value
+        }</span>
+        <span class="cov0" title="0">return defaultValue</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package core
+
+import (
+        "context"
+        "log"
+        "time"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+func MustInitPool() *pgxpool.Pool <span class="cov0" title="0">{
+        appCfg, _ := LoadConfig()
+        cfg, err := pgxpool.ParseConfig(appCfg.DBConnString())
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">cfg.MaxConns = 10
+        cfg.MinConns = 2
+        cfg.MaxConnLifetime = time.Hour
+        cfg.MaxConnIdleTime = time.Minute * 30
+
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        pool, err := pgxpool.NewWithConfig(ctx, cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">pingAttemptLimit := 3
+        var pingErr error
+        for i := 0; i &lt; pingAttemptLimit; i++ </span><span class="cov0" title="0">{
+                pingCtx, pingCancel := context.WithTimeout(ctx, 5*time.Second)
+                pingErr = pool.Ping(pingCtx)
+                pingCancel()
+                if pingErr == nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">log.Printf("db ping attempt %d failed: %v", i+1, pingErr)
+                if i &lt; pingAttemptLimit </span><span class="cov0" title="0">{
+                        time.Sleep(500 * time.Millisecond)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if pingErr != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Unable to ping database")
+        }</span>
+        <span class="cov0" title="0">log.Println("Database connection pool established")
+
+        return pool</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package core
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log"
+        "net/http"
+        "os/signal"
+        "syscall"
+        "time"
+
+        "github.com/go-chi/chi/v5"
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+func StartServer(dbPool *pgxpool.Pool, port string, appRoutes *chi.Mux) <span class="cov0" title="0">{
+        srv := &amp;http.Server{
+                Addr:    port,
+                Handler: appRoutes,
+        }
+        log.Printf("Server started on %s\n", srv.Addr)
+        serverErr := make(chan error, 1)
+
+        go func() </span><span class="cov0" title="0">{
+                if err := srv.ListenAndServe(); err != nil &amp;&amp; errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                        serverErr &lt;- err
+                        close(serverErr)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">waitGracefulShutdown(srv, dbPool, serverErr)
+
+        log.Println("Shutting down...")</span>
+}
+
+func waitGracefulShutdown(srv *http.Server, dbPool *pgxpool.Pool, serverErr &lt;-chan error) <span class="cov0" title="0">{
+        ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+        defer stop()
+
+        var reason string
+
+        select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                reason = "SIGINT or SIGTERM received"</span>
+        case err := &lt;-serverErr:<span class="cov0" title="0">
+                reason = fmt.Sprintf("Server error: %v", err)</span>
+        }
+
+        <span class="cov0" title="0">log.Println("Shutting down...", reason)
+
+        shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer shutdownCancel()
+
+        if err := srv.Shutdown(shutdownCtx); err != nil </span><span class="cov0" title="0">{
+                log.Printf("Error shutting down server: %v", err)
+        }</span> else<span class="cov0" title="0"> {
+                log.Println("Server shutdown")
+        }</span>
+        <span class="cov0" title="0">dbPool.Close()
+        log.Println("Database connection pool closed")
+        log.Println("Service shutdown")</span>
+}</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handlers
+
+import (
+        "net/http"
+        
+        "encoding/json"
+)
+
+func Ping(w http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
+}</span>
+
+func Healthcheck(w http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        w.WriteHeader(http.StatusNoContent)
+}</span>
+
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "errors"
+        "net/http"
+        "strconv"
+
+        "github.com/go-chi/chi/v5"
+
+        "courier-service/internal/model"
+        "courier-service/internal/usecase"
+)
+
+type CourierController struct {
+        useCase сourierUseCase
+}
+
+func NewCourierController(useCase сourierUseCase) *CourierController <span class="cov8" title="1">{
+        return &amp;CourierController{useCase: useCase}
+}</span>
+
+func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+        if err != nil </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, ErrInvalidID)
+                return
+        }</span>
+
+        <span class="cov8" title="1">courier, err := c.useCase.GetCourierById(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, usecase.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
+                        return
+                }</span>
+                <span class="cov8" title="1">respondInternalServerError(w, err)
+                return</span>
+        }
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusOK, courier)</span>
+}
+
+func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        couriers, err := c.useCase.GetAllCouriers(ctx)
+        if err != nil </span><span class="cov8" title="1">{
+                respondInternalServerError(w, err)
+                return
+        }</span>
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusOK, couriers)</span>
+}
+
+func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req model.CourierCreateRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">id, err := c.useCase.CreateCourier(ctx, &amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                handleCreateError(w, err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusCreated, map[string]string{
+                "id":      strconv.FormatInt(id, 10),
+                "message": "Courier created successfully",
+        })</span>
+}
+
+func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req model.CourierUpdateRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">if req.ID == 0 </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, ErrIDRequired)
+                return
+        }</span>
+
+        <span class="cov8" title="1">err := c.useCase.UpdateCourier(ctx, &amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                handleUpdateError(w, err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusOK, map[string]string{
+                "message": "Courier updated successfully",
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package handlers
+
+import (
+        "net/http"
+        "encoding/json"
+        "courier-service/internal/model"
+)
+
+type DeliveryController struct {
+        usecase deliveryUseCase
+}
+
+func NewDeliveryController(usecase deliveryUseCase) *DeliveryController <span class="cov8" title="1">{
+        return &amp;DeliveryController{usecase: usecase}
+}</span>
+
+func (c *DeliveryController) AssignDelivery(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req model.DeliveryAssignRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, err.Error())
+                return 
+        }</span>
+        
+        <span class="cov8" title="1">delivery, err := c.usecase.AssignDelivery(ctx, &amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                handleAssignDeliveryError(w, err)
+                return
+        }</span>
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusOK, delivery)</span>
+}
+
+func (c *DeliveryController) UnassignDelivery(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req model.DeliveryUnassignRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                respondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        
+        <span class="cov8" title="1">delivery, err := c.usecase.UnassignDelivery(ctx, &amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                handleUnassignDeliveryError(w, err)
+                return
+        }</span>
+        <span class="cov8" title="1">respondWithJSON(w, http.StatusOK, delivery)</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">package handlers
+
+import (
+        "log"
+        "net/http"
+
+        "courier-service/internal/usecase"
+)
+
+const (
+        ErrInvalidID             = "Invalid id"
+        ErrCourierNotFound       = "Courier not found"
+        ErrMissingRequiredFields = "Missing required fields"
+        ErrInvalidPhoneNumber    = "Invalid phone number"
+        ErrUnknownTransportType  = "Unknown transport type"
+        ErrPhoneAlreadyExists    = "Phone number already exists"
+        ErrInternalServer        = "Internal server error"
+        ErrIDRequired            = "Id is required"
+        ErrCouriersBusy          = "All couriers are busy"
+        ErrOrderIDExists         = "Order id already exists"
+        ErrNoCourierForOrder     = "No courier found for the order"
+        ErrOrderIDNotFound       = "Order id not found"
+)
+
+func respondInternalServerError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        log.Printf("Internal server error: %v\n", err)
+        respondWithError(w, http.StatusInternalServerError, ErrInternalServer)
+}</span>
+
+func handleCreateError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case usecase.ErrInvalidCreate:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case usecase.ErrInvalidPhoneNumber:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrInvalidPhoneNumber)</span>
+        case usecase.ErrUnknownTransportType:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrUnknownTransportType)</span>
+        case usecase.ErrPhoneNumberExists:<span class="cov8" title="1">
+                respondWithError(w, http.StatusConflict, ErrPhoneAlreadyExists)</span>
+        default:<span class="cov8" title="1">
+                respondInternalServerError(w, err)</span>
+        }
+}
+
+func handleUpdateError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case usecase.ErrInvalidUpdate:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case usecase.ErrInvalidPhoneNumber:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrInvalidPhoneNumber)</span>
+        case usecase.ErrUnknownTransportType:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrUnknownTransportType)</span>
+        case usecase.ErrPhoneNumberExists:<span class="cov8" title="1">
+                respondWithError(w, http.StatusConflict, ErrPhoneAlreadyExists)</span>
+        case usecase.ErrCourierNotFound:<span class="cov8" title="1">
+                respondWithError(w, http.StatusNotFound, ErrCourierNotFound)</span>
+        default:<span class="cov8" title="1">
+                respondInternalServerError(w, err)</span>
+        }
+}
+
+func handleAssignDeliveryError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case usecase.ErrCouriersBusy:<span class="cov8" title="1">
+                respondWithError(w, http.StatusConflict, ErrCouriersBusy)</span>
+        case usecase.ErrNoOrderID:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case usecase.ErrOrderIDExists:<span class="cov8" title="1">
+                respondWithError(w, http.StatusConflict, ErrOrderIDExists)</span>
+        default:<span class="cov8" title="1">
+                respondInternalServerError(w, err)</span>
+        }
+}
+
+func handleUnassignDeliveryError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case usecase.ErrNoOrderID:<span class="cov8" title="1">
+                respondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case usecase.ErrOrderIDNotFound:<span class="cov8" title="1">
+                respondWithError(w, http.StatusNotFound, ErrOrderIDNotFound)</span>
+        default:<span class="cov8" title="1">
+                respondInternalServerError(w, err)</span>
+        }
+}</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: internal/handlers/contract.go
+
+// Package mocks is a generated GoMock package.
+package mocks
+
+import (
+        context "context"
+        model "courier-service/internal/model"
+        reflect "reflect"
+
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockсourierUseCase is a mock of сourierUseCase interface.
+type MockсourierUseCase struct {
+        ctrl     *gomock.Controller
+        recorder *MockсourierUseCaseMockRecorder
+}
+
+// MockсourierUseCaseMockRecorder is the mock recorder for MockсourierUseCase.
+type MockсourierUseCaseMockRecorder struct {
+        mock *MockсourierUseCase
+}
+
+// NewMockсourierUseCase creates a new mock instance.
+func NewMockсourierUseCase(ctrl *gomock.Controller) *MockсourierUseCase <span class="cov8" title="1">{
+        mock := &amp;MockсourierUseCase{ctrl: ctrl}
+        mock.recorder = &amp;MockсourierUseCaseMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockсourierUseCase) EXPECT() *MockсourierUseCaseMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// CreateCourier mocks base method.
+func (m *MockсourierUseCase) CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateCourier", ctx, req)
+        ret0, _ := ret[0].(int64)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateCourier indicates an expected call of CreateCourier.
+func (mr *MockсourierUseCaseMockRecorder) CreateCourier(ctx, req interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).CreateCourier), ctx, req)
+}</span>
+
+// GetAllCouriers mocks base method.
+func (m *MockсourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetAllCouriers", ctx)
+        ret0, _ := ret[0].([]model.Courier)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetAllCouriers indicates an expected call of GetAllCouriers.
+func (mr *MockсourierUseCaseMockRecorder) GetAllCouriers(ctx interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCouriers", reflect.TypeOf((*MockсourierUseCase)(nil).GetAllCouriers), ctx)
+}</span>
+
+// GetCourierById mocks base method.
+func (m *MockсourierUseCase) GetCourierById(ctx context.Context, id int64) (*model.Courier, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetCourierById", ctx, id)
+        ret0, _ := ret[0].(*model.Courier)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetCourierById indicates an expected call of GetCourierById.
+func (mr *MockсourierUseCaseMockRecorder) GetCourierById(ctx, id interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCourierById", reflect.TypeOf((*MockсourierUseCase)(nil).GetCourierById), ctx, id)
+}</span>
+
+// UpdateCourier mocks base method.
+func (m *MockсourierUseCase) UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UpdateCourier", ctx, req)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// UpdateCourier indicates an expected call of UpdateCourier.
+func (mr *MockсourierUseCaseMockRecorder) UpdateCourier(ctx, req interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).UpdateCourier), ctx, req)
+}</span>
+
+// MockdeliveryUseCase is a mock of deliveryUseCase interface.
+type MockdeliveryUseCase struct {
+        ctrl     *gomock.Controller
+        recorder *MockdeliveryUseCaseMockRecorder
+}
+
+// MockdeliveryUseCaseMockRecorder is the mock recorder for MockdeliveryUseCase.
+type MockdeliveryUseCaseMockRecorder struct {
+        mock *MockdeliveryUseCase
+}
+
+// NewMockdeliveryUseCase creates a new mock instance.
+func NewMockdeliveryUseCase(ctrl *gomock.Controller) *MockdeliveryUseCase <span class="cov8" title="1">{
+        mock := &amp;MockdeliveryUseCase{ctrl: ctrl}
+        mock.recorder = &amp;MockdeliveryUseCaseMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockdeliveryUseCase) EXPECT() *MockdeliveryUseCaseMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// AssignDelivery mocks base method.
+func (m *MockdeliveryUseCase) AssignDelivery(ctx context.Context, req *model.DeliveryAssignRequest) (model.DeliveryAssignResponse, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "AssignDelivery", ctx, req)
+        ret0, _ := ret[0].(model.DeliveryAssignResponse)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// AssignDelivery indicates an expected call of AssignDelivery.
+func (mr *MockdeliveryUseCaseMockRecorder) AssignDelivery(ctx, req interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignDelivery", reflect.TypeOf((*MockdeliveryUseCase)(nil).AssignDelivery), ctx, req)
+}</span>
+
+// UnassignDelivery mocks base method.
+func (m *MockdeliveryUseCase) UnassignDelivery(ctx context.Context, req *model.DeliveryUnassignRequest) (model.DeliveryUnassignResponse, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UnassignDelivery", ctx, req)
+        ret0, _ := ret[0].(model.DeliveryUnassignResponse)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// UnassignDelivery indicates an expected call of UnassignDelivery.
+func (mr *MockdeliveryUseCaseMockRecorder) UnassignDelivery(ctx, req interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnassignDelivery", reflect.TypeOf((*MockdeliveryUseCase)(nil).UnassignDelivery), ctx, req)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "net/http"
+)
+
+func respondWithJSON(w http.ResponseWriter, httpStatus int, data interface{}) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(httpStatus)
+        json.NewEncoder(w).Encode(data)
+}</span>
+
+func respondWithError(w http.ResponseWriter, httpStatus int, message string) <span class="cov8" title="1">{
+        respondWithJSON(w, httpStatus, map[string]string{"error": message})
+}</span>
+
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package repository
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log"
+        "strings"
+        "time"
+
+        sq "github.com/Masterminds/squirrel"
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgxpool"
+
+        "courier-service/internal/model"
+)
+
+type CourierRepository struct {
+        pool *pgxpool.Pool
+}
+
+func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository <span class="cov8" title="1">{
+        return &amp;CourierRepository{pool: pool}
+}</span>
+
+func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Select("id", "name", "phone", "status", "transport_type").
+                From("couriers").
+                Where(sq.Eq{"id": id}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">var c model.CourierDB
+
+        err = r.pool.QueryRow(ctx, query, args...).Scan(
+                &amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType,
+        )
+
+        if errors.Is(err, pgx.ErrNoRows) </span><span class="cov8" title="1">{
+                return nil, ErrCourierNotFound
+        }</span>
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;c, nil</span>
+}
+
+func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Select("id", "name", "phone", "status", "transport_type").
+                From("couriers").
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return []model.CourierDB{}, err
+        }</span>
+
+        <span class="cov8" title="1">rows, err := r.pool.Query(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return []model.CourierDB{}, err
+        }</span>
+
+        <span class="cov8" title="1">defer rows.Close()
+
+        var couriers []model.CourierDB
+        for rows.Next() </span><span class="cov8" title="1">{
+                var c model.CourierDB
+                err = rows.Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
+                if err != nil </span><span class="cov0" title="0">{
+                        return []model.CourierDB{}, err
+                }</span>
+                <span class="cov8" title="1">couriers = append(couriers, c)</span>
+        }
+        <span class="cov8" title="1">return couriers, nil</span>
+}
+
+func (r *CourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) <span class="cov8" title="1">{
+        var id int64
+        queryBuilder := sq.
+                Insert("couriers").
+                Columns("name", "phone", "status", "transport_type", "created_at", "updated_at").
+                Values(courier.Name, courier.Phone, courier.Status, courier.TransportType, time.Now(), time.Now()).
+                Suffix("RETURNING id").
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;id)
+        if err != nil </span><span class="cov8" title="1">{
+                if strings.Contains(err.Error(), "duplicate key value") </span><span class="cov8" title="1">{
+                        return 0, ErrPhoneNumberExists
+                }</span>
+                <span class="cov0" title="0">return 0, fmt.Errorf("database error: %w", err)</span>
+        }
+
+        <span class="cov8" title="1">return id, nil</span>
+}
+
+func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error <span class="cov8" title="1">{
+        sets := sq.Eq{"updated_at": time.Now()}
+        if courier.Name != "" </span><span class="cov8" title="1">{
+                sets["name"] = courier.Name
+        }</span>
+        <span class="cov8" title="1">if courier.Phone != "" </span><span class="cov0" title="0">{
+                sets["phone"] = courier.Phone
+        }</span>
+        <span class="cov8" title="1">if courier.Status != "" </span><span class="cov8" title="1">{
+                sets["status"] = courier.Status
+        }</span>
+        <span class="cov8" title="1">if courier.TransportType != "" </span><span class="cov8" title="1">{
+                sets["transport_type"] = courier.TransportType
+        }</span>
+        <span class="cov8" title="1">if len(sets) == 1 </span><span class="cov8" title="1">{
+                return ErrNothingToUpdate
+        }</span>
+        <span class="cov8" title="1">queryBuilder := sq.
+                Update("couriers").
+                SetMap(sets).
+                Where(sq.Eq{"id": courier.ID}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">result, err := r.pool.Exec(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("database error: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if result.RowsAffected() == 0 </span><span class="cov8" title="1">{
+                return ErrCourierNotFound
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Select("c.id", "c.name", "c.phone", "c.status", "c.transport_type").
+                From("couriers c").
+                LeftJoin("delivery d on c.id = d.courier_id").
+                Where(sq.Eq{"c.status": "available"}).
+                GroupBy("c.id").
+                OrderBy("COUNT(d.id) asc").
+                Limit(1).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">var c model.CourierDB
+        err = r.pool.QueryRow(ctx, query, args...).
+                Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, pgx.ErrNoRows) </span><span class="cov8" title="1">{
+                        return nil, ErrCouriersBusy
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">return &amp;c, nil</span>
+}
+
+func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error <span class="cov8" title="1">{
+        sm := sq.Eq{
+                "updated_at": time.Now(),
+                "status":     "available",
+        }
+
+        queryBuilder := sq.
+                Update("couriers c").
+                SetMap(sm).
+                Where(sq.Expr("c.status = 'busy'")).
+                Where(sq.Expr(`
+                        EXISTS (
+                                SELECT 1
+                                FROM delivery d
+                                WHERE d.courier_id = c.id
+                                AND d.assigned_at = (
+                                        SELECT MAX(d2.assigned_at)
+                                        FROM delivery d2
+                                        WHERE d2.courier_id = c.id
+                                )
+                                AND d.deadline &lt; NOW()
+                        )
+                `)).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">ct, err := r.pool.Exec(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">log.Printf("FreeCouriers updated rows: %d", ct.RowsAffected())
+        return nil</span>
+}
+
+func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Select("count(*)").
+                From("couriers").
+                Where(sq.Eq{"phone": phone}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">var count int64
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;count)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov8" title="1">return count &gt; 0, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package repository
+
+import (
+        "context"
+        "courier-service/internal/model"
+        "errors"
+        "strings"
+
+        sq "github.com/Masterminds/squirrel"
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+type DeliveryRepository struct {
+        pool *pgxpool.Pool
+}
+
+func NewDeliveryRepository(pool *pgxpool.Pool) *DeliveryRepository <span class="cov8" title="1">{
+        return &amp;DeliveryRepository{pool: pool}
+}</span>
+
+func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Insert("delivery").
+                Columns("order_id", "courier_id", "assigned_at", "deadline").
+                Values(delivery.OrderID, delivery.CourierID, delivery.AssignedAt, delivery.Deadline).
+                Suffix("RETURNING id, courier_id, order_id, deadline").
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">err = r.pool.QueryRow(ctx, query, args...).Scan(
+                &amp;delivery.ID, &amp;delivery.CourierID, &amp;delivery.OrderID, &amp;delivery.Deadline,
+        )
+
+        if err != nil </span><span class="cov8" title="1">{
+                if strings.Contains(err.Error(), "duplicate key value") </span><span class="cov8" title="1">{
+                        return nil, ErrOrderIDExists
+                }</span>
+                <span class="cov8" title="1">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">out := model.Delivery(*delivery)
+        return &amp;out, nil</span>
+}
+
+func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (*model.DeliveryDB, error) <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Select("d.order_id", "c.id").
+                From("delivery d").
+                Join("couriers c on d.courier_id = c.id").
+                Where(sq.Eq{"d.order_id": orderID}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">var delivery model.DeliveryDB
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;delivery.OrderID, &amp;delivery.CourierID)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, pgx.ErrNoRows) </span><span class="cov8" title="1">{
+                        return nil, ErrOrderIDNotFound
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">return &amp;delivery, nil</span>
+}
+
+func (r *DeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error <span class="cov8" title="1">{
+        queryBuilder := sq.
+                Delete("delivery").
+                Where(sq.Eq{"order_id": orderID}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">result, err := r.pool.Exec(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if result.RowsAffected() == 0 </span><span class="cov8" title="1">{
+                return ErrOrderIDNotFound
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package repository
+
+import (
+        "context"
+        "courier-service/internal/model"
+        "fmt"
+        "os"
+        "path/filepath"
+        "strings"
+        "time"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+        "github.com/stretchr/testify/suite"
+        "github.com/testcontainers/testcontainers-go"
+        "github.com/testcontainers/testcontainers-go/modules/postgres"
+        "github.com/testcontainers/testcontainers-go/wait"
+)
+
+type RepositoryTestSuite struct {
+        suite.Suite
+        pool         *pgxpool.Pool
+        courierRepo  *CourierRepository
+        deliveryRepo *DeliveryRepository
+        pgContainer  *postgres.PostgresContainer
+}
+
+func (s *RepositoryTestSuite) SetupSuite() <span class="cov8" title="1">{
+        ctx := context.Background()
+
+        pgContainer, err := postgres.RunContainer(ctx,
+                testcontainers.WithImage("postgres:15-alpine"),
+                postgres.WithDatabase("test_db"),
+                postgres.WithUsername("testuser"),
+                postgres.WithPassword("testpass"),
+                testcontainers.WithWaitStrategy(
+                        wait.ForLog("database system is ready to accept connections").
+                                WithOccurrence(2).
+                                WithStartupTimeout(60*time.Second)),
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to start postgres container: %v", err)
+        }</span>
+        <span class="cov8" title="1">s.pgContainer = pgContainer
+
+        connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+        if err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to get connection string: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">pool, err := pgxpool.New(ctx, connStr)
+        if err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to connect to database: %v", err)
+        }</span>
+        <span class="cov8" title="1">s.pool = pool
+
+        if err := s.runMigrations(ctx); err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to run migrations: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">s.courierRepo = NewCourierRepository(pool)
+        s.deliveryRepo = NewDeliveryRepository(pool)</span>
+}
+
+func (s *RepositoryTestSuite) TearDownSuite() <span class="cov8" title="1">{
+        ctx := context.Background()
+
+        if s.pool != nil </span><span class="cov8" title="1">{
+                s.pool.Close()
+        }</span>
+
+        <span class="cov8" title="1">if s.pgContainer != nil </span><span class="cov8" title="1">{
+                if err := s.pgContainer.Terminate(ctx); err != nil </span><span class="cov0" title="0">{
+                        s.T().Logf("Failed to terminate container: %v", err)
+                }</span>
+        }
+}
+
+func (s *RepositoryTestSuite) TearDownTest() <span class="cov8" title="1">{
+        _, err := s.pool.Exec(context.Background(),
+                "TRUNCATE TABLE delivery, couriers RESTART IDENTITY CASCADE")
+        if err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to truncate tables: %v", err)
+        }</span>
+}
+
+func (s *RepositoryTestSuite) createTestCourier(name, phone, transportType string) int64 <span class="cov8" title="1">{
+        courier := &amp;model.CourierDB{
+                Name:          name,
+                Phone:         phone,
+                Status:        "available",
+                TransportType: transportType,
+        }
+        id, err := s.courierRepo.CreateCourier(context.Background(), courier)
+        if err != nil </span><span class="cov0" title="0">{
+                s.T().Fatalf("Failed to create test courier: %v", err)
+        }</span>
+        <span class="cov8" title="1">return id</span>
+}
+
+func (s *RepositoryTestSuite) runMigrations(ctx context.Context) error <span class="cov8" title="1">{
+        migrationsDir := filepath.Join("..", "..", "migrations")
+
+        migrations, err := filepath.Glob(filepath.Join(migrationsDir, "*.sql"))
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to find migrations: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">for _, migration := range migrations </span><span class="cov8" title="1">{
+                sqlContent, err := os.ReadFile(migration)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to read migration %s: %w", migration, err)
+                }</span>
+
+                <span class="cov8" title="1">upSQL := extractUpMigration(string(sqlContent))
+                if upSQL == "" </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">fmt.Println("Executing migration: ", migration)
+                if _, err := s.pool.Exec(ctx, upSQL); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to execute migration %s: %w", migration, err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func extractUpMigration(content string) string <span class="cov8" title="1">{
+        lines := strings.Split(content, "\n")
+        var upSQL []string
+        inUp := false
+        inStatement := false
+
+        for _, line := range lines </span><span class="cov8" title="1">{
+                if strings.Contains(line, "-- +goose Up") </span><span class="cov8" title="1">{
+                        inUp = true
+                        continue</span>
+                }
+                <span class="cov8" title="1">if strings.Contains(line, "-- +goose Down") </span><span class="cov8" title="1">{
+                        break</span>
+                }
+                <span class="cov8" title="1">if strings.Contains(line, "-- +goose StatementBegin") </span><span class="cov8" title="1">{
+                        inStatement = true
+                        continue</span>
+                }
+                <span class="cov8" title="1">if strings.Contains(line, "-- +goose StatementEnd") </span><span class="cov8" title="1">{
+                        inStatement = false
+                        continue</span>
+                }
+                <span class="cov8" title="1">if inUp &amp;&amp; inStatement </span><span class="cov8" title="1">{
+                        upSQL = append(upSQL, line)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return strings.TrimSpace(strings.Join(upSQL, "\n"))</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package repository
+
+import (
+        "context"
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+type pgxTxRunner struct {
+    pool *pgxpool.Pool
+}
+
+func NewTxRunner(pool *pgxpool.Pool) *pgxTxRunner <span class="cov8" title="1">{
+    return &amp;pgxTxRunner{pool: pool}
+}</span>
+
+func (r *pgxTxRunner) Run(ctx context.Context, fn func(ctx context.Context) error) error <span class="cov8" title="1">{
+    tx, err := r.pool.Begin(ctx)
+    if err != nil </span><span class="cov0" title="0">{
+        return err
+    }</span>
+
+    <span class="cov8" title="1">ctxTx := context.WithValue(ctx, txKey{}, tx)
+
+    if err := fn(ctxTx); err != nil </span><span class="cov8" title="1">{
+        _ = tx.Rollback(ctx)
+        return err
+    }</span>
+    <span class="cov8" title="1">return tx.Commit(ctx)</span>
+}
+
+type txKey struct{}</pre>
+		
+		<pre class="file" id="file13" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+
+        "courier-service/internal/handlers"
+)
+
+func registerCourierRoutes(r chi.Router, c *handlers.CourierController) <span class="cov0" title="0">{
+        r.Get("/couriers", c.GetAllCouriers)
+        r.Route("/courier", func(r chi.Router) </span><span class="cov0" title="0">{
+                r.Get("/{id}", c.GetCourierById)
+                r.Post("/", c.CreateCourier)
+                r.Put("/", c.UpdateCourier)
+        }</span>)
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package routing
+
+import (
+        "courier-service/internal/handlers"
+        "github.com/go-chi/chi/v5"
+)
+
+func registerDeliveryRoutes(r chi.Router, c *handlers.DeliveryController) <span class="cov0" title="0">{
+        r.Route("/delivery", func(r chi.Router) </span><span class="cov0" title="0">{
+                r.Post("/assign", c.AssignDelivery)
+                r.Post("/unassign", c.UnassignDelivery)
+        }</span>)
+}</pre>
+		
+		<pre class="file" id="file15" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+        "github.com/go-chi/chi/v5/middleware"
+
+        "courier-service/internal/handlers"
+)
+func Router(
+        courierController *handlers.CourierController,
+        deliveryController *handlers.DeliveryController,
+) *chi.Mux <span class="cov0" title="0">{
+        r := chi.NewRouter()
+        r.Use(middleware.Logger)
+        registerCourierRoutes(r, courierController)
+        registerDeliveryRoutes(r, deliveryController)
+        return r
+}</pre>
+		
+		<pre class="file" id="file16" style="display: none">package usecase
+
+import (
+        "context"
+        "courier-service/internal/core"
+        "courier-service/internal/model"
+        "courier-service/internal/repository"
+        "errors"
+        "log"
+        "regexp"
+        "time"
+)
+
+type CourierUseCase struct {
+        repository сourierRepository
+}
+
+func NewCourierUseCase(repository сourierRepository) *CourierUseCase <span class="cov8" title="1">{
+        return &amp;CourierUseCase{repository: repository}
+}</span>
+
+func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) <span class="cov0" title="0">{
+        CheckFreeCouriersWithInterval(ctx, u, core.CheckFreeCouriersInterval)
+}</span>
+
+func CheckFreeCouriersWithInterval(ctx context.Context, u *CourierUseCase, interval time.Duration) <span class="cov8" title="1">{
+        ticker := time.NewTicker(interval)
+        defer ticker.Stop()
+
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov8" title="1">
+                        return</span>
+                case t := &lt;-ticker.C:<span class="cov8" title="1">
+                        if err := u.repository.FreeCouriersWithInterval(ctx); err != nil </span><span class="cov8" title="1">{
+                                log.Printf("Failed to check free couriers: %v", err)
+                        }</span>
+                        <span class="cov8" title="1">log.Printf("Checked free couriers at %s", t.Format(time.RFC3339))</span>
+                }
+        }
+}
+
+func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (*model.Courier, error) <span class="cov8" title="1">{
+        courierDB, err := u.repository.GetCourierById(ctx, id)
+
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, repository.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        return nil, ErrCourierNotFound
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">courier := model.Courier(*courierDB)
+        return &amp;courier, nil</span>
+}
+
+func (u CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) <span class="cov8" title="1">{
+        couriersDB, err := u.repository.GetAllCouriers(ctx)
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">couriers := make([]model.Courier, len(couriersDB))
+        for i, c := range couriersDB </span><span class="cov8" title="1">{
+                couriers[i] = model.Courier(c)
+        }</span>
+
+        <span class="cov8" title="1">return couriers, nil</span>
+}
+
+func (u CourierUseCase) CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error) <span class="cov8" title="1">{
+        if req.Name == "" || req.Phone == "" || req.Status == "" || req.TransportType == "" </span><span class="cov8" title="1">{
+                return 0, ErrInvalidCreate
+        }</span>
+
+        <span class="cov8" title="1">if _, err := transportTypeTime(req.TransportType); err != nil </span><span class="cov8" title="1">{
+                return 0, ErrUnknownTransportType
+        }</span>
+
+        <span class="cov8" title="1">if !ValidPhoneNumber(req.Phone) </span><span class="cov8" title="1">{
+                return 0, ErrInvalidPhoneNumber
+        }</span>
+
+        <span class="cov8" title="1">if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, req.Phone); phoneExists </span><span class="cov8" title="1">{
+                return 0, ErrPhoneNumberExists
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">courierDB := courierCreateRequestToCourierDB(*req)
+        return u.repository.CreateCourier(ctx, &amp;courierDB)</span>
+}
+
+func (u CourierUseCase) UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error <span class="cov8" title="1">{
+        if req.Name == nil &amp;&amp; req.Phone == nil &amp;&amp; req.Status == nil &amp;&amp; req.TransportType == nil </span><span class="cov8" title="1">{
+                return ErrInvalidUpdate
+        }</span>
+        <span class="cov8" title="1">if req.TransportType != nil </span><span class="cov8" title="1">{
+                if _, err := transportTypeTime(*req.TransportType); err != nil </span><span class="cov8" title="1">{
+                        return ErrUnknownTransportType
+                }</span>
+        }
+        <span class="cov8" title="1">if req.Phone != nil </span><span class="cov8" title="1">{
+                if !ValidPhoneNumber(*req.Phone) </span><span class="cov8" title="1">{
+                        return ErrInvalidPhoneNumber
+                }</span>
+                <span class="cov8" title="1">if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, *req.Phone); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span> else<span class="cov8" title="1"> if phoneExists </span><span class="cov8" title="1">{
+                        return ErrPhoneNumberExists
+                }</span>
+        }
+
+        <span class="cov8" title="1">update := courierUpdateRequestToCourierDB(*req)
+        if err := u.repository.UpdateCourier(ctx, &amp;update); err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, repository.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        return ErrCourierNotFound
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+func ValidPhoneNumber(phone string) bool <span class="cov8" title="1">{
+        return regexp.MustCompile(core.PhoneRegex).MatchString(phone)
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package usecase
+
+import (
+        "context"
+        "courier-service/internal/model"
+        "courier-service/internal/repository"
+        "errors"
+        "time"
+)
+
+type DelieveryUseCase struct {
+        courierRepository  сourierRepository
+        deliveryRepository deliveryRepository
+        txRunner           txRunner
+}
+
+func NewDelieveryUseCase(
+        courierRepository сourierRepository,
+        deliveryRepository deliveryRepository,
+        txRunner txRunner,
+) *DelieveryUseCase <span class="cov8" title="1">{
+        return &amp;DelieveryUseCase{
+                courierRepository:  courierRepository,
+                deliveryRepository: deliveryRepository,
+                txRunner:           txRunner,
+        }
+}</span>
+
+func transportTypeTime(ttype string) (time.Duration, error) <span class="cov8" title="1">{
+        switch ttype </span>{
+        case "car":<span class="cov8" title="1">
+                return 20 * time.Second, nil</span>
+        case "scooter":<span class="cov8" title="1">
+                return 40 * time.Second, nil</span>
+        case "on_foot":<span class="cov8" title="1">
+                return 60 * time.Second, nil</span>
+        default:<span class="cov8" title="1">
+                return 0, ErrUnknownTransportType</span>
+        }
+}
+
+func (u *DelieveryUseCase) AssignDelivery(
+        ctx context.Context,
+        req *model.DeliveryAssignRequest,
+) (model.DeliveryAssignResponse, error) <span class="cov8" title="1">{
+        if req.OrderID == "" </span><span class="cov8" title="1">{
+                return model.DeliveryAssignResponse{}, ErrNoOrderID
+        }</span>
+
+        <span class="cov8" title="1">var resp model.DeliveryAssignResponse
+
+        err := u.txRunner.Run(ctx, func(txCtx context.Context) error </span><span class="cov8" title="1">{
+                courierDB, err := u.courierRepository.FindAvailableCourier(txCtx)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, repository.ErrCouriersBusy) </span><span class="cov8" title="1">{
+                                return ErrCouriersBusy
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">deliveryDB, err := deliveryAssignRequestToDeliveryDB(req.OrderID, *courierDB)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">delivery, err := u.deliveryRepository.CreateDelivery(txCtx, &amp;deliveryDB)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, repository.ErrOrderIDExists) </span><span class="cov8" title="1">{
+                                return ErrOrderIDExists
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">courierDB.Status = "busy"
+                if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courier := model.Courier(*courierDB)
+                resp = delieveryAssignResponse(courier, *delivery)
+                return nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return model.DeliveryAssignResponse{}, err
+        }</span>
+        <span class="cov8" title="1">return resp, nil</span>
+}
+
+func (u *DelieveryUseCase) UnassignDelivery(
+        ctx context.Context,
+        req *model.DeliveryUnassignRequest,
+) (model.DeliveryUnassignResponse, error) <span class="cov8" title="1">{
+        if req.OrderID == "" </span><span class="cov8" title="1">{
+                return model.DeliveryUnassignResponse{}, ErrNoOrderID
+        }</span>
+
+        <span class="cov8" title="1">var resp model.DeliveryUnassignResponse
+
+        err := u.txRunner.Run(ctx, func(txCtx context.Context) error </span><span class="cov8" title="1">{
+                couriersDelivery, err := u.deliveryRepository.CouriersDelivery(txCtx, req.OrderID)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, repository.ErrOrderIDNotFound) </span><span class="cov8" title="1">{
+                                return ErrOrderIDNotFound
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">if err := u.deliveryRepository.DeleteDelivery(txCtx, req.OrderID); err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, repository.ErrOrderIDNotFound) </span><span class="cov8" title="1">{
+                                return ErrOrderIDNotFound
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">courierDB, err := u.courierRepository.GetCourierById(txCtx, couriersDelivery.CourierID)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courierDB.Status = "available"
+                if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courier := model.Courier(*courierDB)
+                delivery := model.Delivery(*couriersDelivery)
+                resp = delieveryUnassignResponse(courier, delivery)
+
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return model.DeliveryUnassignResponse{}, err
+        }</span>
+
+        <span class="cov8" title="1">return resp, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package usecase
+
+import (
+        "courier-service/internal/model"
+        "time"
+)
+
+func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) model.CourierDB <span class="cov8" title="1">{
+        out := model.CourierDB{ID: req.ID}
+        if req.Name != nil </span><span class="cov8" title="1">{
+                out.Name = *req.Name
+        }</span>
+        <span class="cov8" title="1">if req.Phone != nil </span><span class="cov0" title="0">{
+                out.Phone = *req.Phone
+        }</span>
+        <span class="cov8" title="1">if req.Status != nil </span><span class="cov0" title="0">{
+                out.Status = *req.Status
+        }</span>
+        <span class="cov8" title="1">if req.TransportType != nil </span><span class="cov0" title="0">{
+                out.TransportType = *req.TransportType
+        }</span>
+        <span class="cov8" title="1">return out</span>
+}
+
+func courierCreateRequestToCourierDB(req model.CourierCreateRequest) model.CourierDB <span class="cov8" title="1">{
+        return model.CourierDB{
+                Name:          req.Name,
+                Phone:         req.Phone,
+                Status:        req.Status,
+                TransportType: req.TransportType,
+        }
+}</span>
+
+func deliveryAssignRequestToDeliveryDB(orderID string, courierDB model.CourierDB) (model.DeliveryDB, error) <span class="cov8" title="1">{
+        duration, err := transportTypeTime(courierDB.TransportType)
+        if err != nil </span><span class="cov0" title="0">{
+                return model.DeliveryDB{}, err
+        }</span>
+        <span class="cov8" title="1">return model.DeliveryDB{
+                OrderID:    orderID,
+                CourierID:  courierDB.ID,
+                AssignedAt: time.Now(),
+                Deadline:   time.Now().Add(duration),
+        }, nil</span>
+}
+
+func delieveryAssignResponse(courier model.Courier, delivery model.Delivery) model.DeliveryAssignResponse <span class="cov8" title="1">{
+        return model.DeliveryAssignResponse{
+                CourierID:     courier.ID,
+                OrderID:       delivery.OrderID,
+                TransportType: courier.TransportType,
+                Deadline:      delivery.Deadline,
+        }
+}</span>
+
+func delieveryUnassignResponse(courier model.Courier, delivery model.Delivery) model.DeliveryUnassignResponse <span class="cov8" title="1">{
+        return model.DeliveryUnassignResponse{
+                OrderID:       delivery.OrderID,
+                Status:        "unassigned",
+                CourierID:     courier.ID,
+        }
+}</pre>
+		
+		<pre class="file" id="file19" style="display: none">// Code generated by MockGen. DO NOT EDIT.
+// Source: internal/usecase/contract.go
+
+// Package mocks is a generated GoMock package.
+package mocks
+
+import (
+        context "context"
+        model "courier-service/internal/model"
+        reflect "reflect"
+
+        gomock "github.com/golang/mock/gomock"
+)
+
+// MockсourierRepository is a mock of сourierRepository interface.
+type MockсourierRepository struct {
+        ctrl     *gomock.Controller
+        recorder *MockсourierRepositoryMockRecorder
+}
+
+// MockсourierRepositoryMockRecorder is the mock recorder for MockсourierRepository.
+type MockсourierRepositoryMockRecorder struct {
+        mock *MockсourierRepository
+}
+
+// NewMockсourierRepository creates a new mock instance.
+func NewMockсourierRepository(ctrl *gomock.Controller) *MockсourierRepository <span class="cov8" title="1">{
+        mock := &amp;MockсourierRepository{ctrl: ctrl}
+        mock.recorder = &amp;MockсourierRepositoryMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockсourierRepository) EXPECT() *MockсourierRepositoryMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// CreateCourier mocks base method.
+func (m *MockсourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateCourier", ctx, courier)
+        ret0, _ := ret[0].(int64)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateCourier indicates an expected call of CreateCourier.
+func (mr *MockсourierRepositoryMockRecorder) CreateCourier(ctx, courier interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCourier", reflect.TypeOf((*MockсourierRepository)(nil).CreateCourier), ctx, courier)
+}</span>
+
+// ExistsCourierByPhone mocks base method.
+func (m *MockсourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "ExistsCourierByPhone", ctx, phone)
+        ret0, _ := ret[0].(bool)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// ExistsCourierByPhone indicates an expected call of ExistsCourierByPhone.
+func (mr *MockсourierRepositoryMockRecorder) ExistsCourierByPhone(ctx, phone interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistsCourierByPhone", reflect.TypeOf((*MockсourierRepository)(nil).ExistsCourierByPhone), ctx, phone)
+}</span>
+
+// FindAvailableCourier mocks base method.
+func (m *MockсourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "FindAvailableCourier", ctx)
+        ret0, _ := ret[0].(*model.CourierDB)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// FindAvailableCourier indicates an expected call of FindAvailableCourier.
+func (mr *MockсourierRepositoryMockRecorder) FindAvailableCourier(ctx interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAvailableCourier", reflect.TypeOf((*MockсourierRepository)(nil).FindAvailableCourier), ctx)
+}</span>
+
+// FreeCouriersWithInterval mocks base method.
+func (m *MockсourierRepository) FreeCouriersWithInterval(ctx context.Context) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "FreeCouriersWithInterval", ctx)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// FreeCouriersWithInterval indicates an expected call of FreeCouriersWithInterval.
+func (mr *MockсourierRepositoryMockRecorder) FreeCouriersWithInterval(ctx interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FreeCouriersWithInterval", reflect.TypeOf((*MockсourierRepository)(nil).FreeCouriersWithInterval), ctx)
+}</span>
+
+// GetAllCouriers mocks base method.
+func (m *MockсourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetAllCouriers", ctx)
+        ret0, _ := ret[0].([]model.CourierDB)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetAllCouriers indicates an expected call of GetAllCouriers.
+func (mr *MockсourierRepositoryMockRecorder) GetAllCouriers(ctx interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCouriers", reflect.TypeOf((*MockсourierRepository)(nil).GetAllCouriers), ctx)
+}</span>
+
+// GetCourierById mocks base method.
+func (m *MockсourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "GetCourierById", ctx, id)
+        ret0, _ := ret[0].(*model.CourierDB)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// GetCourierById indicates an expected call of GetCourierById.
+func (mr *MockсourierRepositoryMockRecorder) GetCourierById(ctx, id interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCourierById", reflect.TypeOf((*MockсourierRepository)(nil).GetCourierById), ctx, id)
+}</span>
+
+// UpdateCourier mocks base method.
+func (m *MockсourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "UpdateCourier", ctx, courier)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// UpdateCourier indicates an expected call of UpdateCourier.
+func (mr *MockсourierRepositoryMockRecorder) UpdateCourier(ctx, courier interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourier", reflect.TypeOf((*MockсourierRepository)(nil).UpdateCourier), ctx, courier)
+}</span>
+
+// MockdeliveryRepository is a mock of deliveryRepository interface.
+type MockdeliveryRepository struct {
+        ctrl     *gomock.Controller
+        recorder *MockdeliveryRepositoryMockRecorder
+}
+
+// MockdeliveryRepositoryMockRecorder is the mock recorder for MockdeliveryRepository.
+type MockdeliveryRepositoryMockRecorder struct {
+        mock *MockdeliveryRepository
+}
+
+// NewMockdeliveryRepository creates a new mock instance.
+func NewMockdeliveryRepository(ctrl *gomock.Controller) *MockdeliveryRepository <span class="cov8" title="1">{
+        mock := &amp;MockdeliveryRepository{ctrl: ctrl}
+        mock.recorder = &amp;MockdeliveryRepositoryMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockdeliveryRepository) EXPECT() *MockdeliveryRepositoryMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// CouriersDelivery mocks base method.
+func (m *MockdeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (*model.DeliveryDB, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CouriersDelivery", ctx, orderID)
+        ret0, _ := ret[0].(*model.DeliveryDB)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CouriersDelivery indicates an expected call of CouriersDelivery.
+func (mr *MockdeliveryRepositoryMockRecorder) CouriersDelivery(ctx, orderID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CouriersDelivery", reflect.TypeOf((*MockdeliveryRepository)(nil).CouriersDelivery), ctx, orderID)
+}</span>
+
+// CreateDelivery mocks base method.
+func (m *MockdeliveryRepository) CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "CreateDelivery", ctx, delivery)
+        ret0, _ := ret[0].(*model.Delivery)
+        ret1, _ := ret[1].(error)
+        return ret0, ret1
+}</span>
+
+// CreateDelivery indicates an expected call of CreateDelivery.
+func (mr *MockdeliveryRepositoryMockRecorder) CreateDelivery(ctx, delivery interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDelivery", reflect.TypeOf((*MockdeliveryRepository)(nil).CreateDelivery), ctx, delivery)
+}</span>
+
+// DeleteDelivery mocks base method.
+func (m *MockdeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "DeleteDelivery", ctx, orderID)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// DeleteDelivery indicates an expected call of DeleteDelivery.
+func (mr *MockdeliveryRepositoryMockRecorder) DeleteDelivery(ctx, orderID interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDelivery", reflect.TypeOf((*MockdeliveryRepository)(nil).DeleteDelivery), ctx, orderID)
+}</span>
+
+// MocktxRunner is a mock of txRunner interface.
+type MocktxRunner struct {
+        ctrl     *gomock.Controller
+        recorder *MocktxRunnerMockRecorder
+}
+
+// MocktxRunnerMockRecorder is the mock recorder for MocktxRunner.
+type MocktxRunnerMockRecorder struct {
+        mock *MocktxRunner
+}
+
+// NewMocktxRunner creates a new mock instance.
+func NewMocktxRunner(ctrl *gomock.Controller) *MocktxRunner <span class="cov8" title="1">{
+        mock := &amp;MocktxRunner{ctrl: ctrl}
+        mock.recorder = &amp;MocktxRunnerMockRecorder{mock}
+        return mock
+}</span>
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MocktxRunner) EXPECT() *MocktxRunnerMockRecorder <span class="cov8" title="1">{
+        return m.recorder
+}</span>
+
+// Run mocks base method.
+func (m *MocktxRunner) Run(ctx context.Context, fn func(context.Context) error) error <span class="cov8" title="1">{
+        m.ctrl.T.Helper()
+        ret := m.ctrl.Call(m, "Run", ctx, fn)
+        ret0, _ := ret[0].(error)
+        return ret0
+}</span>
+
+// Run indicates an expected call of Run.
+func (mr *MocktxRunnerMockRecorder) Run(ctx, fn interface{}) *gomock.Call <span class="cov8" title="1">{
+        mr.mock.ctrl.T.Helper()
+        return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MocktxRunner)(nil).Run), ctx, fn)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

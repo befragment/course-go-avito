@@ -23,7 +23,7 @@ func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository {
 	return &CourierRepository{pool: pool}
 }
 
-func (r *CourierRepository) GetById(ctx context.Context, id int64) (*model.CourierDB, error) {
+func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) {
 	queryBuilder := sq.
 		Select("id", "name", "phone", "status", "transport_type").
 		From("couriers").
@@ -52,7 +52,7 @@ func (r *CourierRepository) GetById(ctx context.Context, id int64) (*model.Couri
 	return &c, nil
 }
 
-func (r *CourierRepository) GetAll(ctx context.Context) ([]model.CourierDB, error) {
+func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) {
 	queryBuilder := sq.
 		Select("id", "name", "phone", "status", "transport_type").
 		From("couriers").
@@ -82,7 +82,7 @@ func (r *CourierRepository) GetAll(ctx context.Context) ([]model.CourierDB, erro
 	return couriers, nil
 }
 
-func (r *CourierRepository) Create(ctx context.Context, courier *model.CourierDB) (int64, error) {
+func (r *CourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) {
 	var id int64
 	queryBuilder := sq.
 		Insert("couriers").
@@ -107,7 +107,7 @@ func (r *CourierRepository) Create(ctx context.Context, courier *model.CourierDB
 	return id, nil
 }
 
-func (r *CourierRepository) Update(ctx context.Context, courier *model.CourierDB) error {
+func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error {
 	sets := sq.Eq{"updated_at": time.Now()}
 	if courier.Name != "" {
 		sets["name"] = courier.Name
@@ -132,7 +132,6 @@ func (r *CourierRepository) Update(ctx context.Context, courier *model.CourierDB
 
 	query, args, err := queryBuilder.ToSql()
 
-	log.Printf("Query: %s, Args: %v", query, args)
 	if err != nil {
 		return err
 	}
@@ -149,7 +148,7 @@ func (r *CourierRepository) Update(ctx context.Context, courier *model.CourierDB
 	return nil
 }
 
-func (r *CourierRepository) FindAvailiable(ctx context.Context) (*model.CourierDB, error) {
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) {
 	queryBuilder := sq.
 		Select("c.id", "c.name", "c.phone", "c.status", "c.transport_type").
 		From("couriers c").
@@ -178,7 +177,7 @@ func (r *CourierRepository) FindAvailiable(ctx context.Context) (*model.CourierD
 	return &c, nil
 }
 
-func (r *CourierRepository) FreeCouriers(ctx context.Context) error {
+func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error {
 	sm := sq.Eq{
 		"updated_at": time.Now(),
 		"status":     "available",
@@ -202,7 +201,7 @@ func (r *CourierRepository) FreeCouriers(ctx context.Context) error {
 			)
 		`)).
 		PlaceholderFormat(sq.Dollar)
-		
+
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return err
@@ -217,7 +216,7 @@ func (r *CourierRepository) FreeCouriers(ctx context.Context) error {
 	return nil
 }
 
-func (r *CourierRepository) ExistsByPhone(ctx context.Context, phone string) (bool, error) {
+func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) {
 	queryBuilder := sq.
 		Select("count(*)").
 		From("couriers").

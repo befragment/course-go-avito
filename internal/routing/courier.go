@@ -7,10 +7,10 @@ import (
 )
 
 func registerCourierRoutes(r chi.Router, c *handlers.CourierController) {
-	r.Get("/couriers", c.GetAll)
+	r.Get("/couriers", c.GetAllCouriers)
 	r.Route("/courier", func(r chi.Router) {
-		r.Get("/{id}", c.GetById)
-		r.Post("/", c.Create)
-		r.Put("/", c.Update)
+		r.Get("/{id}", c.GetCourierById)
+		r.Post("/", c.CreateCourier)
+		r.Put("/", c.UpdateCourier)
 	})
 }

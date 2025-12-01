@@ -13,7 +13,6 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-# Загружаем переменные из .env (надёжно и кроссплатформенно)
 set -a
 . "$ENV_FILE"
 set +a
@@ -40,6 +39,12 @@ show_status() {
     goose -dir "${MIGRATIONS_DIR}" status
 }
 
+apply_test_migrations() {
+  echo "Applying test migrations from ${MIGRATIONS_DIR_TEST}..."
+  GOOSE_DRIVER="${GOOSE_DRIVER}" GOOSE_DBSTRING="${GOOSE_DBSTRING_TEST}" \
+    goose -dir "${MIGRATIONS_DIR}" up
+}
+
 case "$1" in
   up)
     apply_migrations
@@ -51,7 +56,7 @@ case "$1" in
     show_status
     ;;
   *)
-    echo "Usage: $0 {up|down|status}"
+    echo "Usage: $0 {up|down|status|test-up}"
     exit 1
     ;;
 esac

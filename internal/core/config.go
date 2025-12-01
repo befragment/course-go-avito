@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -21,8 +22,8 @@ type Config struct {
 }
 
 var (
-	PhoneRegex 					= `^\+[0-9]{11}$`
-	CheckFreeCouriersInterval 	= 10 * time.Second
+	PhoneRegex                = `^\+[0-9]{11}$`
+	CheckFreeCouriersInterval = 10 * time.Second
 )
 
 func LoadConfig() (*Config, error) {
@@ -75,4 +76,43 @@ func (c *Config) DBConnString() string {
 		c.DBName,
 		ssl,
 	)
+}
+
+func DBConnStringFromEnv() string {
+	cfg, _ := LoadConfig()
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
+	)
+}
+
+func TestDBConnString() string {
+	// Игнорируем ошибку если .env не найден - переменные могут быть в окружении
+	_ = godotenv.Load(".env")
+
+	host := getEnvOrDefault("POSTGRES_HOST_TEST", "localhost")
+	port := getEnvOrDefault("POSTGRES_PORT_TEST", "5432")
+	user := getEnvOrDefault("POSTGRES_USER_TEST", "postgres")
+	password := getEnvOrDefault("POSTGRES_PASSWORD_TEST", "postgres")
+	dbname := getEnvOrDefault("POSTGRES_DB_TEST", "courier_service_test")
+	sslmode := "disable"
+
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		user,
+		password,
+		host,
+		port,
+		dbname,
+		sslmode,
+	)
+
+	log.Printf("TestDBConnString: %s", connStr)
+	return connStr
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

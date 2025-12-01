@@ -20,7 +20,7 @@ func NewCourierController(useCase сourierUseCase) *CourierController {
 	return &CourierController{useCase: useCase}
 }
 
-func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -28,7 +28,7 @@ func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	courier, err := c.useCase.GetById(ctx, id)
+	courier, err := c.useCase.GetCourierById(ctx, id)
 	if err != nil {
 		if errors.Is(err, usecase.ErrCourierNotFound) {
 			respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
@@ -40,9 +40,9 @@ func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, courier)
 }
 
-func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	couriers, err := c.useCase.GetAll(ctx)
+	couriers, err := c.useCase.GetAllCouriers(ctx)
 	if err != nil {
 		respondInternalServerError(w, err)
 		return
@@ -50,7 +50,7 @@ func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, couriers)
 }
 
-func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req model.CourierCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -58,7 +58,7 @@ func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := c.useCase.Create(ctx, &req)
+	id, err := c.useCase.CreateCourier(ctx, &req)
 	if err != nil {
 		handleCreateError(w, err)
 		return
@@ -70,7 +70,7 @@ func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req model.CourierUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -83,7 +83,7 @@ func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.useCase.Update(ctx, &req)
+	err := c.useCase.UpdateCourier(ctx, &req)
 	if err != nil {
 		handleUpdateError(w, err)
 		return

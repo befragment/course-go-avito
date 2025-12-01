@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"context"
-	"errors"
-	"regexp"
 	"courier-service/internal/core"
 	"courier-service/internal/model"
 	"courier-service/internal/repository"
-	"time"
+	"errors"
 	"log"
+	"regexp"
+	"time"
 )
 
 type CourierUseCase struct {
@@ -19,9 +19,12 @@ func NewCourierUseCase(repository сourierRepository) *CourierUseCase {
 	return &CourierUseCase{repository: repository}
 }
 
-
 func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) {
-	ticker := time.NewTicker(core.CheckFreeCouriersInterval)
+	CheckFreeCouriersWithInterval(ctx, u, core.CheckFreeCouriersInterval)
+}
+
+func CheckFreeCouriersWithInterval(ctx context.Context, u *CourierUseCase, interval time.Duration) {
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
@@ -29,7 +32,7 @@ func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) {
 		case <-ctx.Done():
 			return
 		case t := <-ticker.C:
-			if err := u.repository.FreeCouriers(ctx); err != nil {
+			if err := u.repository.FreeCouriersWithInterval(ctx); err != nil {
 				log.Printf("Failed to check free couriers: %v", err)
 			}
 			log.Printf("Checked free couriers at %s", t.Format(time.RFC3339))
@@ -37,8 +40,8 @@ func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) {
 	}
 }
 
-func (u CourierUseCase) GetById(ctx context.Context, id int64) (*model.Courier, error) {
-	courierDB, err := u.repository.GetById(ctx, id)
+func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (*model.Courier, error) {
+	courierDB, err := u.repository.GetCourierById(ctx, id)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrCourierNotFound) {
@@ -51,8 +54,8 @@ func (u CourierUseCase) GetById(ctx context.Context, id int64) (*model.Courier, 
 	return &courier, nil
 }
 
-func (u CourierUseCase) GetAll(ctx context.Context) ([]model.Courier, error) {
-	couriersDB, err := u.repository.GetAll(ctx)
+func (u CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
+	couriersDB, err := u.repository.GetAllCouriers(ctx)
 
 	if err != nil {
 		return nil, err
@@ -66,7 +69,7 @@ func (u CourierUseCase) GetAll(ctx context.Context) ([]model.Courier, error) {
 	return couriers, nil
 }
 
-func (u CourierUseCase) Create(ctx context.Context, req *model.CourierCreateRequest) (int64, error) {
+func (u CourierUseCase) CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error) {
 	if req.Name == "" || req.Phone == "" || req.Status == "" || req.TransportType == "" {
 		return 0, ErrInvalidCreate
 	}
@@ -79,17 +82,17 @@ func (u CourierUseCase) Create(ctx context.Context, req *model.CourierCreateRequ
 		return 0, ErrInvalidPhoneNumber
 	}
 
-	if phoneExists, err := u.repository.ExistsByPhone(ctx, req.Phone); phoneExists {
+	if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, req.Phone); phoneExists {
 		return 0, ErrPhoneNumberExists
 	} else if err != nil {
 		return 0, err
 	}
 
 	courierDB := courierCreateRequestToCourierDB(*req)
-	return u.repository.Create(ctx, &courierDB)
+	return u.repository.CreateCourier(ctx, &courierDB)
 }
 
-func (u CourierUseCase) Update(ctx context.Context, req *model.CourierUpdateRequest) error {
+func (u CourierUseCase) UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error {
 	if req.Name == nil && req.Phone == nil && req.Status == nil && req.TransportType == nil {
 		return ErrInvalidUpdate
 	}
@@ -102,7 +105,7 @@ func (u CourierUseCase) Update(ctx context.Context, req *model.CourierUpdateRequ
 		if !ValidPhoneNumber(*req.Phone) {
 			return ErrInvalidPhoneNumber
 		}
-		if phoneExists, err := u.repository.ExistsByPhone(ctx, *req.Phone); err != nil {
+		if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, *req.Phone); err != nil {
 			return err
 		} else if phoneExists {
 			return ErrPhoneNumberExists
@@ -110,7 +113,7 @@ func (u CourierUseCase) Update(ctx context.Context, req *model.CourierUpdateRequ
 	}
 
 	update := courierUpdateRequestToCourierDB(*req)
-	if err := u.repository.Update(ctx, &update); err != nil {
+	if err := u.repository.UpdateCourier(ctx, &update); err != nil {
 		if errors.Is(err, repository.ErrCourierNotFound) {
 			return ErrCourierNotFound
 		}

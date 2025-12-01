@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS delivery (
     FOREIGN KEY (courier_id) REFERENCES couriers(id)
 );
 -- +goose StatementEnd
+
 -- +goose Down
 -- +goose StatementBegin
 ALTER TABLE couriers DROP COLUMN IF EXISTS transport_type;

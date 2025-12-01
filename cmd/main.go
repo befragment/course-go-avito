@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 	"courier-service/internal/core"
 	"courier-service/internal/handlers"
 	"courier-service/internal/repository"
 	"courier-service/internal/routing"
 	"courier-service/internal/usecase"
+	"log"
 )
 
 func main() {
@@ -27,6 +27,8 @@ func main() {
 
 	deliveryUseCase := usecase.NewDelieveryUseCase(courierRepo, deliveryRepo, txRunner)
 	courierUseCase := usecase.NewCourierUseCase(courierRepo)
+
+	core.TestDBConnString()
 
 	go usecase.CheckFreeCouriers(backgroundCtx, courierUseCase)
 
