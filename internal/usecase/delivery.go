@@ -29,11 +29,11 @@ func NewDelieveryUseCase(
 func transportTypeTime(ttype string) (time.Duration, error) {
 	switch ttype {
 	case "car":
-		return 20 * time.Second, nil
+		return 5 * time.Minute, nil
 	case "scooter":
-		return 40 * time.Second, nil
+		return 15 * time.Minute, nil
 	case "on_foot":
-		return 60 * time.Second, nil
+		return 30 * time.Minute, nil
 	default:
 		return 0, ErrUnknownTransportType
 	}
