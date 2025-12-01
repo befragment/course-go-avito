@@ -16,6 +16,7 @@ import (
 )
 
 func TestDeliveryUseCase_AssignDelivery_Success(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -77,6 +78,7 @@ func TestDeliveryUseCase_AssignDelivery_Success(t *testing.T) {
 }
 
 func TestDeliveryUseCase_AssignDelivery_NoOrderID(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -99,6 +101,7 @@ func TestDeliveryUseCase_AssignDelivery_NoOrderID(t *testing.T) {
 }
 
 func TestDeliveryUseCase_AssignDelivery_CouriersBusy(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -131,6 +134,7 @@ func TestDeliveryUseCase_AssignDelivery_CouriersBusy(t *testing.T) {
 }
 
 func TestDeliveryUseCase_AssignDelivery_OrderExists(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -175,6 +179,7 @@ func TestDeliveryUseCase_AssignDelivery_OrderExists(t *testing.T) {
 }
 
 func TestDeliveryUseCase_AssignDelivery_UpdateCourierError(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -234,6 +239,7 @@ func TestDeliveryUseCase_AssignDelivery_UpdateCourierError(t *testing.T) {
 }
 
 func TestDeliveryUseCase_UnassignDelivery_Success(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -296,6 +302,7 @@ func TestDeliveryUseCase_UnassignDelivery_Success(t *testing.T) {
 }
 
 func TestDeliveryUseCase_UnassignDelivery_NoOrderID(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -318,6 +325,7 @@ func TestDeliveryUseCase_UnassignDelivery_NoOrderID(t *testing.T) {
 }
 
 func TestDeliveryUseCase_UnassignDelivery_OrderNotFound(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -350,6 +358,7 @@ func TestDeliveryUseCase_UnassignDelivery_OrderNotFound(t *testing.T) {
 }
 
 func TestDeliveryUseCase_UnassignDelivery_DeleteError(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -392,6 +401,7 @@ func TestDeliveryUseCase_UnassignDelivery_DeleteError(t *testing.T) {
 }
 
 func TestDeliveryUseCase_UnassignDelivery_CourierNotFound(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

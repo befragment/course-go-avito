@@ -14,6 +14,7 @@ import (
 )
 
 func TestCourierUseCase_GetById_Success(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -43,6 +44,7 @@ func TestCourierUseCase_GetById_Success(t *testing.T) {
 }
 
 func TestCourierUseCase_GetById_NotFound(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -63,6 +65,7 @@ func TestCourierUseCase_GetById_NotFound(t *testing.T) {
 }
 
 func TestCourierUseCase_GetAll_Success(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -88,6 +91,7 @@ func TestCourierUseCase_GetAll_Success(t *testing.T) {
 }
 
 func TestCourierUseCase_GetAll_EmptyList(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -107,6 +111,7 @@ func TestCourierUseCase_GetAll_EmptyList(t *testing.T) {
 }
 
 func TestCourierUseCase_Create_Success(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

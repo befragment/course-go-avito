@@ -9,6 +9,7 @@ import (
 )
 
 func TestPing(t *testing.T) {
+	t.Parallel()
 	request := httptest.NewRequest("GET", "/ping", nil)
 	response := httptest.NewRecorder()
 
@@ -20,6 +21,7 @@ func TestPing(t *testing.T) {
 }
 
 func TestHealthcheck(t *testing.T) {
+	t.Parallel()
 	request := httptest.NewRequest("GET", "/health", nil)
 	response := httptest.NewRecorder()
 
