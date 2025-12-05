@@ -15,438 +15,424 @@ import (
 	"go.uber.org/goleak"
 )
 
-func TestDeliveryUseCase_AssignDelivery_Success(t *testing.T) {
+func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
+	tests := []struct {
+		name    string
+		orderID string
+		prepare func(
+			courierRepo *mocks.MockсourierRepository,
+			deliveryRepo *mocks.MockdeliveryRepository,
+			txRunner *mocks.MocktxRunner,
+		)
+		expectations func(t *testing.T, resp model.DeliveryAssignResponse, err error)
+	}{
+		{
+			name:    "success: delivery assigned",
+			orderID: "550e8400-e29b-41d4-a716-446655440001",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
 
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+				courierRepo.EXPECT().
+					FindAvailableCourier(gomock.Any()).
+					Return(&repository.CourierDB{
+						ID:            1,
+						Name:          "John",
+						Phone:         "+79991234567",
+						Status:        "available",
+						TransportType: "car",
+					}, nil)
 
-	ctx := context.Background()
-	req := &model.DeliveryAssignRequest{
-		OrderID: "ORDER123",
+				now := time.Now()
+				deliveryRepo.EXPECT().
+					CreateDelivery(gomock.Any(), gomock.Any()).
+					Return(&model.Delivery{
+						ID:         1,
+						CourierID:  1,
+						OrderID:    "550e8400-e29b-41d4-a716-446655440001",
+						AssignedAt: now,
+						Deadline:   now.Add(5 * time.Minute),
+					}, nil)
+
+				courierRepo.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, c *repository.CourierDB) error {
+						assert.Equal(t, "busy", c.Status)
+						return nil
+					})
+			},
+			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, int64(1), resp.CourierID)
+				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440001", resp.OrderID)
+				assert.Equal(t, "car", resp.TransportType)
+			},
+		},
+		{
+			name:    "error: no order ID",
+			orderID: "",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				// No mock expectations - validation happens before any repo calls
+			},
+			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrNoOrderID, err)
+				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: all couriers busy",
+			orderID: "550e8400-e29b-41d4-a716-446655440002",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				courierRepo.EXPECT().
+					FindAvailableCourier(gomock.Any()).
+					Return(nil, repository.ErrCouriersBusy)
+			},
+			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrCouriersBusy, err)
+				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: order ID already exists",
+			orderID: "550e8400-e29b-41d4-a716-446655440003",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				courierRepo.EXPECT().
+					FindAvailableCourier(gomock.Any()).
+					Return(&repository.CourierDB{
+						ID:            1,
+						Name:          "John",
+						Phone:         "+79991234567",
+						Status:        "available",
+						TransportType: "car",
+					}, nil)
+
+				deliveryRepo.EXPECT().
+					CreateDelivery(gomock.Any(), gomock.Any()).
+					Return(nil, repository.ErrOrderIDExists)
+			},
+			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrOrderIDExists, err)
+				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: failed to update courier status",
+			orderID: "550e8400-e29b-41d4-a716-446655440004",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				courierRepo.EXPECT().
+					FindAvailableCourier(gomock.Any()).
+					Return(&repository.CourierDB{
+						ID:            1,
+						Name:          "John",
+						Phone:         "+79991234567",
+						Status:        "available",
+						TransportType: "car",
+					}, nil)
+
+				now := time.Now()
+				deliveryRepo.EXPECT().
+					CreateDelivery(gomock.Any(), gomock.Any()).
+					Return(&model.Delivery{
+						ID:         1,
+						CourierID:  1,
+						OrderID:    "550e8400-e29b-41d4-a716-446655440004",
+						AssignedAt: now,
+						Deadline:   now.Add(5 * time.Minute),
+					}, nil)
+
+				courierRepo.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(errors.New("update error"))
+			},
+			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, "update error", err.Error())
+				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+			},
+		},
 	}
 
-	courierDB := &model.CourierDB{
-		ID:            1,
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	now := time.Now()
-	delivery := &model.Delivery{
-		ID:         1,
-		CourierID:  1,
-		OrderID:    "ORDER123",
-		AssignedAt: now,
-		Deadline:   now.Add(20 * time.Second),
-	}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
+			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
+			mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
+			mockTxRunner := mocks.NewMocktxRunner(ctrl)
+
+			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+
+			ctx := context.Background()
+			req := &model.DeliveryAssignRequest{
+				OrderID: tc.orderID,
+			}
+
+			if tc.prepare != nil {
+				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+			}
+
+			resp, err := uc.AssignDelivery(ctx, req)
+
+			if tc.expectations != nil {
+				tc.expectations(t, resp, err)
+			}
 		})
-
-	mockCourierRepo.EXPECT().
-		FindAvailableCourier(ctx).
-		Return(courierDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		CreateDelivery(ctx, gomock.Any()).
-		Return(delivery, nil)
-
-	mockCourierRepo.EXPECT().
-		UpdateCourier(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, c *model.CourierDB) error {
-			assert.Equal(t, "busy", c.Status)
-			return nil
-		})
-
-	resp, err := uc.AssignDelivery(ctx, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), resp.CourierID)
-	assert.Equal(t, "ORDER123", resp.OrderID)
-	assert.Equal(t, "car", resp.TransportType)
+	}
 }
 
-func TestDeliveryUseCase_AssignDelivery_NoOrderID(t *testing.T) {
+func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
+	tests := []struct {
+		name    string
+		orderID string
+		prepare func(
+			courierRepo *mocks.MockсourierRepository,
+			deliveryRepo *mocks.MockdeliveryRepository,
+			txRunner *mocks.MocktxRunner,
+		)
+		expectations func(t *testing.T, resp model.DeliveryUnassignResponse, err error)
+	}{
+		{
+			name:    "success: delivery unassigned",
+			orderID: "550e8400-e29b-41d4-a716-446655440005",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
 
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+				deliveryRepo.EXPECT().
+					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440005").
+					Return(&model.DeliveryDB{
+						ID:        1,
+						CourierID: 1,
+						OrderID:   "550e8400-e29b-41d4-a716-446655440005",
+					}, nil)
 
-	ctx := context.Background()
-	req := &model.DeliveryAssignRequest{
-		OrderID: "",
+				deliveryRepo.EXPECT().
+					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440005").
+					Return(nil)
+
+				courierRepo.EXPECT().
+					GetCourierById(gomock.Any(), int64(1)).
+					Return(&repository.CourierDB{
+						ID:            1,
+						Name:          "John",
+						Phone:         "+79991234567",
+						Status:        "busy",
+						TransportType: "car",
+					}, nil)
+
+				courierRepo.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, c *repository.CourierDB) error {
+						assert.Equal(t, "available", c.Status)
+						return nil
+					})
+			},
+			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+				assert.NoError(t, err)
+				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440005", resp.OrderID)
+				assert.Equal(t, int64(1), resp.CourierID)
+				assert.Equal(t, "unassigned", resp.Status)
+			},
+		},
+		{
+			name:    "error: no order ID",
+			orderID: "",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				// No mock expectations - validation happens before any repo calls
+			},
+			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrNoOrderID, err)
+				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: order not found",
+			orderID: "550e8400-e29b-41d4-a716-446655440006",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				deliveryRepo.EXPECT().
+					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440006").
+					Return(nil, repository.ErrOrderIDNotFound)
+			},
+			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrOrderIDNotFound, err)
+				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: failed to delete delivery",
+			orderID: "550e8400-e29b-41d4-a716-446655440007",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				deliveryRepo.EXPECT().
+					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
+					Return(&model.DeliveryDB{
+						ID:        1,
+						CourierID: 1,
+						OrderID:   "550e8400-e29b-41d4-a716-446655440007",
+					}, nil)
+
+				deliveryRepo.EXPECT().
+					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
+					Return(repository.ErrOrderIDNotFound)
+			},
+			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, ErrOrderIDNotFound, err)
+				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+			},
+		},
+		{
+			name:    "error: courier not found",
+			orderID: "550e8400-e29b-41d4-a716-446655440008",
+			prepare: func(
+				courierRepo *mocks.MockсourierRepository,
+				deliveryRepo *mocks.MockdeliveryRepository,
+				txRunner *mocks.MocktxRunner,
+			) {
+				txRunner.EXPECT().
+					Run(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+						return fn(ctx)
+					})
+
+				deliveryRepo.EXPECT().
+					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440008").
+					Return(&model.DeliveryDB{
+						ID:        1,
+						CourierID: 999,
+						OrderID:   "550e8400-e29b-41d4-a716-446655440008",
+					}, nil)
+
+				deliveryRepo.EXPECT().
+					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440008").
+					Return(nil)
+
+				courierRepo.EXPECT().
+					GetCourierById(gomock.Any(), int64(999)).
+					Return(nil, repository.ErrCourierNotFound)
+			},
+			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+				assert.Error(t, err)
+				assert.Equal(t, repository.ErrCourierNotFound, err)
+				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+			},
+		},
 	}
 
-	resp, err := uc.AssignDelivery(ctx, req)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	assert.Error(t, err)
-	assert.Equal(t, ErrNoOrderID, err)
-	assert.Equal(t, model.DeliveryAssignResponse{}, resp)
-}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-func TestDeliveryUseCase_AssignDelivery_CouriersBusy(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
+			mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
+			mockTxRunner := mocks.NewMocktxRunner(ctrl)
 
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
+			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
 
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+			ctx := context.Background()
+			req := &model.DeliveryUnassignRequest{
+				OrderID: tc.orderID,
+			}
 
-	ctx := context.Background()
-	req := &model.DeliveryAssignRequest{
-		OrderID: "ORDER123",
-	}
+			if tc.prepare != nil {
+				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+			}
 
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
+			resp, err := uc.UnassignDelivery(ctx, req)
+
+			if tc.expectations != nil {
+				tc.expectations(t, resp, err)
+			}
 		})
-
-	mockCourierRepo.EXPECT().
-		FindAvailableCourier(ctx).
-		Return(nil, repository.ErrCouriersBusy)
-
-	resp, err := uc.AssignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrCouriersBusy, err)
-	assert.Equal(t, model.DeliveryAssignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_AssignDelivery_OrderExists(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryAssignRequest{
-		OrderID: "ORDER123",
 	}
-
-	courierDB := &model.CourierDB{
-		ID:            1,
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockCourierRepo.EXPECT().
-		FindAvailableCourier(ctx).
-		Return(courierDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		CreateDelivery(ctx, gomock.Any()).
-		Return(nil, repository.ErrOrderIDExists)
-
-	resp, err := uc.AssignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrOrderIDExists, err)
-	assert.Equal(t, model.DeliveryAssignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_AssignDelivery_UpdateCourierError(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryAssignRequest{
-		OrderID: "ORDER123",
-	}
-
-	courierDB := &model.CourierDB{
-		ID:            1,
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-
-	now := time.Now()
-	delivery := &model.Delivery{
-		ID:         1,
-		CourierID:  1,
-		OrderID:    "ORDER123",
-		AssignedAt: now,
-		Deadline:   now.Add(20 * time.Second),
-	}
-
-	expectedErr := errors.New("update error")
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockCourierRepo.EXPECT().
-		FindAvailableCourier(ctx).
-		Return(courierDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		CreateDelivery(ctx, gomock.Any()).
-		Return(delivery, nil)
-
-	mockCourierRepo.EXPECT().
-		UpdateCourier(ctx, gomock.Any()).
-		Return(expectedErr)
-
-	resp, err := uc.AssignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Equal(t, model.DeliveryAssignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_UnassignDelivery_Success(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryUnassignRequest{
-		OrderID: "ORDER123",
-	}
-
-	deliveryDB := &model.DeliveryDB{
-		ID:        1,
-		CourierID: 1,
-		OrderID:   "ORDER123",
-	}
-
-	courierDB := &model.CourierDB{
-		ID:            1,
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "busy",
-		TransportType: "car",
-	}
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockDeliveryRepo.EXPECT().
-		CouriersDelivery(ctx, "ORDER123").
-		Return(deliveryDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		DeleteDelivery(ctx, "ORDER123").
-		Return(nil)
-
-	mockCourierRepo.EXPECT().
-		GetCourierById(ctx, int64(1)).
-		Return(courierDB, nil)
-
-	mockCourierRepo.EXPECT().
-		UpdateCourier(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, c *model.CourierDB) error {
-			assert.Equal(t, "available", c.Status)
-			return nil
-		})
-
-	resp, err := uc.UnassignDelivery(ctx, req)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "ORDER123", resp.OrderID)
-	assert.Equal(t, int64(1), resp.CourierID)
-	assert.Equal(t, "unassigned", resp.Status)
-}
-
-func TestDeliveryUseCase_UnassignDelivery_NoOrderID(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryUnassignRequest{
-		OrderID: "",
-	}
-
-	resp, err := uc.UnassignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrNoOrderID, err)
-	assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_UnassignDelivery_OrderNotFound(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryUnassignRequest{
-		OrderID: "NONEXISTENT",
-	}
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockDeliveryRepo.EXPECT().
-		CouriersDelivery(ctx, "NONEXISTENT").
-		Return(nil, repository.ErrOrderIDNotFound)
-
-	resp, err := uc.UnassignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrOrderIDNotFound, err)
-	assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_UnassignDelivery_DeleteError(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryUnassignRequest{
-		OrderID: "ORDER123",
-	}
-
-	deliveryDB := &model.DeliveryDB{
-		ID:        1,
-		CourierID: 1,
-		OrderID:   "ORDER123",
-	}
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockDeliveryRepo.EXPECT().
-		CouriersDelivery(ctx, "ORDER123").
-		Return(deliveryDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		DeleteDelivery(ctx, "ORDER123").
-		Return(repository.ErrOrderIDNotFound)
-
-	resp, err := uc.UnassignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, ErrOrderIDNotFound, err)
-	assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
-}
-
-func TestDeliveryUseCase_UnassignDelivery_CourierNotFound(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
-	mockTxRunner := mocks.NewMocktxRunner(ctrl)
-
-	uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
-
-	ctx := context.Background()
-	req := &model.DeliveryUnassignRequest{
-		OrderID: "ORDER123",
-	}
-
-	deliveryDB := &model.DeliveryDB{
-		ID:        1,
-		CourierID: 999,
-		OrderID:   "ORDER123",
-	}
-
-	expectedErr := repository.ErrCourierNotFound
-
-	mockTxRunner.EXPECT().
-		Run(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
-			return fn(ctx)
-		})
-
-	mockDeliveryRepo.EXPECT().
-		CouriersDelivery(ctx, "ORDER123").
-		Return(deliveryDB, nil)
-
-	mockDeliveryRepo.EXPECT().
-		DeleteDelivery(ctx, "ORDER123").
-		Return(nil)
-
-	mockCourierRepo.EXPECT().
-		GetCourierById(ctx, int64(999)).
-		Return(nil, expectedErr)
-
-	resp, err := uc.UnassignDelivery(ctx, req)
-
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
 }
 
 func TestTransportTypeTime(t *testing.T) {
@@ -456,15 +442,16 @@ func TestTransportTypeTime(t *testing.T) {
 		expected      time.Duration
 		expectError   bool
 	}{
-		{"car", "car", 20 * time.Second, false},
-		{"scooter", "scooter", 40 * time.Second, false},
-		{"on_foot", "on_foot", 60 * time.Second, false},
+		{"car", "car", 5 * time.Minute, false},
+		{"scooter", "scooter", 15 * time.Minute, false},
+		{"on_foot", "on_foot", 30 * time.Minute, false},
 		{"invalid", "rocket", 0, true},
 		{"empty", "", 0, true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			duration, err := transportTypeTime(tc.transportType)
 
 			if tc.expectError {
@@ -478,73 +465,91 @@ func TestTransportTypeTime(t *testing.T) {
 	}
 }
 
-func TestCheckFreeCouriers_Success(t *testing.T) {
-	defer goleak.VerifyNone(t)
+func TestCheckFreeCouriers(t *testing.T) {
+	tests := []struct {
+		name              string
+		tickerInterval    time.Duration
+		runDuration       time.Duration
+		cancelImmediately bool
+		prepare           func(repo *mocks.MockсourierRepository)
+		expectations      func(t *testing.T)
+	}{
+		{
+			name:              "success: ticker fires multiple times",
+			tickerInterval:    50 * time.Millisecond,
+			runDuration:       150 * time.Millisecond,
+			cancelImmediately: false,
+			prepare: func(repo *mocks.MockсourierRepository) {
+				repo.EXPECT().
+					FreeCouriersWithInterval(gomock.Any()).
+					Return(nil).
+					MinTimes(2)
+			},
+			expectations: func(t *testing.T) {
+				// goleak will verify no goroutines leaked
+			},
+		},
+		{
+			name:              "repository error: continues running",
+			tickerInterval:    50 * time.Millisecond,
+			runDuration:       150 * time.Millisecond,
+			cancelImmediately: false,
+			prepare: func(repo *mocks.MockсourierRepository) {
+				repo.EXPECT().
+					FreeCouriersWithInterval(gomock.Any()).
+					Return(errors.New("database error")).
+					MinTimes(2)
+			},
+			expectations: func(t *testing.T) {
+				// goleak will verify no goroutines leaked
+			},
+		},
+		{
+			name:              "context cancellation: stops immediately",
+			tickerInterval:    50 * time.Millisecond,
+			runDuration:       0,
+			cancelImmediately: true,
+			prepare: func(repo *mocks.MockсourierRepository) {
+				// No expectations - context should be cancelled before ticker fires
+			},
+			expectations: func(t *testing.T) {
+				// goleak will verify no goroutines leaked
+			},
+		},
+	}
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	uc := NewCourierUseCase(mockCourierRepo)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
+			uc := NewCourierUseCase(mockCourierRepo)
 
-	mockCourierRepo.EXPECT().
-		FreeCouriersWithInterval(gomock.Any()).
-		Return(nil).
-		MinTimes(2)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 
-	go CheckFreeCouriersWithInterval(ctx, uc, 50*time.Millisecond)
+			if tc.prepare != nil {
+				tc.prepare(mockCourierRepo)
+			}
 
-	time.Sleep(150 * time.Millisecond)
+			go uc.CheckFreeCouriersWithInterval(ctx, tc.tickerInterval)
 
-	cancel()
+			if tc.cancelImmediately {
+				cancel()
+			} else {
+				time.Sleep(tc.runDuration)
+				cancel()
+			}
 
-	time.Sleep(50 * time.Millisecond)
-}
+			time.Sleep(50 * time.Millisecond)
 
-func TestCheckFreeCouriers_RepositoryError(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	uc := NewCourierUseCase(mockCourierRepo)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	mockCourierRepo.EXPECT().
-		FreeCouriersWithInterval(gomock.Any()).
-		Return(errors.New("database error")).
-		MinTimes(2)
-
-	go CheckFreeCouriersWithInterval(ctx, uc, 50*time.Millisecond)
-
-	time.Sleep(150 * time.Millisecond)
-
-	cancel()
-
-	time.Sleep(50 * time.Millisecond)
-}
-
-func TestCheckFreeCouriers_ContextCancellation(t *testing.T) {
-	defer goleak.VerifyNone(t)
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-	uc := NewCourierUseCase(mockCourierRepo)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go CheckFreeCouriersWithInterval(ctx, uc, 50*time.Millisecond)
-
-	cancel()
-
-	time.Sleep(50 * time.Millisecond)
-
+			if tc.expectations != nil {
+				tc.expectations(t)
+			}
+		})
+	}
 }

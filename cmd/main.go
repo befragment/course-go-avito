@@ -28,9 +28,7 @@ func main() {
 	deliveryUseCase := usecase.NewDelieveryUseCase(courierRepo, deliveryRepo, txRunner)
 	courierUseCase := usecase.NewCourierUseCase(courierRepo)
 
-	core.TestDBConnString()
-
-	go usecase.CheckFreeCouriers(backgroundCtx, courierUseCase)
+	go courierUseCase.CheckFreeCouriersWithInterval(backgroundCtx, cfg.CheckFreeCouriersInterval)
 
 	core.StartServer(
 		dbPool,

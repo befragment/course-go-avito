@@ -787,7 +787,7 @@ func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository <span class="co
         return &amp;CourierRepository{pool: pool}
 }</span>
 
-func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) <span class="cov8" title="1">{
+func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*repository.CourierDB, error) <span class="cov8" title="1">{
         queryBuilder := sq.
                 Select("id", "name", "phone", "status", "transport_type").
                 From("couriers").
@@ -800,7 +800,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*mode
                 return nil, err
         }</span>
 
-        <span class="cov8" title="1">var c model.CourierDB
+        <span class="cov8" title="1">var c repository.CourierDB
 
         err = r.pool.QueryRow(ctx, query, args...).Scan(
                 &amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType,
@@ -816,7 +816,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*mode
         <span class="cov8" title="1">return &amp;c, nil</span>
 }
 
-func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) <span class="cov8" title="1">{
+func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]repository.CourierDB, error) <span class="cov8" title="1">{
         queryBuilder := sq.
                 Select("id", "name", "phone", "status", "transport_type").
                 From("couriers").
@@ -824,29 +824,29 @@ func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier
 
         query, args, err := queryBuilder.ToSql()
         if err != nil </span><span class="cov0" title="0">{
-                return []model.CourierDB{}, err
+                return []repository.CourierDB{}, err
         }</span>
 
         <span class="cov8" title="1">rows, err := r.pool.Query(ctx, query, args...)
         if err != nil </span><span class="cov0" title="0">{
-                return []model.CourierDB{}, err
+                return []repository.CourierDB{}, err
         }</span>
 
         <span class="cov8" title="1">defer rows.Close()
 
-        var couriers []model.CourierDB
+        var couriers []repository.CourierDB
         for rows.Next() </span><span class="cov8" title="1">{
-                var c model.CourierDB
+                var c repository.CourierDB
                 err = rows.Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
                 if err != nil </span><span class="cov0" title="0">{
-                        return []model.CourierDB{}, err
+                        return []repository.CourierDB{}, err
                 }</span>
                 <span class="cov8" title="1">couriers = append(couriers, c)</span>
         }
         <span class="cov8" title="1">return couriers, nil</span>
 }
 
-func (r *CourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) <span class="cov8" title="1">{
+func (r *CourierRepository) CreateCourier(ctx context.Context, courier *repository.CourierDB) (int64, error) <span class="cov8" title="1">{
         var id int64
         queryBuilder := sq.
                 Insert("couriers").
@@ -871,7 +871,7 @@ func (r *CourierRepository) CreateCourier(ctx context.Context, courier *model.Co
         <span class="cov8" title="1">return id, nil</span>
 }
 
-func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error <span class="cov8" title="1">{
+func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *repository.CourierDB) error <span class="cov8" title="1">{
         sets := sq.Eq{"updated_at": time.Now()}
         if courier.Name != "" </span><span class="cov8" title="1">{
                 sets["name"] = courier.Name
@@ -912,7 +912,7 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *model.Co
         <span class="cov8" title="1">return nil</span>
 }
 
-func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) <span class="cov8" title="1">{
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*repository.CourierDB, error) <span class="cov8" title="1">{
         queryBuilder := sq.
                 Select("c.id", "c.name", "c.phone", "c.status", "c.transport_type").
                 From("couriers c").
@@ -928,7 +928,7 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*model.Co
                 return nil, err
         }</span>
 
-        <span class="cov8" title="1">var c model.CourierDB
+        <span class="cov8" title="1">var c repository.CourierDB
         err = r.pool.QueryRow(ctx, query, args...).
                 Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
         if err != nil </span><span class="cov8" title="1">{
@@ -1185,7 +1185,7 @@ func (s *RepositoryTestSuite) TearDownTest() <span class="cov8" title="1">{
 }
 
 func (s *RepositoryTestSuite) createTestCourier(name, phone, transportType string) int64 <span class="cov8" title="1">{
-        courier := &amp;model.CourierDB{
+        courier := &amp;repository.CourierDB{
                 Name:          name,
                 Phone:         phone,
                 Status:        "available",
@@ -1615,8 +1615,8 @@ import (
         "time"
 )
 
-func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) model.CourierDB <span class="cov8" title="1">{
-        out := model.CourierDB{ID: req.ID}
+func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) repository.CourierDB <span class="cov8" title="1">{
+        out := repository.CourierDB{ID: req.ID}
         if req.Name != nil </span><span class="cov8" title="1">{
                 out.Name = *req.Name
         }</span>
@@ -1632,8 +1632,8 @@ func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) model.Couri
         <span class="cov8" title="1">return out</span>
 }
 
-func courierCreateRequestToCourierDB(req model.CourierCreateRequest) model.CourierDB <span class="cov8" title="1">{
-        return model.CourierDB{
+func courierCreateRequestToCourierDB(req model.CourierCreateRequest) repository.CourierDB <span class="cov8" title="1">{
+        return repository.CourierDB{
                 Name:          req.Name,
                 Phone:         req.Phone,
                 Status:        req.Status,
@@ -1641,7 +1641,7 @@ func courierCreateRequestToCourierDB(req model.CourierCreateRequest) model.Couri
         }
 }</span>
 
-func deliveryAssignRequestToDeliveryDB(orderID string, courierDB model.CourierDB) (model.DeliveryDB, error) <span class="cov8" title="1">{
+func deliveryAssignRequestToDeliveryDB(orderID string, courierDB repository.CourierDB) (model.DeliveryDB, error) <span class="cov8" title="1">{
         duration, err := transportTypeTime(courierDB.TransportType)
         if err != nil </span><span class="cov0" title="0">{
                 return model.DeliveryDB{}, err
@@ -1709,7 +1709,7 @@ func (m *MockсourierRepository) EXPECT() *MockсourierRepositoryMockRecorder <s
 }</span>
 
 // CreateCourier mocks base method.
-func (m *MockсourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) <span class="cov8" title="1">{
+func (m *MockсourierRepository) CreateCourier(ctx context.Context, courier *repository.CourierDB) (int64, error) <span class="cov8" title="1">{
         m.ctrl.T.Helper()
         ret := m.ctrl.Call(m, "CreateCourier", ctx, courier)
         ret0, _ := ret[0].(int64)
@@ -1739,10 +1739,10 @@ func (mr *MockсourierRepositoryMockRecorder) ExistsCourierByPhone(ctx, phone in
 }</span>
 
 // FindAvailableCourier mocks base method.
-func (m *MockсourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) <span class="cov8" title="1">{
+func (m *MockсourierRepository) FindAvailableCourier(ctx context.Context) (*repository.CourierDB, error) <span class="cov8" title="1">{
         m.ctrl.T.Helper()
         ret := m.ctrl.Call(m, "FindAvailableCourier", ctx)
-        ret0, _ := ret[0].(*model.CourierDB)
+        ret0, _ := ret[0].(*repository.CourierDB)
         ret1, _ := ret[1].(error)
         return ret0, ret1
 }</span>
@@ -1768,10 +1768,10 @@ func (mr *MockсourierRepositoryMockRecorder) FreeCouriersWithInterval(ctx inter
 }</span>
 
 // GetAllCouriers mocks base method.
-func (m *MockсourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) <span class="cov8" title="1">{
+func (m *MockсourierRepository) GetAllCouriers(ctx context.Context) ([]repository.CourierDB, error) <span class="cov8" title="1">{
         m.ctrl.T.Helper()
         ret := m.ctrl.Call(m, "GetAllCouriers", ctx)
-        ret0, _ := ret[0].([]model.CourierDB)
+        ret0, _ := ret[0].([]repository.CourierDB)
         ret1, _ := ret[1].(error)
         return ret0, ret1
 }</span>
@@ -1783,10 +1783,10 @@ func (mr *MockсourierRepositoryMockRecorder) GetAllCouriers(ctx interface{}) *g
 }</span>
 
 // GetCourierById mocks base method.
-func (m *MockсourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) <span class="cov8" title="1">{
+func (m *MockсourierRepository) GetCourierById(ctx context.Context, id int64) (*repository.CourierDB, error) <span class="cov8" title="1">{
         m.ctrl.T.Helper()
         ret := m.ctrl.Call(m, "GetCourierById", ctx, id)
-        ret0, _ := ret[0].(*model.CourierDB)
+        ret0, _ := ret[0].(*repository.CourierDB)
         ret1, _ := ret[1].(error)
         return ret0, ret1
 }</span>
@@ -1798,7 +1798,7 @@ func (mr *MockсourierRepositoryMockRecorder) GetCourierById(ctx, id interface{}
 }</span>
 
 // UpdateCourier mocks base method.
-func (m *MockсourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error <span class="cov8" title="1">{
+func (m *MockсourierRepository) UpdateCourier(ctx context.Context, courier *repository.CourierDB) error <span class="cov8" title="1">{
         m.ctrl.T.Helper()
         ret := m.ctrl.Call(m, "UpdateCourier", ctx, courier)
         ret0, _ := ret[0].(error)

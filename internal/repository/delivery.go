@@ -4,6 +4,7 @@ import (
 	"context"
 	"courier-service/internal/model"
 	"errors"
+	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -21,10 +22,10 @@ func NewDeliveryRepository(pool *pgxpool.Pool) *DeliveryRepository {
 
 func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) {
 	queryBuilder := sq.
-		Insert("delivery").
-		Columns("order_id", "courier_id", "assigned_at", "deadline").
+		Insert(deliveryTable).
+		Columns(orderIdColumn, courierIdColumn, assignedAtColumn, deadlineColumn).
 		Values(delivery.OrderID, delivery.CourierID, delivery.AssignedAt, delivery.Deadline).
-		Suffix("RETURNING id, courier_id, order_id, deadline").
+		Suffix(fmt.Sprintf("RETURNING %s, %s, %s, %s", idColumn, courierIdColumn, orderIdColumn, deadlineColumn)).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
@@ -49,10 +50,10 @@ func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model
 
 func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (*model.DeliveryDB, error) {
 	queryBuilder := sq.
-		Select("d.order_id", "c.id").
-		From("delivery d").
-		Join("couriers c on d.courier_id = c.id").
-		Where(sq.Eq{"d.order_id": orderID}).
+		Select(deliveryOrderID, courierID).
+		From(deliveryTable).
+		Join(fmt.Sprintf("%s ON %s = %s", courierTable, deliveryCourierID, courierID)).
+		Where(sq.Eq{deliveryOrderID: orderID}).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
@@ -74,8 +75,8 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
 
 func (r *DeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error {
 	queryBuilder := sq.
-		Delete("delivery").
-		Where(sq.Eq{"order_id": orderID}).
+		Delete(deliveryTable).
+		Where(sq.Eq{orderIdColumn: orderID}).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()

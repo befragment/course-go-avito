@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"courier-service/internal/model"
+
 	"testing"
 	"time"
 
@@ -18,49 +18,67 @@ func TestCourierRepositoryTestSuite(t *testing.T) {
 	suite.Run(t, new(CourierRepositoryTestSuite))
 }
 
-func (s *CourierRepositoryTestSuite) TestCreate_Success() {
+func (s *CourierRepositoryTestSuite) TestCreate() {
 	ctx := context.Background()
-	courier := &model.CourierDB{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
+
+	tests := []struct {
+		name string
+		test func()
+	}{
+		{
+			name: "success",
+			test: func() {
+				courier := &CourierDB{
+					Name:          "John Doe",
+					Phone:         "+79990000001", 
+					Status:        "available",
+					TransportType: "car",
+				}
+
+				id, err := s.courierRepo.CreateCourier(ctx, courier)
+
+				s.Require().NoError(err)
+				s.Greater(id, int64(0))
+			},
+		},
+		{
+			name: "duplicate phone",
+			test: func() {
+				phone := "+79990000002"
+
+				courier1 := &CourierDB{
+					Name:          "John Doe",
+					Phone:         phone,
+					Status:        "available",
+					TransportType: "car",
+				}
+				_, err := s.courierRepo.CreateCourier(ctx, courier1)
+				s.Require().NoError(err)
+
+				courier2 := &CourierDB{
+					Name:          "Jane Doe",
+					Phone:         phone,
+					Status:        "available",
+					TransportType: "bike",
+				}
+				_, err = s.courierRepo.CreateCourier(ctx, courier2)
+
+				s.Require().Error(err)
+				s.ErrorIs(err, ErrPhoneNumberExists)
+			},
+		},
 	}
 
-	id, err := s.courierRepo.CreateCourier(ctx, courier)
-
-	s.Require().NoError(err)
-	s.Greater(id, int64(0))
-}
-
-func (s *CourierRepositoryTestSuite) TestCreate_DuplicatePhone() {
-	ctx := context.Background()
-	phone := "+79991234567"
-
-	courier1 := &model.CourierDB{
-		Name:          "John Doe",
-		Phone:         phone,
-		Status:        "available",
-		TransportType: "car",
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			tt.test()
+		})
 	}
-	_, err := s.courierRepo.CreateCourier(ctx, courier1)
-	s.Require().NoError(err)
-
-	courier2 := &model.CourierDB{
-		Name:          "Jane Doe",
-		Phone:         phone,
-		Status:        "available",
-		TransportType: "bike",
-	}
-	_, err = s.courierRepo.CreateCourier(ctx, courier2)
-
-	s.Require().Error(err)
-	s.ErrorIs(err, ErrPhoneNumberExists)
 }
 
 func (s *CourierRepositoryTestSuite) TestGetById_Success() {
 	ctx := context.Background()
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -93,7 +111,7 @@ func (s *CourierRepositoryTestSuite) TestGetById_NotFound() {
 func (s *CourierRepositoryTestSuite) TestGetAll_Success() {
 	ctx := context.Background()
 
-	couriers := []*model.CourierDB{
+	couriers := []*CourierDB{
 		{Name: "John", Phone: "+79991234567", Status: "available", TransportType: "car"},
 		{Name: "Jane", Phone: "+79991234568", Status: "available", TransportType: "scooter"},
 		{Name: "Bob", Phone: "+79991234569", Status: "available", TransportType: "on_foot"},
@@ -125,7 +143,7 @@ func (s *CourierRepositoryTestSuite) TestGetAll_Empty() {
 func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	ctx := context.Background()
 
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -134,7 +152,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	id, err := s.courierRepo.CreateCourier(ctx, courier)
 	s.Require().NoError(err)
 
-	updated := &model.CourierDB{
+	updated := &CourierDB{
 		ID:            id,
 		Name:          "Jane Doe",
 		Status:        "busy",
@@ -154,7 +172,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 func (s *CourierRepositoryTestSuite) TestUpdate_NotFound() {
 	ctx := context.Background()
 
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		ID:            99999,
 		Name:          "John Doe",
 		Status:        "available",
@@ -170,7 +188,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_NotFound() {
 func (s *CourierRepositoryTestSuite) TestUpdate_NothingToUpdate() {
 	ctx := context.Background()
 
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -179,7 +197,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_NothingToUpdate() {
 	id, err := s.courierRepo.CreateCourier(ctx, courier)
 	s.Require().NoError(err)
 
-	emptyUpdate := &model.CourierDB{
+	emptyUpdate := &CourierDB{
 		ID: id,
 	}
 
@@ -193,7 +211,7 @@ func (s *CourierRepositoryTestSuite) TestExistsByPhone_True() {
 	ctx := context.Background()
 	phone := "+79991234567"
 
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		Name:          "John Doe",
 		Phone:         phone,
 		Status:        "available",
@@ -217,190 +235,202 @@ func (s *CourierRepositoryTestSuite) TestExistsByPhone_False() {
 	s.False(exists)
 }
 
-func (s *CourierRepositoryTestSuite) TestFindAvailable_Success() {
+func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 	ctx := context.Background()
 
-	courier := &model.CourierDB{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
+	tests := []struct {
+		name string
+		test func()
+	}{
+		{
+			name: "success",
+			test: func() {
+				courier := &CourierDB{
+					Name:          "John Doe",
+					Phone:         "+79990000001",
+					Status:        "available",
+					TransportType: "car",
+				}
+				_, err := s.courierRepo.CreateCourier(ctx, courier)
+				s.Require().NoError(err)
+
+				result, err := s.courierRepo.FindAvailableCourier(ctx)
+
+				s.Require().NoError(err)
+				s.NotNil(result)
+				s.Equal("available", result.Status)
+			},
+		},
+		{
+			name: "all_busy",
+			test: func() {
+				courier := &CourierDB{
+					Name:          "John Doe",
+					Phone:         "+79990000002",
+					Status:        "available",
+					TransportType: "car",
+				}
+				id, err := s.courierRepo.CreateCourier(ctx, courier)
+				s.Require().NoError(err)
+
+				busyUpdate := &CourierDB{
+					ID:     id,
+					Status: "busy",
+				}
+				err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
+				s.Require().NoError(err)
+
+				result, err := s.courierRepo.FindAvailableCourier(ctx)
+
+				s.Require().Error(err)
+				s.Nil(result)
+				s.ErrorIs(err, ErrCouriersBusy)
+			},
+		},
+		{
+			name: "selects_courier_with_fewest_deliveries",
+			test: func() {
+				// courier1 — с одной доставкой
+				courier1 := &CourierDB{
+					Name:          "John",
+					Phone:         "+79990000003",
+					Status:        "available",
+					TransportType: "car",
+				}
+				id1, err := s.courierRepo.CreateCourier(ctx, courier1)
+				s.Require().NoError(err)
+
+				// courier2 — без доставок
+				courier2 := &CourierDB{
+					Name:          "Jane",
+					Phone:         "+79990000004",
+					Status:        "available",
+					TransportType: "car",
+				}
+				id2, err := s.courierRepo.CreateCourier(ctx, courier2)
+				s.Require().NoError(err)
+
+				orderID := uuid.New().String()
+				_, err = s.pool.Exec(ctx,
+					"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
+					id1, orderID, time.Now(), time.Now().Add(time.Hour))
+				s.Require().NoError(err)
+
+				result, err := s.courierRepo.FindAvailableCourier(ctx)
+
+				s.Require().NoError(err)
+				s.NotNil(result)
+				s.Equal(id2, result.ID)
+			},
+		},
 	}
-	_, err := s.courierRepo.CreateCourier(ctx, courier)
-	s.Require().NoError(err)
 
-	result, err := s.courierRepo.FindAvailableCourier(ctx)
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			// Чистим состояние БД перед каждым сабтестом,
+			// чтобы кейсы не влияли друг на друга.
+			_, err := s.pool.Exec(ctx, `
+				TRUNCATE TABLE delivery, couriers RESTART IDENTITY CASCADE;
+			`)
+			s.Require().NoError(err)
 
-	s.Require().NoError(err)
-	s.NotNil(result)
-	s.Equal("available", result.Status)
+			tt.test()
+		})
+	}
 }
 
-func (s *CourierRepositoryTestSuite) TestFindAvailable_AllBusy() {
+func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 	ctx := context.Background()
 
-	courier := &model.CourierDB{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
+	tests := []struct {
+		name           string
+		phone          string
+		setupDeliveries func(id int64)
+		expectedStatus string
+	}{
+		{
+			name:  "success_expired_delivery_frees_courier",
+			phone: "+79990000001",
+			setupDeliveries: func(id int64) {
+				pastTime := time.Now().Add(-1 * time.Hour)
+				orderID := uuid.New().String()
+
+				_, err := s.pool.Exec(ctx,
+					"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
+					id, orderID, pastTime, pastTime)
+				s.Require().NoError(err)
+			},
+			expectedStatus: "available",
+		},
+		{
+			name:  "no_expired_deliveries_courier_stays_busy",
+			phone: "+79990000002",
+			setupDeliveries: func(id int64) {
+				futureTime := time.Now().Add(1 * time.Hour)
+				orderID := uuid.New().String()
+
+				_, err := s.pool.Exec(ctx,
+					"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
+					id, orderID, time.Now(), futureTime)
+				s.Require().NoError(err)
+			},
+			expectedStatus: "busy",
+		},
+		{
+			name:  "only_frees_when_all_deliveries_expired",
+			phone: "+79990000003",
+			setupDeliveries: func(id int64) {
+				pastTime := time.Now().Add(-2 * time.Hour)
+				orderID1 := uuid.New().String()
+
+				_, err := s.pool.Exec(ctx,
+					"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
+					id, orderID1, pastTime, pastTime)
+				s.Require().NoError(err)
+
+				futureTime := time.Now().Add(1 * time.Hour)
+				orderID2 := uuid.New().String()
+
+				_, err = s.pool.Exec(ctx,
+					"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
+					id, orderID2, time.Now(), futureTime)
+				s.Require().NoError(err)
+			},
+			expectedStatus: "busy",
+		},
 	}
-	id, err := s.courierRepo.CreateCourier(ctx, courier)
-	s.Require().NoError(err)
 
-	busyUpdate := &model.CourierDB{
-		ID:     id,
-		Status: "busy",
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			// создаём курьера
+			courier := &CourierDB{
+				Name:          "John",
+				Phone:         tt.phone,
+				Status:        "available",
+				TransportType: "car",
+			}
+			id, err := s.courierRepo.CreateCourier(ctx, courier)
+			s.Require().NoError(err)
+
+			// помечаем как busy
+			busyUpdate := &CourierDB{
+				ID:     id,
+				Status: "busy",
+			}
+			err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
+			s.Require().NoError(err)
+
+			// вставляем доставки по сценарию
+			tt.setupDeliveries(id)
+
+			// вызываем освобождение
+			err = s.courierRepo.FreeCouriersWithInterval(ctx)
+			s.Require().NoError(err)
+
+			// проверяем статус
+			updated, err := s.courierRepo.GetCourierById(ctx, id)
+			s.Require().NoError(err)
+			s.Equal(tt.expectedStatus, updated.Status)
+		})
 	}
-	err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
-	s.Require().NoError(err)
-
-	result, err := s.courierRepo.FindAvailableCourier(ctx)
-
-	s.Require().Error(err)
-	s.Nil(result)
-	s.ErrorIs(err, ErrCouriersBusy)
-}
-
-func (s *CourierRepositoryTestSuite) TestFindAvailable_SelectsCourierWithFewestDeliveries() {
-	ctx := context.Background()
-
-	courier1 := &model.CourierDB{
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-	id1, err := s.courierRepo.CreateCourier(ctx, courier1)
-	s.Require().NoError(err)
-
-	courier2 := &model.CourierDB{
-		Name:          "Jane",
-		Phone:         "+79991234568",
-		Status:        "available",
-		TransportType: "car",
-	}
-	id2, err := s.courierRepo.CreateCourier(ctx, courier2)
-	s.Require().NoError(err)
-
-	orderID := uuid.New().String()
-	_, err = s.pool.Exec(ctx,
-		"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
-		id1, orderID, time.Now(), time.Now().Add(time.Hour))
-	s.Require().NoError(err)
-
-	result, err := s.courierRepo.FindAvailableCourier(ctx)
-
-	s.Require().NoError(err)
-	s.NotNil(result)
-	s.Equal(id2, result.ID)
-}
-
-func (s *CourierRepositoryTestSuite) TestFreeCouriers_Success() {
-	ctx := context.Background()
-
-	courier := &model.CourierDB{
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-	id, err := s.courierRepo.CreateCourier(ctx, courier)
-	s.Require().NoError(err)
-
-	busyUpdate := &model.CourierDB{
-		ID:     id,
-		Status: "busy",
-	}
-	err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
-	s.Require().NoError(err)
-
-	pastTime := time.Now().Add(-1 * time.Hour)
-	orderID := uuid.New().String()
-	_, err = s.pool.Exec(ctx,
-		"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
-		id, orderID, pastTime, pastTime)
-	s.Require().NoError(err)
-
-	err = s.courierRepo.FreeCouriersWithInterval(ctx)
-	s.Require().NoError(err)
-
-	updated, err := s.courierRepo.GetCourierById(ctx, id)
-	s.Require().NoError(err)
-	s.Equal("available", updated.Status)
-}
-
-func (s *CourierRepositoryTestSuite) TestFreeCouriers_NoExpiredDeliveries() {
-	ctx := context.Background()
-
-	courier := &model.CourierDB{
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-	id, err := s.courierRepo.CreateCourier(ctx, courier)
-	s.Require().NoError(err)
-
-	busyUpdate := &model.CourierDB{
-		ID:     id,
-		Status: "busy",
-	}
-	err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
-	s.Require().NoError(err)
-
-	futureTime := time.Now().Add(1 * time.Hour)
-	orderID := uuid.New().String()
-	_, err = s.pool.Exec(ctx,
-		"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
-		id, orderID, time.Now(), futureTime)
-	s.Require().NoError(err)
-
-	err = s.courierRepo.FreeCouriersWithInterval(ctx)
-	s.Require().NoError(err)
-
-	updated, err := s.courierRepo.GetCourierById(ctx, id)
-	s.Require().NoError(err)
-	s.Equal("busy", updated.Status)
-}
-
-func (s *CourierRepositoryTestSuite) TestFreeCouriers_OnlyFreesLastExpiredDelivery() {
-	ctx := context.Background()
-
-	courier := &model.CourierDB{
-		Name:          "John",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-	id, err := s.courierRepo.CreateCourier(ctx, courier)
-	s.Require().NoError(err)
-
-	busyUpdate := &model.CourierDB{
-		ID:     id,
-		Status: "busy",
-	}
-	err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
-	s.Require().NoError(err)
-
-	pastTime := time.Now().Add(-2 * time.Hour)
-	orderID1 := uuid.New().String()
-	_, err = s.pool.Exec(ctx,
-		"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
-		id, orderID1, pastTime, pastTime)
-	s.Require().NoError(err)
-
-	futureTime := time.Now().Add(1 * time.Hour)
-	orderID2 := uuid.New().String()
-	_, err = s.pool.Exec(ctx,
-		"INSERT INTO delivery (courier_id, order_id, assigned_at, deadline) VALUES ($1, $2, $3, $4)",
-		id, orderID2, time.Now(), futureTime)
-	s.Require().NoError(err)
-
-	err = s.courierRepo.FreeCouriersWithInterval(ctx)
-	s.Require().NoError(err)
-
-	updated, err := s.courierRepo.GetCourierById(ctx, id)
-	s.Require().NoError(err)
-	s.Equal("busy", updated.Status)
 }

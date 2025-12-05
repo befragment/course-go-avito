@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -19,11 +20,11 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
+	CheckFreeCouriersInterval time.Duration
 }
 
 var (
 	PhoneRegex                = `^\+[0-9]{11}$`
-	CheckFreeCouriersInterval = 10 * time.Second
 )
 
 func LoadConfig() (*Config, error) {
@@ -42,6 +43,9 @@ func LoadConfig() (*Config, error) {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+	checker := os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS")
+	interval := secondsStringToDuration(checker)
+	cfg.CheckFreeCouriersInterval = interval
 
 	return cfg, nil
 }
@@ -87,7 +91,6 @@ func DBConnStringFromEnv() string {
 }
 
 func TestDBConnString() string {
-	// Игнорируем ошибку если .env не найден - переменные могут быть в окружении
 	_ = godotenv.Load(".env")
 
 	host := getEnvOrDefault("POSTGRES_HOST_TEST", "localhost")
@@ -116,3 +119,9 @@ func getEnvOrDefault(key, defaultValue string) string {
 	}
 	return defaultValue
 }
+
+func secondsStringToDuration(value string) time.Duration {
+	duration, _ := strconv.Atoi(value)
+	return time.Duration(duration) * time.Second
+}
+

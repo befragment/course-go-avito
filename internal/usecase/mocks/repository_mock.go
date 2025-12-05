@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	model "courier-service/internal/model"
+	"courier-service/internal/repository"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,7 +37,7 @@ func (m *MockсourierRepository) EXPECT() *MockсourierRepositoryMockRecorder {
 }
 
 // CreateCourier mocks base method.
-func (m *MockсourierRepository) CreateCourier(ctx context.Context, courier *model.CourierDB) (int64, error) {
+func (m *MockсourierRepository) CreateCourier(ctx context.Context, courier *repository.CourierDB) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCourier", ctx, courier)
 	ret0, _ := ret[0].(int64)
@@ -66,10 +67,10 @@ func (mr *MockсourierRepositoryMockRecorder) ExistsCourierByPhone(ctx, phone in
 }
 
 // FindAvailableCourier mocks base method.
-func (m *MockсourierRepository) FindAvailableCourier(ctx context.Context) (*model.CourierDB, error) {
+func (m *MockсourierRepository) FindAvailableCourier(ctx context.Context) (*repository.CourierDB, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindAvailableCourier", ctx)
-	ret0, _ := ret[0].(*model.CourierDB)
+	ret0, _ := ret[0].(*repository.CourierDB)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -95,10 +96,10 @@ func (mr *MockсourierRepositoryMockRecorder) FreeCouriersWithInterval(ctx inter
 }
 
 // GetAllCouriers mocks base method.
-func (m *MockсourierRepository) GetAllCouriers(ctx context.Context) ([]model.CourierDB, error) {
+func (m *MockсourierRepository) GetAllCouriers(ctx context.Context) ([]repository.CourierDB, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllCouriers", ctx)
-	ret0, _ := ret[0].([]model.CourierDB)
+	ret0, _ := ret[0].([]repository.CourierDB)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -110,10 +111,10 @@ func (mr *MockсourierRepositoryMockRecorder) GetAllCouriers(ctx interface{}) *g
 }
 
 // GetCourierById mocks base method.
-func (m *MockсourierRepository) GetCourierById(ctx context.Context, id int64) (*model.CourierDB, error) {
+func (m *MockсourierRepository) GetCourierById(ctx context.Context, id int64) (*repository.CourierDB, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCourierById", ctx, id)
-	ret0, _ := ret[0].(*model.CourierDB)
+	ret0, _ := ret[0].(*repository.CourierDB)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -125,7 +126,7 @@ func (mr *MockсourierRepositoryMockRecorder) GetCourierById(ctx, id interface{}
 }
 
 // UpdateCourier mocks base method.
-func (m *MockсourierRepository) UpdateCourier(ctx context.Context, courier *model.CourierDB) error {
+func (m *MockсourierRepository) UpdateCourier(ctx context.Context, courier *repository.CourierDB) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCourier", ctx, courier)
 	ret0, _ := ret[0].(error)

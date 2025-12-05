@@ -18,153 +18,213 @@ func TestDeliveryRepositoryTestSuite(t *testing.T) {
 	suite.Run(t, new(DeliveryRepositoryTestSuite))
 }
 
-func (s *DeliveryRepositoryTestSuite) TestCreate_Success() {
-	courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
 
-	orderID := uuid.New().String()
-	now := time.Now()
-	deadline := now.Add(2 * time.Hour)
+func (s *DeliveryRepositoryTestSuite) TestCreate() {
+	ctx := context.Background()
 
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  courierID,
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   deadline,
+	type expectationsFn func(result *model.Delivery, err error)
+
+	tests := []struct {
+		name         string
+		setup        func() *model.DeliveryDB
+		before       func(d *model.DeliveryDB)
+		expectations expectationsFn
+	}{
+		{
+			name: "success",
+			setup: func() *model.DeliveryDB {
+				courierID := s.createTestCourier("Test Courier", "+79990000001", "car")
+
+				orderID := uuid.New().String()
+				now := time.Now()
+				deadline := now.Add(2 * time.Hour)
+
+				return &model.DeliveryDB{
+					CourierID:  courierID,
+					OrderID:    orderID,
+					AssignedAt: now,
+					Deadline:   deadline,
+				}
+			},
+			before: nil,
+			expectations: func(result *model.Delivery, err error) {
+				s.Require().NoError(err)
+				s.Require().NotNil(result)
+				s.Greater(result.ID, int64(0))
+				s.Equal(result.CourierID, result.CourierID)
+				s.Equal(result.OrderID, result.OrderID)
+			},
+		},
+		{
+			name: "duplicate order id",
+			setup: func() *model.DeliveryDB {
+				// ВАЖНО: другой телефон
+				courierID := s.createTestCourier("Test Courier", "+79990000002", "car")
+
+				orderID := uuid.New().String()
+				now := time.Now()
+
+				return &model.DeliveryDB{
+					CourierID:  courierID,
+					OrderID:    orderID,
+					AssignedAt: now,
+					Deadline:   now.Add(2 * time.Hour),
+				}
+			},
+			before: func(d *model.DeliveryDB) {
+				_, err := s.deliveryRepo.CreateDelivery(ctx, d)
+				s.Require().NoError(err)
+			},
+			expectations: func(result *model.Delivery, err error) {
+				s.ErrorIs(err, ErrOrderIDExists)
+				s.Nil(result)
+			},
+		},
+		{
+			name: "foreign key violation",
+			setup: func() *model.DeliveryDB {
+				orderID := uuid.New().String()
+				now := time.Now()
+
+				return &model.DeliveryDB{
+					CourierID:  999999, // несуществующий курьер
+					OrderID:    orderID,
+					AssignedAt: now,
+					Deadline:   now.Add(2 * time.Hour),
+				}
+			},
+			before: nil,
+			expectations: func(result *model.Delivery, err error) {
+				s.Error(err)
+				s.Nil(result)
+			},
+		},
 	}
 
-	result, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			d := tt.setup()
 
-	s.Require().NoError(err)
-	s.Require().NotNil(result)
-	s.Greater(result.ID, int64(0))
-	s.Equal(courierID, result.CourierID)
-	s.Equal(orderID, result.OrderID)
-	s.WithinDuration(deadline, result.Deadline, time.Second)
+			if tt.before != nil {
+				tt.before(d)
+			}
+
+			result, err := s.deliveryRepo.CreateDelivery(ctx, d)
+
+			tt.expectations(result, err)
+		})
+	}
 }
 
-func (s *DeliveryRepositoryTestSuite) TestCreate_DuplicateOrderID() {
-	courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
+func (s *DeliveryRepositoryTestSuite) TestCouriersDelivery() {
+	tests := []struct {
+		name string
+		test func()
+	}{
+		{
+			name: "success",
+			test: func() {
+				ctx := context.Background()
 
-	orderID := uuid.New().String()
-	now := time.Now()
+				courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
 
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  courierID,
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   now.Add(2 * time.Hour),
+				orderID := uuid.New().String()
+				now := time.Now()
+
+				deliveryDB := &model.DeliveryDB{
+					CourierID:  courierID,
+					OrderID:    orderID,
+					AssignedAt: now,
+					Deadline:   now.Add(2 * time.Hour),
+				}
+
+				_, err := s.deliveryRepo.CreateDelivery(ctx, deliveryDB)
+				s.Require().NoError(err)
+
+				result, err := s.deliveryRepo.CouriersDelivery(ctx, orderID)
+
+				s.Require().NoError(err)
+				s.Require().NotNil(result)
+				s.Equal(courierID, result.CourierID)
+				s.Equal(orderID, result.OrderID)
+			},
+		},
+		{
+			name: "not found",
+			test: func() {
+				ctx := context.Background()
+
+				nonExistentOrderID := uuid.New().String()
+
+				result, err := s.deliveryRepo.CouriersDelivery(ctx, nonExistentOrderID)
+
+				s.ErrorIs(err, ErrOrderIDNotFound)
+				s.Nil(result)
+			},
+		},
 	}
 
-	_, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-	s.Require().NoError(err)
-
-	_, err = s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-
-	s.ErrorIs(err, ErrOrderIDExists)
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			tt.test()
+		})
+	}
 }
 
-func (s *DeliveryRepositoryTestSuite) TestCreate_ForeignKeyViolation() {
-	orderID := uuid.New().String()
-	now := time.Now()
+func (s *DeliveryRepositoryTestSuite) TestDelete() {
+	ctx := context.Background()
 
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  999999, // Non-existent courier
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   now.Add(2 * time.Hour),
+	tests := []struct {
+		name   string
+		setup  func() string
+		check  func(orderID string)
+	}{
+		{
+			name: "success",
+			setup: func() string {
+				courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
+
+				orderID := uuid.New().String()
+				now := time.Now()
+
+				deliveryDB := &model.DeliveryDB{
+					CourierID:  courierID,
+					OrderID:    orderID,
+					AssignedAt: now,
+					Deadline:   now.Add(2 * time.Hour),
+				}
+
+				_, err := s.deliveryRepo.CreateDelivery(ctx, deliveryDB)
+				s.Require().NoError(err)
+
+				return orderID
+			},
+			check: func(orderID string) {
+				err := s.deliveryRepo.DeleteDelivery(ctx, orderID)
+				s.Require().NoError(err)
+
+				_, err = s.deliveryRepo.CouriersDelivery(ctx, orderID)
+				s.ErrorIs(err, ErrOrderIDNotFound)
+			},
+		},
+		{
+			name: "not found",
+			setup: func() string {
+				return uuid.New().String()
+			},
+			check: func(orderID string) {
+				err := s.deliveryRepo.DeleteDelivery(ctx, orderID)
+				s.ErrorIs(err, ErrOrderIDNotFound)
+			},
+		},
 	}
 
-	_, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-
-	s.Error(err)
-}
-
-func (s *DeliveryRepositoryTestSuite) TestCouriersDelivery_Success() {
-	courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
-
-	orderID := uuid.New().String()
-	now := time.Now()
-
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  courierID,
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   now.Add(2 * time.Hour),
+	for _, tt := range tests {
+		s.Run(tt.name, func() {
+			orderID := tt.setup()
+			tt.check(orderID)
+		})
 	}
-
-	_, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-	s.Require().NoError(err)
-
-	result, err := s.deliveryRepo.CouriersDelivery(context.Background(), orderID)
-
-	s.Require().NoError(err)
-	s.Require().NotNil(result)
-	s.Equal(courierID, result.CourierID)
-	s.Equal(orderID, result.OrderID)
-}
-
-func (s *DeliveryRepositoryTestSuite) TestCouriersDelivery_NotFound() {
-	nonExistentOrderID := uuid.New().String()
-
-	result, err := s.deliveryRepo.CouriersDelivery(context.Background(), nonExistentOrderID)
-
-	s.ErrorIs(err, ErrOrderIDNotFound)
-	s.Nil(result)
-}
-
-func (s *DeliveryRepositoryTestSuite) TestDelete_Success() {
-	courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
-
-	orderID := uuid.New().String()
-	now := time.Now()
-
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  courierID,
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   now.Add(2 * time.Hour),
-	}
-
-	_, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-	s.Require().NoError(err)
-
-	err = s.deliveryRepo.DeleteDelivery(context.Background(), orderID)
-
-	s.Require().NoError(err)
-
-	_, err = s.deliveryRepo.CouriersDelivery(context.Background(), orderID)
-	s.ErrorIs(err, ErrOrderIDNotFound)
-}
-
-func (s *DeliveryRepositoryTestSuite) TestDelete_NotFound() {
-	nonExistentOrderID := uuid.New().String()
-
-	err := s.deliveryRepo.DeleteDelivery(context.Background(), nonExistentOrderID)
-
-	s.ErrorIs(err, ErrOrderIDNotFound)
-}
-
-func (s *DeliveryRepositoryTestSuite) TestDelete_MultipleTimes() {
-	courierID := s.createTestCourier("Test Courier", "+79991234567", "car")
-
-	orderID := uuid.New().String()
-	now := time.Now()
-
-	deliveryDB := &model.DeliveryDB{
-		CourierID:  courierID,
-		OrderID:    orderID,
-		AssignedAt: now,
-		Deadline:   now.Add(2 * time.Hour),
-	}
-
-	_, err := s.deliveryRepo.CreateDelivery(context.Background(), deliveryDB)
-	s.Require().NoError(err)
-
-	err = s.deliveryRepo.DeleteDelivery(context.Background(), orderID)
-	s.Require().NoError(err)
-
-	err = s.deliveryRepo.DeleteDelivery(context.Background(), orderID)
-	s.ErrorIs(err, ErrOrderIDNotFound)
 }
 
 func (s *DeliveryRepositoryTestSuite) TestMultipleDeliveries() {

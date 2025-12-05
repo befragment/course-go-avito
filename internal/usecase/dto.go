@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"courier-service/internal/model"
+	"courier-service/internal/repository"
 	"time"
 )
 
-func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) model.CourierDB {
-	out := model.CourierDB{ID: req.ID}
+func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) repository.CourierDB {
+	out := repository.CourierDB{ID: req.ID}
 	if req.Name != nil {
 		out.Name = *req.Name
 	}
@@ -22,8 +23,8 @@ func courierUpdateRequestToCourierDB(req model.CourierUpdateRequest) model.Couri
 	return out
 }
 
-func courierCreateRequestToCourierDB(req model.CourierCreateRequest) model.CourierDB {
-	return model.CourierDB{
+func courierCreateRequestToCourierDB(req model.CourierCreateRequest) repository.CourierDB {
+	return repository.CourierDB{
 		Name:          req.Name,
 		Phone:         req.Phone,
 		Status:        req.Status,
@@ -31,7 +32,7 @@ func courierCreateRequestToCourierDB(req model.CourierCreateRequest) model.Couri
 	}
 }
 
-func deliveryAssignRequestToDeliveryDB(orderID string, courierDB model.CourierDB) (model.DeliveryDB, error) {
+func deliveryAssignRequestToDeliveryDB(orderID string, courierDB repository.CourierDB) (model.DeliveryDB, error) {
 	duration, err := transportTypeTime(courierDB.TransportType)
 	if err != nil {
 		return model.DeliveryDB{}, err
@@ -55,8 +56,8 @@ func delieveryAssignResponse(courier model.Courier, delivery model.Delivery) mod
 
 func delieveryUnassignResponse(courier model.Courier, delivery model.Delivery) model.DeliveryUnassignResponse {
 	return model.DeliveryUnassignResponse{
-		OrderID:       delivery.OrderID,
-		Status:        "unassigned",
-		CourierID:     courier.ID,
+		OrderID:   delivery.OrderID,
+		Status:    "unassigned",
+		CourierID: courier.ID,
 	}
 }

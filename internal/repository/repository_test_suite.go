@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -83,8 +82,19 @@ func (s *RepositoryTestSuite) TearDownTest() {
 	}
 }
 
+func (s *RepositoryTestSuite) SetupTest() {
+	ctx := context.Background()
+
+	_, err := s.pool.Exec(ctx, `
+		TRUNCATE delivery, couriers
+		RESTART IDENTITY
+		CASCADE
+	`)
+	s.Require().NoError(err)
+}
+
 func (s *RepositoryTestSuite) createTestCourier(name, phone, transportType string) int64 {
-	courier := &model.CourierDB{
+	courier := &CourierDB{
 		Name:          name,
 		Phone:         phone,
 		Status:        "available",

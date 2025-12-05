@@ -17,567 +17,595 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCourierHandler_CreateCourier_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestCourierHandler_GetCourierById(t *testing.T) {
+	type expectationsFn func(t *testing.T, rr *httptest.ResponseRecorder)
 
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierCreateRequest{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		TransportType: "car",
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(1), nil)
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusCreated, response.Code)
-	assert.Equal(t, "application/json", response.Header().Get("Content-Type"))
-
-	var result map[string]string
-	err := json.Unmarshal(response.Body.Bytes(), &result)
-	require.NoError(t, err)
-	assert.Equal(t, "1", result["id"])
-	assert.Equal(t, "Courier created successfully", result["message"])
-}
-
-func TestCourierHandler_CreateCourier_InvalidJSON(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	request := httptest.NewRequest("POST", "/courier", bytes.NewReader([]byte("invalid json")))
-	response := httptest.NewRecorder()
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_CreateCourier_PhoneExists(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierCreateRequest{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		TransportType: "car",
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(0), usecase.ErrPhoneNumberExists)
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusConflict, response.Code)
-}
-
-func TestCourierHandler_GetCourierById_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	router := chi.NewRouter()
-	router.Get("/courier/{id}", controller.GetCourierById)
-
-	request := httptest.NewRequest("GET", "/courier/123", nil)
-	response := httptest.NewRecorder()
-
-	expectedCourier := &model.Courier{
-		ID:            123,
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		Status:        "available",
-		TransportType: "car",
-	}
-	mockUseCase.EXPECT().
-		GetCourierById(gomock.Any(), int64(123)).
-		Return(expectedCourier, nil)
-
-	router.ServeHTTP(response, request)
-
-	assert.Equal(t, http.StatusOK, response.Code)
-
-	var result model.Courier
-	err := json.Unmarshal(response.Body.Bytes(), &result)
-	require.NoError(t, err)
-	assert.Equal(t, int64(123), result.ID)
-	assert.Equal(t, "John Doe", result.Name)
-}
-
-func TestCourierHandler_GetCourierById_NotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	router := chi.NewRouter()
-	router.Get("/courier/{id}", controller.GetCourierById)
-
-	request := httptest.NewRequest("GET", "/courier/999", nil)
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		GetCourierById(gomock.Any(), int64(999)).
-		Return(nil, usecase.ErrCourierNotFound)
-
-	router.ServeHTTP(response, request)
-
-	assert.Equal(t, http.StatusNotFound, response.Code)
-}
-
-func TestCourierHandler_GetAll_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	request := httptest.NewRequest("GET", "/courier", nil)
-	response := httptest.NewRecorder()
-
-	expectedCouriers := []model.Courier{
+	tests := []struct {
+		name           string
+		routePattern   string
+		url            string
+		prepare        func(uc *mocks.MockсourierUseCase)
+		wantStatusCode int
+		expectations   expectationsFn
+	}{
 		{
-			ID:            1,
-			Name:          "John",
-			Phone:         "+79991111111",
-			Status:        "available",
-			TransportType: "car",
+			name:         "success",
+			routePattern: "/courier/{id}",
+			url:          "/courier/123",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				expectedCourier := &model.Courier{
+					ID:            123,
+					Name:          "John Doe",
+					Phone:         "+79991234567",
+					Status:        "available",
+					TransportType: "car",
+				}
+
+				uc.EXPECT().
+					GetCourierById(gomock.Any(), int64(123)).
+					Return(expectedCourier, nil)
+			},
+			wantStatusCode: http.StatusOK,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				var result model.Courier
+				err := json.Unmarshal(rr.Body.Bytes(), &result)
+				require.NoError(t, err)
+
+				assert.Equal(t, int64(123), result.ID)
+				assert.Equal(t, "John Doe", result.Name)
+			},
 		},
 		{
-			ID:            2,
-			Name:          "Jane",
-			Phone:         "+79992222222",
-			Status:        "busy",
-			TransportType: "bike",
+			name:         "not found",
+			routePattern: "/courier/{id}",
+			url:          "/courier/999",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					GetCourierById(gomock.Any(), int64(999)).
+					Return(nil, usecase.ErrCourierNotFound)
+			},
+			wantStatusCode: http.StatusNotFound,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// при необходимости можно проверить тело ответа/сообщение об ошибке
+			},
+		},
+		{
+			name:         "invalid id",
+			routePattern: "/courier/{id}",
+			url:          "/courier/invalid",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				// usecase вызываться не должен
+			},
+			wantStatusCode: http.StatusBadRequest,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// можно проверить сообщение об ошибке, если нужно
+			},
+		},
+		{
+			name:         "internal error",
+			routePattern: "/courier/{id}",
+			url:          "/courier/1",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					GetCourierById(gomock.Any(), int64(1)).
+					Return(nil, assert.AnError)
+			},
+			wantStatusCode: http.StatusInternalServerError,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// можно проверить тело с ошибкой
+			},
 		},
 	}
-	mockUseCase.EXPECT().
-		GetAllCouriers(gomock.Any()).
-		Return(expectedCouriers, nil)
 
-	controller.GetAllCouriers(response, request)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	assert.Equal(t, http.StatusOK, response.Code)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	var result []model.Courier
-	err := json.Unmarshal(response.Body.Bytes(), &result)
-	require.NoError(t, err)
-	assert.Len(t, result, 2)
-	assert.Equal(t, int64(1), result[0].ID)
-	assert.Equal(t, int64(2), result[1].ID)
-}
+			mockUseCase := mocks.NewMockсourierUseCase(ctrl)
+			if tt.prepare != nil {
+				tt.prepare(mockUseCase)
+			}
 
-func TestCourierHandler_Update_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+			controller := NewCourierController(mockUseCase)
 
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
+			router := chi.NewRouter()
+			router.Get(tt.routePattern, controller.GetCourierById)
 
-	reqBody := model.CourierUpdateRequest{
-		ID:            1,
-		Name:          stringPtr("Updated Name"),
-		TransportType: stringPtr("car"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			rr := httptest.NewRecorder()
 
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(ctx context.Context, req *model.CourierUpdateRequest) error {
-			assert.Equal(t, int64(1), req.ID)
-			assert.Equal(t, "Updated Name", *req.Name)
-			return nil
+			router.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.wantStatusCode, rr.Code)
+
+			if tt.expectations != nil {
+				tt.expectations(t, rr)
+			}
 		})
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusOK, response.Code)
-}
-
-func TestCourierHandler_GetCourierById_InvalidID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	router := chi.NewRouter()
-	router.Get("/couriers/{id}", controller.GetCourierById)
-
-	request := httptest.NewRequest("GET", "/couriers/invalid", nil)
-	response := httptest.NewRecorder()
-
-	router.ServeHTTP(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_GetCourierById_InternalError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	router := chi.NewRouter()
-	router.Get("/couriers/{id}", controller.GetCourierById)
-
-	request := httptest.NewRequest("GET", "/couriers/1", nil)
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		GetCourierById(gomock.Any(), int64(1)).
-		Return(nil, assert.AnError)
-
-	router.ServeHTTP(response, request)
-
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
-
-func TestCourierHandler_GetAllCouriers_InternalError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	request := httptest.NewRequest("GET", "/couriers", nil)
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		GetAllCouriers(gomock.Any()).
-		Return(nil, assert.AnError)
-
-	controller.GetAllCouriers(response, request)
-
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
-
-func TestCourierHandler_GetAllCouriers_EmptyList(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	request := httptest.NewRequest("GET", "/couriers", nil)
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		GetAllCouriers(gomock.Any()).
-		Return([]model.Courier{}, nil)
-
-	controller.GetAllCouriers(response, request)
-
-	assert.Equal(t, http.StatusOK, response.Code)
-
-	var result []model.Courier
-	err := json.Unmarshal(response.Body.Bytes(), &result)
-	require.NoError(t, err)
-	assert.Empty(t, result)
-}
-
-func TestCourierHandler_CreateCourier_ValidationError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierCreateRequest{
-		Name:          "John Doe",
-		Phone:         "invalid_phone",
-		TransportType: "car",
 	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/couriers", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(0), usecase.ErrInvalidPhoneNumber)
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
 }
 
-func TestCourierHandler_CreateCourier_InternalError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestCourierHandler_GetAllCouriers(t *testing.T) {
+	type expectationsFn func(t *testing.T, rr *httptest.ResponseRecorder)
 
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
+	tests := []struct {
+		name           string
+		url            string
+		prepare        func(uc *mocks.MockсourierUseCase)
+		wantStatusCode int
+		expectations   expectationsFn
+	}{
+		{
+			name: "success",
+			url:  "/courier",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				expectedCouriers := []model.Courier{
+					{
+						ID:            1,
+						Name:          "John",
+						Phone:         "+79991111111",
+						Status:        "available",
+						TransportType: "car",
+					},
+					{
+						ID:            2,
+						Name:          "Jane",
+						Phone:         "+79992222222",
+						Status:        "busy",
+						TransportType: "bike",
+					},
+				}
 
-	reqBody := model.CourierCreateRequest{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		TransportType: "car",
+				uc.EXPECT().
+					GetAllCouriers(gomock.Any()).
+					Return(expectedCouriers, nil)
+			},
+			wantStatusCode: http.StatusOK,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				var result []model.Courier
+				err := json.Unmarshal(rr.Body.Bytes(), &result)
+				require.NoError(t, err)
+
+				assert.Len(t, result, 2)
+				assert.Equal(t, int64(1), result[0].ID)
+				assert.Equal(t, int64(2), result[1].ID)
+			},
+		},
+		{
+			name: "internal error",
+			url:  "/couriers",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					GetAllCouriers(gomock.Any()).
+					Return(nil, assert.AnError)
+			},
+			wantStatusCode: http.StatusInternalServerError,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// при желании можно проверить тело/сообщение об ошибке
+			},
+		},
+		{
+			name: "empty list",
+			url:  "/couriers",
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					GetAllCouriers(gomock.Any()).
+					Return([]model.Courier{}, nil)
+			},
+			wantStatusCode: http.StatusOK,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				var result []model.Courier
+				err := json.Unmarshal(rr.Body.Bytes(), &result)
+				require.NoError(t, err)
+				assert.Empty(t, result)
+			},
+		},
 	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/couriers", bytes.NewReader(body))
-	response := httptest.NewRecorder()
 
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(0), assert.AnError)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	controller.CreateCourier(response, request)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
+			mockUseCase := mocks.NewMockсourierUseCase(ctrl)
+			if tt.prepare != nil {
+				tt.prepare(mockUseCase)
+			}
 
-func TestCourierHandler_UpdateCourier_MissingID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+			controller := NewCourierController(mockUseCase)
 
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			rr := httptest.NewRecorder()
 
-	reqBody := model.CourierUpdateRequest{
-		Name: stringPtr("Updated Name"),
+			controller.GetAllCouriers(rr, req)
+
+			assert.Equal(t, tt.wantStatusCode, rr.Code)
+
+			if tt.expectations != nil {
+				tt.expectations(t, rr)
+			}
+		})
 	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_InvalidJSON(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader([]byte("invalid json")))
-	response := httptest.NewRecorder()
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_CourierNotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:   999,
-		Name: stringPtr("Updated Name"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(usecase.ErrCourierNotFound)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusNotFound, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_PhoneExists(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:    1,
-		Phone: stringPtr("+79991234567"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(usecase.ErrPhoneNumberExists)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusConflict, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_InvalidPhone(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:    1,
-		Phone: stringPtr("invalid"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(usecase.ErrInvalidPhoneNumber)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_InternalError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:   1,
-		Name: stringPtr("Updated Name"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-	
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(assert.AnError)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-}
-
-func TestCourierHandler_CreateCourier_MissingRequiredFields(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierCreateRequest{
-		Name:          "",
-		Phone:         "+79991234567",
-		TransportType: "car",
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(0), usecase.ErrInvalidCreate)
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_CreateCourier_UnknownTransportType(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierCreateRequest{
-		Name:          "John Doe",
-		Phone:         "+79991234567",
-		TransportType: "airplane",
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("POST", "/courier", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		CreateCourier(gomock.Any(), gomock.Any()).
-		Return(int64(0), usecase.ErrUnknownTransportType)
-
-	controller.CreateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_MissingRequiredFields(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:   1,
-		Name: stringPtr(""),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier/", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(usecase.ErrInvalidUpdate)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
-}
-
-func TestCourierHandler_UpdateCourier_UnknownTransportType(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUseCase := mocks.NewMockсourierUseCase(ctrl)
-	controller := NewCourierController(mockUseCase)
-
-	reqBody := model.CourierUpdateRequest{
-		ID:            1,
-		TransportType: stringPtr("spaceship"),
-	}
-	body, _ := json.Marshal(reqBody)
-	request := httptest.NewRequest("PUT", "/courier/", bytes.NewReader(body))
-	response := httptest.NewRecorder()
-
-	mockUseCase.EXPECT().
-		UpdateCourier(gomock.Any(), gomock.Any()).
-		Return(usecase.ErrUnknownTransportType)
-
-	controller.UpdateCourier(response, request)
-
-	assert.Equal(t, http.StatusBadRequest, response.Code)
 }
 
 func stringPtr(s string) *string {
 	return &s
+}
+
+func TestCourierHandler_UpdateCourier(t *testing.T) {
+	type expectationsFn func(t *testing.T, rr *httptest.ResponseRecorder)
+
+	tests := []struct {
+		name           string
+		url            string
+		requestBody    []byte
+		prepare        func(uc *mocks.MockсourierUseCase)
+		wantStatusCode int
+		expectations   expectationsFn
+	}{
+		{
+			name: "missing required fields",
+			url:  "/courier/",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:   1,
+					Name: stringPtr(""),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(usecase.ErrInvalidUpdate)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "unknown transport type",
+			url:  "/courier/",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:            1,
+					TransportType: stringPtr("spaceship"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(usecase.ErrUnknownTransportType)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "missing id",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					Name: stringPtr("Updated Name"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare:        nil, // usecase не вызывается
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:           "invalid json",
+			url:            "/courier",
+			requestBody:    []byte("invalid json"),
+			prepare:        nil, // usecase не вызывается
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "courier not found",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:   999,
+					Name: stringPtr("Updated Name"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(usecase.ErrCourierNotFound)
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "phone exists",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:    1,
+					Phone: stringPtr("+79991234567"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(usecase.ErrPhoneNumberExists)
+			},
+			wantStatusCode: http.StatusConflict,
+		},
+		{
+			name: "invalid phone",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:    1,
+					Phone: stringPtr("invalid"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(usecase.ErrInvalidPhoneNumber)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "internal error",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:   1,
+					Name: stringPtr("Updated Name"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					Return(assert.AnError)
+			},
+			wantStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "success",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierUpdateRequest{
+					ID:            1,
+					Name:          stringPtr("Updated Name"),
+					TransportType: stringPtr("car"),
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					UpdateCourier(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *model.CourierUpdateRequest) error {
+						assert.Equal(t, int64(1), req.ID)
+						require.NotNil(t, req.Name)
+						assert.Equal(t, "Updated Name", *req.Name)
+						require.NotNil(t, req.TransportType)
+						assert.Equal(t, "car", *req.TransportType)
+						return nil
+					})
+			},
+			wantStatusCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUseCase := mocks.NewMockсourierUseCase(ctrl)
+			if tt.prepare != nil {
+				tt.prepare(mockUseCase)
+			}
+
+			controller := NewCourierController(mockUseCase)
+
+			req := httptest.NewRequest(http.MethodPut, tt.url, bytes.NewReader(tt.requestBody))
+			rr := httptest.NewRecorder()
+
+			controller.UpdateCourier(rr, req)
+
+			assert.Equal(t, tt.wantStatusCode, rr.Code)
+
+			if tt.expectations != nil {
+				tt.expectations(t, rr)
+			}
+		})
+	}
+}
+
+func TestCourierHandler_CreateCourier(t *testing.T) {
+	type expectationsFn func(t *testing.T, rr *httptest.ResponseRecorder)
+
+	tests := []struct {
+		name           string
+		url            string
+		requestBody    []byte
+		prepare        func(uc *mocks.MockсourierUseCase)
+		expectations   expectationsFn
+		wantStatusCode int
+	}{
+		{
+			name: "success",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "John Doe",
+					Phone:         "+79991234567",
+					TransportType: "car",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(1), nil)
+			},
+			wantStatusCode: http.StatusCreated,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+
+				var result map[string]string
+				err := json.Unmarshal(rr.Body.Bytes(), &result)
+				require.NoError(t, err)
+
+				assert.Equal(t, "1", result["id"])
+				assert.Equal(t, "Courier created successfully", result["message"])
+			},
+		},
+		{
+			name:        "invalid json",
+			url:         "/courier",
+			requestBody: []byte("invalid json"),
+			prepare:     nil, // usecase вызываться не должен
+			wantStatusCode: http.StatusBadRequest,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// при желании можно проверить тело/сообщение об ошибке
+			},
+		},
+		{
+			name: "phone exists",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "John Doe",
+					Phone:         "+79991234567",
+					TransportType: "car",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(0), usecase.ErrPhoneNumberExists)
+			},
+			wantStatusCode: http.StatusConflict,
+			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
+				// можно добавить проверку тела с текстом ошибки, если он есть
+			},
+		},
+		{
+			name: "validation error (invalid phone)",
+			url:  "/couriers",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "John Doe",
+					Phone:         "invalid_phone",
+					TransportType: "car",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(0), usecase.ErrInvalidPhoneNumber)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "internal error",
+			url:  "/couriers",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "John Doe",
+					Phone:         "+79991234567",
+					TransportType: "car",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(0), assert.AnError)
+			},
+			wantStatusCode: http.StatusInternalServerError,
+		},
+		{
+			name: "missing required fields",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "",
+					Phone:         "+79991234567",
+					TransportType: "car",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(0), usecase.ErrInvalidCreate)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "unknown transport type",
+			url:  "/courier",
+			requestBody: func() []byte {
+				reqBody := model.CourierCreateRequest{
+					Name:          "John Doe",
+					Phone:         "+79991234567",
+					TransportType: "airplane",
+				}
+				b, _ := json.Marshal(reqBody)
+				return b
+			}(),
+			prepare: func(uc *mocks.MockсourierUseCase) {
+				uc.EXPECT().
+					CreateCourier(gomock.Any(), gomock.Any()).
+					Return(int64(0), usecase.ErrUnknownTransportType)
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUseCase := mocks.NewMockсourierUseCase(ctrl)
+			if tt.prepare != nil {
+				tt.prepare(mockUseCase)
+			}
+
+			controller := NewCourierController(mockUseCase)
+
+			req := httptest.NewRequest(http.MethodPost, tt.url, bytes.NewReader(tt.requestBody))
+			rr := httptest.NewRecorder()
+
+			controller.CreateCourier(rr, req)
+
+			assert.Equal(t, tt.wantStatusCode, rr.Code)
+
+			if tt.expectations != nil {
+				tt.expectations(t, rr)
+			}
+		})
+	}
 }

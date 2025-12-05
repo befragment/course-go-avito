@@ -19,11 +19,7 @@ func NewCourierUseCase(repository сourierRepository) *CourierUseCase {
 	return &CourierUseCase{repository: repository}
 }
 
-func CheckFreeCouriers(ctx context.Context, u *CourierUseCase) {
-	CheckFreeCouriersWithInterval(ctx, u, core.CheckFreeCouriersInterval)
-}
-
-func CheckFreeCouriersWithInterval(ctx context.Context, u *CourierUseCase, interval time.Duration) {
+func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
