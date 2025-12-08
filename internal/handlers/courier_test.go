@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"courier-service/internal/handlers/dto"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
@@ -33,7 +34,7 @@ func TestCourierHandler_GetCourierById(t *testing.T) {
 			routePattern: "/courier/{id}",
 			url:          "/courier/123",
 			prepare: func(uc *mocks.MockсourierUseCase) {
-				expectedCourier := &model.Courier{
+				expectedCourier := model.Courier{
 					ID:            123,
 					Name:          "John Doe",
 					Phone:         "+79991234567",
@@ -62,7 +63,7 @@ func TestCourierHandler_GetCourierById(t *testing.T) {
 			prepare: func(uc *mocks.MockсourierUseCase) {
 				uc.EXPECT().
 					GetCourierById(gomock.Any(), int64(999)).
-					Return(nil, usecase.ErrCourierNotFound)
+					Return(model.Courier{}, usecase.ErrCourierNotFound)
 			},
 			wantStatusCode: http.StatusNotFound,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
@@ -88,7 +89,7 @@ func TestCourierHandler_GetCourierById(t *testing.T) {
 			prepare: func(uc *mocks.MockсourierUseCase) {
 				uc.EXPECT().
 					GetCourierById(gomock.Any(), int64(1)).
-					Return(nil, assert.AnError)
+					Return(model.Courier{}, assert.AnError)
 			},
 			wantStatusCode: http.StatusInternalServerError,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
@@ -252,7 +253,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "missing required fields",
 			url:  "/courier/",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:   1,
 					Name: stringPtr(""),
 				}
@@ -270,7 +271,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "unknown transport type",
 			url:  "/courier/",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:            1,
 					TransportType: stringPtr("spaceship"),
 				}
@@ -288,7 +289,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "missing id",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					Name: stringPtr("Updated Name"),
 				}
 				b, _ := json.Marshal(reqBody)
@@ -308,7 +309,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "courier not found",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:   999,
 					Name: stringPtr("Updated Name"),
 				}
@@ -326,7 +327,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "phone exists",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:    1,
 					Phone: stringPtr("+79991234567"),
 				}
@@ -344,7 +345,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "invalid phone",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:    1,
 					Phone: stringPtr("invalid"),
 				}
@@ -362,7 +363,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "internal error",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:   1,
 					Name: stringPtr("Updated Name"),
 				}
@@ -380,7 +381,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			name: "success",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierUpdateRequest{
+				reqBody := dto.CourierUpdateRequestDTO{
 					ID:            1,
 					Name:          stringPtr("Updated Name"),
 					TransportType: stringPtr("car"),
@@ -391,12 +392,10 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 			prepare: func(uc *mocks.MockсourierUseCase) {
 				uc.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, req *model.CourierUpdateRequest) error {
-						assert.Equal(t, int64(1), req.ID)
-						require.NotNil(t, req.Name)
-						assert.Equal(t, "Updated Name", *req.Name)
-						require.NotNil(t, req.TransportType)
-						assert.Equal(t, "car", *req.TransportType)
+					DoAndReturn(func(ctx context.Context, c model.Courier) error {
+						assert.Equal(t, int64(1), c.ID)
+						assert.Equal(t, "Updated Name", c.Name)
+						assert.Equal(t, "car", c.TransportType)
 						return nil
 					})
 			},
@@ -447,7 +446,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "success",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "+79991234567",
 					TransportType: "car",
@@ -486,7 +485,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "phone exists",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "+79991234567",
 					TransportType: "car",
@@ -508,7 +507,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "validation error (invalid phone)",
 			url:  "/couriers",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "invalid_phone",
 					TransportType: "car",
@@ -527,7 +526,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "internal error",
 			url:  "/couriers",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "+79991234567",
 					TransportType: "car",
@@ -546,7 +545,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "missing required fields",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "",
 					Phone:         "+79991234567",
 					TransportType: "car",
@@ -565,7 +564,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			name: "unknown transport type",
 			url:  "/courier",
 			requestBody: func() []byte {
-				reqBody := model.CourierCreateRequest{
+				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "+79991234567",
 					TransportType: "airplane",

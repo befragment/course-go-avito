@@ -4,23 +4,22 @@ package usecase
 import (
 	"context"
 	"courier-service/internal/model"
-	"courier-service/internal/repository"
 
 )
 
 type сourierRepository interface {
-	GetCourierById(ctx context.Context, id int64) (*repository.CourierDB, error)
-	GetAllCouriers(ctx context.Context) ([]repository.CourierDB, error)
-	CreateCourier(ctx context.Context, courier *repository.CourierDB) (int64, error)
-	UpdateCourier(ctx context.Context, courier *repository.CourierDB) error
-	FindAvailableCourier(ctx context.Context) (*repository.CourierDB, error)
+	GetCourierById(ctx context.Context, id int64) (model.Courier, error)
+	GetAllCouriers(ctx context.Context) ([]model.Courier, error)
+	CreateCourier(ctx context.Context, courier model.Courier) (int64, error)
+	UpdateCourier(ctx context.Context, courier model.Courier) error
+	FindAvailableCourier(ctx context.Context) (model.Courier, error)
 	ExistsCourierByPhone(ctx context.Context, phone string) (bool, error)
 	FreeCouriersWithInterval(ctx context.Context) error
 }
 
 type deliveryRepository interface {
-	CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error)
-	CouriersDelivery(ctx context.Context, orderID string) (*model.DeliveryDB, error)
+	CreateDelivery(ctx context.Context, delivery model.Delivery) (model.Delivery, error)
+	CouriersDelivery(ctx context.Context, orderID string) (model.Delivery, error)
 	DeleteDelivery(ctx context.Context, orderID string) error
 }
 

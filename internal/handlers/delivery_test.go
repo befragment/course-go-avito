@@ -2,15 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"courier-service/internal/handlers/mocks"
-	"courier-service/internal/model"
-	"courier-service/internal/usecase"
+	"testing"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-	"time"
-
+	"courier-service/internal/handlers/mocks"
+	"courier-service/internal/handlers/dto"
+	"courier-service/internal/usecase"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,18 +27,17 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 		{
 			name: "success",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryAssignRequest{
+				reqBody := dto.DeliveryAssignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
 				return b
 			}(),
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
-				expectedResponse := model.DeliveryAssignResponse{
+				expectedResponse := usecase.DeliveryAssignResponse{
 					CourierID:     1,
 					OrderID:       "550e8400-e29b-41d4-a716-446655440000",
 					TransportType: "car",
-					Deadline:      time.Now().Add(2 * time.Hour),
 				}
 
 				uc.EXPECT().
@@ -49,7 +46,7 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
-				var result model.DeliveryAssignResponse
+				var result usecase.DeliveryAssignResponse
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
 
@@ -69,7 +66,7 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 		{
 			name: "all couriers busy",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryAssignRequest{
+				reqBody := dto.DeliveryAssignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -78,14 +75,14 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					AssignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryAssignResponse{}, usecase.ErrCouriersBusy)
+					Return(usecase.DeliveryAssignResponse{}, usecase.ErrCouriersBusy)
 			},
 			wantStatusCode: http.StatusConflict,
 		},
 		{
 			name: "missing order id",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryAssignRequest{
+				reqBody := dto.DeliveryAssignRequestDTO{
 					OrderID: "",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -94,14 +91,14 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					AssignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryAssignResponse{}, usecase.ErrNoOrderID)
+					Return(usecase.DeliveryAssignResponse{}, usecase.ErrNoOrderID)
 			},
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "order id exists",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryAssignRequest{
+				reqBody := dto.DeliveryAssignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -110,14 +107,14 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					AssignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryAssignResponse{}, usecase.ErrOrderIDExists)
+					Return(usecase.DeliveryAssignResponse{}, usecase.ErrOrderIDExists)
 			},
 			wantStatusCode: http.StatusConflict,
 		},
 		{
 			name: "internal error",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryAssignRequest{
+				reqBody := dto.DeliveryAssignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -126,7 +123,7 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					AssignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryAssignResponse{}, assert.AnError)
+					Return(usecase.DeliveryAssignResponse{}, assert.AnError)
 			},
 			wantStatusCode: http.StatusInternalServerError,
 		},
@@ -171,14 +168,14 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 		{
 			name: "success",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryUnassignRequest{
+				reqBody := dto.DeliveryUnassignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
 				return b
 			}(),
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
-				expectedResponse := model.DeliveryUnassignResponse{
+				expectedResponse := usecase.DeliveryUnassignResponse{
 					OrderID:   "550e8400-e29b-41d4-a716-446655440000",
 					Status:    "unassigned",
 					CourierID: 1,
@@ -190,7 +187,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
-				var result model.DeliveryUnassignResponse
+				var result usecase.DeliveryUnassignResponse
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
 
@@ -211,7 +208,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 		{
 			name: "missing order id",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryUnassignRequest{
+				reqBody := dto.DeliveryUnassignRequestDTO{
 					OrderID: "",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -220,14 +217,14 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					UnassignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryUnassignResponse{}, usecase.ErrNoOrderID)
+					Return(usecase.DeliveryUnassignResponse{}, usecase.ErrNoOrderID)
 			},
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
 			name: "order id not found",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryUnassignRequest{
+				reqBody := dto.DeliveryUnassignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -236,14 +233,14 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					UnassignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryUnassignResponse{}, usecase.ErrOrderIDNotFound)
+					Return(usecase.DeliveryUnassignResponse{}, usecase.ErrOrderIDNotFound)
 			},
 			wantStatusCode: http.StatusNotFound,
 		},
 		{
 			name: "internal error",
 			requestBody: func() []byte {
-				reqBody := model.DeliveryUnassignRequest{
+				reqBody := dto.DeliveryUnassignRequestDTO{
 					OrderID: "550e8400-e29b-41d4-a716-446655440000",
 				}
 				b, _ := json.Marshal(reqBody)
@@ -252,7 +249,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *mocks.MockdeliveryUseCase) {
 				uc.EXPECT().
 					UnassignDelivery(gomock.Any(), gomock.Any()).
-					Return(model.DeliveryUnassignResponse{}, assert.AnError)
+					Return(usecase.DeliveryUnassignResponse{}, assert.AnError)
 			},
 			wantStatusCode: http.StatusInternalServerError,
 		},

@@ -13,6 +13,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"courier-service/internal/model"
 )
 
 type RepositoryTestSuite struct {
@@ -94,7 +96,7 @@ func (s *RepositoryTestSuite) SetupTest() {
 }
 
 func (s *RepositoryTestSuite) createTestCourier(name, phone, transportType string) int64 {
-	courier := &CourierDB{
+	courier := model.Courier{
 		Name:          name,
 		Phone:         phone,
 		Status:        "available",

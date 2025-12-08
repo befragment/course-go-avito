@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"courier-service/internal/handlers/dto"
 	"courier-service/internal/model"
 	"courier-service/internal/usecase"
 )
@@ -52,13 +53,19 @@ func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Reques
 
 func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req model.CourierCreateRequest
+	var req dto.CourierCreateRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := c.useCase.CreateCourier(ctx, &req)
+	id, err := c.useCase.CreateCourier(ctx, model.Courier{
+		Name:          req.Name,
+		Phone:         req.Phone,
+		TransportType: req.TransportType,
+		Status:        req.Status,
+	})
+
 	if err != nil {
 		handleCreateError(w, err)
 		return
@@ -72,7 +79,7 @@ func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request
 
 func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req model.CourierUpdateRequest
+	var req dto.CourierUpdateRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -83,7 +90,8 @@ func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := c.useCase.UpdateCourier(ctx, &req)
+	courier := dto.CourierUpdateToModel(req)
+	err := c.useCase.UpdateCourier(ctx, courier)
 	if err != nil {
 		handleUpdateError(w, err)
 		return

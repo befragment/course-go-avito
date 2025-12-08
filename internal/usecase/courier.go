@@ -36,80 +36,70 @@ func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, inte
 	}
 }
 
-func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (*model.Courier, error) {
-	courierDB, err := u.repository.GetCourierById(ctx, id)
+func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
+	courier, err := u.repository.GetCourierById(ctx, id)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrCourierNotFound) {
-			return nil, ErrCourierNotFound
+			return model.Courier{}, ErrCourierNotFound
 		}
-		return nil, err
+		return model.Courier{}, err
 	}
 
-	courier := model.Courier(*courierDB)
-	return &courier, nil
+	return courier, nil
 }
 
 func (u CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
-	couriersDB, err := u.repository.GetAllCouriers(ctx)
-
+	couriers, err := u.repository.GetAllCouriers(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	couriers := make([]model.Courier, len(couriersDB))
-	for i, c := range couriersDB {
-		couriers[i] = model.Courier(c)
-	}
-
 	return couriers, nil
 }
 
-func (u CourierUseCase) CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error) {
-	if req.Name == "" || req.Phone == "" || req.Status == "" || req.TransportType == "" {
+func (u CourierUseCase) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) {
+	if courier.Name == "" || courier.Phone == "" || courier.Status == "" || courier.TransportType == "" {
 		return 0, ErrInvalidCreate
 	}
 
-	if _, err := transportTypeTime(req.TransportType); err != nil {
+	if _, err := transportTypeTime(courier.TransportType); err != nil {
 		return 0, ErrUnknownTransportType
 	}
 
-	if !ValidPhoneNumber(req.Phone) {
+	if !ValidPhoneNumber(courier.Phone) {
 		return 0, ErrInvalidPhoneNumber
 	}
 
-	if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, req.Phone); phoneExists {
+	if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, courier.Phone); phoneExists {
 		return 0, ErrPhoneNumberExists
 	} else if err != nil {
 		return 0, err
 	}
 
-	courierDB := courierCreateRequestToCourierDB(*req)
-	return u.repository.CreateCourier(ctx, &courierDB)
+	return u.repository.CreateCourier(ctx, courier)
 }
 
-func (u CourierUseCase) UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error {
-	if req.Name == nil && req.Phone == nil && req.Status == nil && req.TransportType == nil {
+func (u CourierUseCase) UpdateCourier(ctx context.Context, courier model.Courier) error {
+	if courier.Name == "" && courier.Phone == "" && courier.Status == "" && courier.TransportType == "" {
 		return ErrInvalidUpdate
 	}
-	if req.TransportType != nil {
-		if _, err := transportTypeTime(*req.TransportType); err != nil {
+	if courier.TransportType != "" {
+		if _, err := transportTypeTime(courier.TransportType); err != nil {
 			return ErrUnknownTransportType
 		}
 	}
-	if req.Phone != nil {
-		if !ValidPhoneNumber(*req.Phone) {
+	if courier.Phone != "" {
+		if !ValidPhoneNumber(courier.Phone) {
 			return ErrInvalidPhoneNumber
 		}
-		if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, *req.Phone); err != nil {
+		if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, courier.Phone); err != nil {
 			return err
 		} else if phoneExists {
 			return ErrPhoneNumberExists
 		}
 	}
 
-	update := courierUpdateRequestToCourierDB(*req)
-	if err := u.repository.UpdateCourier(ctx, &update); err != nil {
+	if err := u.repository.UpdateCourier(ctx, courier); err != nil {
 		if errors.Is(err, repository.ErrCourierNotFound) {
 			return ErrCourierNotFound
 		}

@@ -2,16 +2,16 @@ package repository
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"errors"
 	"fmt"
 	"strings"
-
+	
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	
+	"courier-service/internal/model"
 )
-
 type DeliveryRepository struct {
 	pool *pgxpool.Pool
 }
@@ -20,17 +20,17 @@ func NewDeliveryRepository(pool *pgxpool.Pool) *DeliveryRepository {
 	return &DeliveryRepository{pool: pool}
 }
 
-func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model.DeliveryDB) (*model.Delivery, error) {
+func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery model.Delivery) (model.Delivery, error) {
 	queryBuilder := sq.
 		Insert(deliveryTable).
 		Columns(orderIdColumn, courierIdColumn, assignedAtColumn, deadlineColumn).
 		Values(delivery.OrderID, delivery.CourierID, delivery.AssignedAt, delivery.Deadline).
-		Suffix(fmt.Sprintf("RETURNING %s, %s, %s, %s", idColumn, courierIdColumn, orderIdColumn, deadlineColumn)).
+		Suffix(buildReturningStatement(idColumn, courierIdColumn, orderIdColumn, deadlineColumn)).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return model.Delivery{}, err
 	}
 
 	err = r.pool.QueryRow(ctx, query, args...).Scan(
@@ -39,16 +39,15 @@ func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery *model
 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value") {
-			return nil, ErrOrderIDExists
+			return model.Delivery{}, ErrOrderIDExists
 		}
-		return nil, err
+		return model.Delivery{}, err
 	}
 
-	out := model.Delivery(*delivery)
-	return &out, nil
+	return delivery, nil
 }
 
-func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (*model.DeliveryDB, error) {
+func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (model.Delivery, error) {
 	queryBuilder := sq.
 		Select(deliveryOrderID, courierID).
 		From(deliveryTable).
@@ -58,19 +57,19 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return model.Delivery{}, err
 	}
 
-	var delivery model.DeliveryDB
+	var delivery model.Delivery
 	err = r.pool.QueryRow(ctx, query, args...).Scan(&delivery.OrderID, &delivery.CourierID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrOrderIDNotFound
+			return model.Delivery{}, ErrOrderIDNotFound
 		}
-		return nil, err
+		return model.Delivery{}, err
 	}
 
-	return &delivery, nil
+	return delivery, nil
 }
 
 func (r *DeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error {

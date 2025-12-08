@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
-
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"courier-service/internal/model"
 )
 
 type CourierRepositoryTestSuite struct {
@@ -28,9 +29,9 @@ func (s *CourierRepositoryTestSuite) TestCreate() {
 		{
 			name: "success",
 			test: func() {
-				courier := &CourierDB{
+				courier := model.Courier{
 					Name:          "John Doe",
-					Phone:         "+79990000001", 
+					Phone:         "+79990000001",
 					Status:        "available",
 					TransportType: "car",
 				}
@@ -46,7 +47,7 @@ func (s *CourierRepositoryTestSuite) TestCreate() {
 			test: func() {
 				phone := "+79990000002"
 
-				courier1 := &CourierDB{
+				courier1 := model.Courier{
 					Name:          "John Doe",
 					Phone:         phone,
 					Status:        "available",
@@ -55,7 +56,7 @@ func (s *CourierRepositoryTestSuite) TestCreate() {
 				_, err := s.courierRepo.CreateCourier(ctx, courier1)
 				s.Require().NoError(err)
 
-				courier2 := &CourierDB{
+				courier2 := model.Courier{
 					Name:          "Jane Doe",
 					Phone:         phone,
 					Status:        "available",
@@ -78,7 +79,7 @@ func (s *CourierRepositoryTestSuite) TestCreate() {
 
 func (s *CourierRepositoryTestSuite) TestGetById_Success() {
 	ctx := context.Background()
-	courier := &CourierDB{
+	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -104,14 +105,14 @@ func (s *CourierRepositoryTestSuite) TestGetById_NotFound() {
 	result, err := s.courierRepo.GetCourierById(ctx, 99999)
 
 	s.Require().Error(err)
-	s.Nil(result)
+	s.Equal(model.Courier{}, result)
 	s.ErrorIs(err, ErrCourierNotFound)
 }
 
 func (s *CourierRepositoryTestSuite) TestGetAll_Success() {
 	ctx := context.Background()
 
-	couriers := []*CourierDB{
+	couriers := []model.Courier{
 		{Name: "John", Phone: "+79991234567", Status: "available", TransportType: "car"},
 		{Name: "Jane", Phone: "+79991234568", Status: "available", TransportType: "scooter"},
 		{Name: "Bob", Phone: "+79991234569", Status: "available", TransportType: "on_foot"},
@@ -143,7 +144,7 @@ func (s *CourierRepositoryTestSuite) TestGetAll_Empty() {
 func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	ctx := context.Background()
 
-	courier := &CourierDB{
+	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -152,7 +153,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	id, err := s.courierRepo.CreateCourier(ctx, courier)
 	s.Require().NoError(err)
 
-	updated := &CourierDB{
+	updated := model.Courier{
 		ID:            id,
 		Name:          "Jane Doe",
 		Status:        "busy",
@@ -172,7 +173,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 func (s *CourierRepositoryTestSuite) TestUpdate_NotFound() {
 	ctx := context.Background()
 
-	courier := &CourierDB{
+	courier := model.Courier{
 		ID:            99999,
 		Name:          "John Doe",
 		Status:        "available",
@@ -188,7 +189,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_NotFound() {
 func (s *CourierRepositoryTestSuite) TestUpdate_NothingToUpdate() {
 	ctx := context.Background()
 
-	courier := &CourierDB{
+	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
 		Status:        "available",
@@ -197,7 +198,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_NothingToUpdate() {
 	id, err := s.courierRepo.CreateCourier(ctx, courier)
 	s.Require().NoError(err)
 
-	emptyUpdate := &CourierDB{
+	emptyUpdate := model.Courier{
 		ID: id,
 	}
 
@@ -211,7 +212,7 @@ func (s *CourierRepositoryTestSuite) TestExistsByPhone_True() {
 	ctx := context.Background()
 	phone := "+79991234567"
 
-	courier := &CourierDB{
+	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         phone,
 		Status:        "available",
@@ -245,7 +246,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 		{
 			name: "success",
 			test: func() {
-				courier := &CourierDB{
+				courier := model.Courier{
 					Name:          "John Doe",
 					Phone:         "+79990000001",
 					Status:        "available",
@@ -264,7 +265,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 		{
 			name: "all_busy",
 			test: func() {
-				courier := &CourierDB{
+				courier := model.Courier{
 					Name:          "John Doe",
 					Phone:         "+79990000002",
 					Status:        "available",
@@ -273,7 +274,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				id, err := s.courierRepo.CreateCourier(ctx, courier)
 				s.Require().NoError(err)
 
-				busyUpdate := &CourierDB{
+				busyUpdate := model.Courier{
 					ID:     id,
 					Status: "busy",
 				}
@@ -283,7 +284,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				result, err := s.courierRepo.FindAvailableCourier(ctx)
 
 				s.Require().Error(err)
-				s.Nil(result)
+				s.Equal(model.Courier{}, result)
 				s.ErrorIs(err, ErrCouriersBusy)
 			},
 		},
@@ -291,7 +292,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 			name: "selects_courier_with_fewest_deliveries",
 			test: func() {
 				// courier1 — с одной доставкой
-				courier1 := &CourierDB{
+				courier1 := model.Courier{
 					Name:          "John",
 					Phone:         "+79990000003",
 					Status:        "available",
@@ -301,7 +302,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				s.Require().NoError(err)
 
 				// courier2 — без доставок
-				courier2 := &CourierDB{
+				courier2 := model.Courier{
 					Name:          "Jane",
 					Phone:         "+79990000004",
 					Status:        "available",
@@ -343,10 +344,10 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 	ctx := context.Background()
 
 	tests := []struct {
-		name           string
-		phone          string
+		name            string
+		phone           string
 		setupDeliveries func(id int64)
-		expectedStatus string
+		expectedStatus  string
 	}{
 		{
 			name:  "success_expired_delivery_frees_courier",
@@ -403,7 +404,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			// создаём курьера
-			courier := &CourierDB{
+			courier := model.Courier{
 				Name:          "John",
 				Phone:         tt.phone,
 				Status:        "available",
@@ -413,7 +414,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 			s.Require().NoError(err)
 
 			// помечаем как busy
-			busyUpdate := &CourierDB{
+			busyUpdate := model.Courier{
 				ID:     id,
 				Status: "busy",
 			}

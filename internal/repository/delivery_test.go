@@ -22,24 +22,24 @@ func TestDeliveryRepositoryTestSuite(t *testing.T) {
 func (s *DeliveryRepositoryTestSuite) TestCreate() {
 	ctx := context.Background()
 
-	type expectationsFn func(result *model.Delivery, err error)
+	type expectationsFn func(result model.Delivery, err error)
 
 	tests := []struct {
 		name         string
-		setup        func() *model.DeliveryDB
-		before       func(d *model.DeliveryDB)
+		setup        func() model.Delivery
+		before       func(d model.Delivery)
 		expectations expectationsFn
 	}{
 		{
 			name: "success",
-			setup: func() *model.DeliveryDB {
+			setup: func() model.Delivery {
 				courierID := s.createTestCourier("Test Courier", "+79990000001", "car")
 
 				orderID := uuid.New().String()
 				now := time.Now()
 				deadline := now.Add(2 * time.Hour)
 
-				return &model.DeliveryDB{
+				return model.Delivery{
 					CourierID:  courierID,
 					OrderID:    orderID,
 					AssignedAt: now,
@@ -47,7 +47,7 @@ func (s *DeliveryRepositoryTestSuite) TestCreate() {
 				}
 			},
 			before: nil,
-			expectations: func(result *model.Delivery, err error) {
+			expectations: func(result model.Delivery, err error) {
 				s.Require().NoError(err)
 				s.Require().NotNil(result)
 				s.Greater(result.ID, int64(0))
@@ -57,36 +57,36 @@ func (s *DeliveryRepositoryTestSuite) TestCreate() {
 		},
 		{
 			name: "duplicate order id",
-			setup: func() *model.DeliveryDB {
+			setup: func() model.Delivery {
 				// ВАЖНО: другой телефон
 				courierID := s.createTestCourier("Test Courier", "+79990000002", "car")
 
 				orderID := uuid.New().String()
 				now := time.Now()
 
-				return &model.DeliveryDB{
+				return model.Delivery{
 					CourierID:  courierID,
 					OrderID:    orderID,
 					AssignedAt: now,
 					Deadline:   now.Add(2 * time.Hour),
 				}
 			},
-			before: func(d *model.DeliveryDB) {
+			before: func(d model.Delivery) {
 				_, err := s.deliveryRepo.CreateDelivery(ctx, d)
 				s.Require().NoError(err)
 			},
-			expectations: func(result *model.Delivery, err error) {
+			expectations: func(result model.Delivery, err error) {
 				s.ErrorIs(err, ErrOrderIDExists)
-				s.Nil(result)
+				s.Equal(model.Delivery{}, result)
 			},
 		},
 		{
 			name: "foreign key violation",
-			setup: func() *model.DeliveryDB {
+			setup: func() model.Delivery {
 				orderID := uuid.New().String()
 				now := time.Now()
 
-				return &model.DeliveryDB{
+				return model.Delivery{
 					CourierID:  999999, // несуществующий курьер
 					OrderID:    orderID,
 					AssignedAt: now,
@@ -94,9 +94,9 @@ func (s *DeliveryRepositoryTestSuite) TestCreate() {
 				}
 			},
 			before: nil,
-			expectations: func(result *model.Delivery, err error) {
+			expectations: func(result model.Delivery, err error) {
 				s.Error(err)
-				s.Nil(result)
+				s.Equal(model.Delivery{}, result)
 			},
 		},
 	}
@@ -131,7 +131,7 @@ func (s *DeliveryRepositoryTestSuite) TestCouriersDelivery() {
 				orderID := uuid.New().String()
 				now := time.Now()
 
-				deliveryDB := &model.DeliveryDB{
+				deliveryDB := model.Delivery{
 					CourierID:  courierID,
 					OrderID:    orderID,
 					AssignedAt: now,
@@ -159,7 +159,7 @@ func (s *DeliveryRepositoryTestSuite) TestCouriersDelivery() {
 				result, err := s.deliveryRepo.CouriersDelivery(ctx, nonExistentOrderID)
 
 				s.ErrorIs(err, ErrOrderIDNotFound)
-				s.Nil(result)
+				s.Equal(model.Delivery{}, result)
 			},
 		},
 	}
@@ -187,7 +187,7 @@ func (s *DeliveryRepositoryTestSuite) TestDelete() {
 				orderID := uuid.New().String()
 				now := time.Now()
 
-				deliveryDB := &model.DeliveryDB{
+				deliveryDB := model.Delivery{
 					CourierID:  courierID,
 					OrderID:    orderID,
 					AssignedAt: now,
@@ -235,14 +235,14 @@ func (s *DeliveryRepositoryTestSuite) TestMultipleDeliveries() {
 	orderID2 := uuid.New().String()
 	now := time.Now()
 
-	delivery1 := &model.DeliveryDB{
+	delivery1 := model.Delivery{
 		CourierID:  courierID1,
 		OrderID:    orderID1,
 		AssignedAt: now,
 		Deadline:   now.Add(2 * time.Hour),
 	}
 
-	delivery2 := &model.DeliveryDB{
+	delivery2 := model.Delivery{
 		CourierID:  courierID2,
 		OrderID:    orderID2,
 		AssignedAt: now,

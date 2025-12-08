@@ -11,3 +11,11 @@ type CourierDB struct {
 	CreatedAt time.Time 	`json:"created_at,omitempty"`
 	UpdatedAt time.Time 	`json:"updated_at,omitempty"`
 }
+
+type DeliveryDB struct {
+	ID         int64     `json:"id"`
+	CourierID  int64     `json:"courier_id"`
+	OrderID    string    `json:"order_id,omitempty"`
+	AssignedAt time.Time `json:"assigned_at,omitempty"`
+	Deadline   time.Time `json:"deadline,omitempty"`
+}

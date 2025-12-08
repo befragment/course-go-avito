@@ -7,6 +7,7 @@ import (
 
 	"courier-service/internal/model"
 	"courier-service/internal/repository"
+
 	"courier-service/internal/usecase/mocks"
 
 	"github.com/golang/mock/gomock"
@@ -18,7 +19,7 @@ func TestCourierUseCase_GetById(t *testing.T) {
 		name         string
 		courierID    int64
 		prepare      func(repo *mocks.MockсourierRepository)
-		expectations func(t *testing.T, result *model.Courier, err error)
+		expectations func(t *testing.T, result model.Courier, err error)
 	}{
 		{
 			name:      "success: courier found",
@@ -26,7 +27,7 @@ func TestCourierUseCase_GetById(t *testing.T) {
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					GetCourierById(gomock.Any(), int64(1)).
-					Return(&repository.CourierDB{
+					Return(model.Courier{
 						ID:            1,
 						Name:          "John Doe",
 						Phone:         "+79991234567",
@@ -34,7 +35,7 @@ func TestCourierUseCase_GetById(t *testing.T) {
 						TransportType: "car",
 					}, nil)
 			},
-			expectations: func(t *testing.T, result *model.Courier, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 				assert.Equal(t, int64(1), result.ID)
@@ -48,11 +49,11 @@ func TestCourierUseCase_GetById(t *testing.T) {
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					GetCourierById(gomock.Any(), int64(999)).
-					Return(nil, repository.ErrCourierNotFound)
+					Return(model.Courier{}, repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, result *model.Courier, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
-				assert.Nil(t, result)
+				assert.Equal(t, model.Courier{}, result)
 				assert.Equal(t, ErrCourierNotFound, err)
 			},
 		},
@@ -97,7 +98,7 @@ func TestCourierUseCase_GetAll(t *testing.T) {
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					GetAllCouriers(gomock.Any()).
-					Return([]repository.CourierDB{
+					Return([]model.Courier{
 						{ID: 1, Name: "John", Phone: "+79991234567", Status: "available", TransportType: "car"},
 						{ID: 2, Name: "Jane", Phone: "+79991234568", Status: "busy", TransportType: "scooter"},
 					}, nil)
@@ -116,7 +117,7 @@ func TestCourierUseCase_GetAll(t *testing.T) {
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					GetAllCouriers(gomock.Any()).
-					Return([]repository.CourierDB{}, nil)
+					Return([]model.Courier{}, nil)
 			},
 			expectations: func(t *testing.T, result []model.Courier, err error) {
 				assert.NoError(t, err)
@@ -154,13 +155,13 @@ func TestCourierUseCase_GetAll(t *testing.T) {
 func TestCourierUseCase_Create(t *testing.T) {
 	tests := []struct {
 		name         string
-		request      *model.CourierCreateRequest
+		request      model.Courier
 		prepare      func(repo *mocks.MockсourierRepository)
 		expectations func(t *testing.T, id int64, err error)
 	}{
 		{
 			name: "success: courier created",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John Doe",
 				Phone:         "+79991234567",
 				Status:        "available",
@@ -182,7 +183,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: missing name",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Phone:         "+79991234567",
 				Status:        "available",
 				TransportType: "car",
@@ -198,7 +199,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: missing phone",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John",
 				Status:        "available",
 				TransportType: "car",
@@ -214,7 +215,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: missing status",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John",
 				Phone:         "+79991234567",
 				TransportType: "car",
@@ -230,7 +231,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: missing transport_type",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:   "John",
 				Phone:  "+79991234567",
 				Status: "available",
@@ -246,7 +247,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: invalid transport type",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John Doe",
 				Phone:         "+79991234567",
 				Status:        "available",
@@ -263,7 +264,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: invalid phone",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John Doe",
 				Phone:         "123",
 				Status:        "available",
@@ -280,7 +281,7 @@ func TestCourierUseCase_Create(t *testing.T) {
 		},
 		{
 			name: "error: phone already exists",
-			request: &model.CourierCreateRequest{
+			request: model.Courier{
 				Name:          "John Doe",
 				Phone:         "+79991234567",
 				Status:        "available",
@@ -333,110 +334,111 @@ func TestCourierUseCase_Update(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		request      *model.CourierUpdateRequest
+		request      model.Courier
 		prepare      func(repo *mocks.MockсourierRepository)
-		expectations func(t *testing.T, err error)
+		expectations func(t *testing.T, result model.Courier, err error)
 	}{
 		{
 			name: "success: courier updated",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:   1,
-				Name: &nameUpdate,
+				Name: nameUpdate,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					Return(nil)
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.NoError(t, err)
 			},
 		},
 		{
 			name: "error: no fields to update",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID: 1,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrInvalidUpdate, err)
 			},
 		},
 		{
 			name: "error: invalid transport type",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:            1,
-				TransportType: &transportTypeUpdate,
+				TransportType: transportTypeUpdate,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				// No mock expectations
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrUnknownTransportType, err)
 			},
 		},
 		{
 			name: "error: invalid phone",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:    1,
-				Phone: &invalidPhone,
+				Phone: invalidPhone,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				// No mock expectations
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrInvalidPhoneNumber, err)
 			},
 		},
 		{
 			name: "error: phone already exists",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:    1,
-				Phone: &phoneUpdate,
+				Phone: phoneUpdate,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					ExistsCourierByPhone(gomock.Any(), phoneUpdate).
 					Return(true, nil)
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrPhoneNumberExists, err)
 			},
 		},
 		{
 			name: "error: courier not found",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:   999,
-				Name: &nameUpdate,
+				Name: nameUpdate,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					Return(repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
+				assert.Equal(t, model.Courier{}, result)
 				assert.Equal(t, ErrCourierNotFound, err)
 			},
 		},
 		{
 			name: "error: repository error",
-			request: &model.CourierUpdateRequest{
+			request: model.Courier{
 				ID:   1,
-				Name: &nameUpdate,
+				Name: nameUpdate,
 			},
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					Return(errors.New("database error"))
 			},
-			expectations: func(t *testing.T, err error) {
+			expectations: func(t *testing.T, result model.Courier, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, "database error", err.Error())
 			},
@@ -463,7 +465,7 @@ func TestCourierUseCase_Update(t *testing.T) {
 			err := uc.UpdateCourier(ctx, tc.request)
 
 			if tc.expectations != nil {
-				tc.expectations(t, err)
+				tc.expectations(t, model.Courier{}, err)
 			}
 		})
 	}

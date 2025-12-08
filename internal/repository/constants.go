@@ -1,5 +1,9 @@
 package repository
 
+import (
+	"strings"
+)
+
 const (
 	idColumn = "id"
 	nameColumn = "name"
@@ -34,3 +38,10 @@ const (
 
 	countAll = "count(*)"
 )
+
+func buildReturningStatement(args ...string) string {
+	if len(args) == 0 {
+		return ""
+	}
+	return "RETURNING " + strings.Join(args, ", ")
+}

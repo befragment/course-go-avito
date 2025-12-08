@@ -30,7 +30,7 @@ func (s *TxRunnerTestSuite) TestTxRunner_CommitOnSuccess() {
 
 	var createdID int64
 	err := s.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courier := &CourierDB{
+		courier := model.Courier{
 			Name:          "John Doe",
 			Phone:         "+79991234567",
 			Status:        "available",
@@ -121,7 +121,7 @@ func (s *TxRunnerTestSuite) TestTxRunner_MultipleOperations() {
 	var deliveryCreated bool
 
 	err := s.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courier := &CourierDB{
+		courier := model.Courier{
 			Name:          "Multi Op Courier",
 			Phone:         "+79991234570",
 			Status:        "available",
@@ -134,7 +134,7 @@ func (s *TxRunnerTestSuite) TestTxRunner_MultipleOperations() {
 		courierID = id
 
 		now := time.Now()
-		delivery := &model.DeliveryDB{
+		delivery := model.Delivery{
 			CourierID:  courierID,
 			OrderID:    "550e8400-e29b-41d4-a716-446655440001",
 			AssignedAt: now,
@@ -168,7 +168,7 @@ func (s *TxRunnerTestSuite) TestTxRunner_NestedTransactionAttempt() {
 	var outerID, innerID int64
 
 	err := s.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courier1 := &CourierDB{
+		courier1 := model.Courier{
 			Name:          "Outer",
 			Phone:         "+79991234571",
 			Status:        "available",
@@ -179,9 +179,9 @@ func (s *TxRunnerTestSuite) TestTxRunner_NestedTransactionAttempt() {
 			return err
 		}
 		outerID = id
-		
+
 		err = s.txRunner.Run(txCtx, func(nestedCtx context.Context) error {
-			courier2 := &CourierDB{
+			courier2 := model.Courier{
 				Name:          "Inner",
 				Phone:         "+79991234572",
 				Status:        "available",

@@ -11,6 +11,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"courier-service/internal/model"
 )
 
 type CourierRepository struct {
@@ -21,7 +23,7 @@ func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository {
 	return &CourierRepository{pool: pool}
 }
 
-func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*CourierDB, error) {
+func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
 	queryBuilder := sq.
 		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn).
 		From(courierTable).
@@ -31,7 +33,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*Cour
 	query, args, err := queryBuilder.ToSql()
 
 	if err != nil {
-		return nil, err
+		return model.Courier{}, err
 	}
 
 	var c CourierDB
@@ -41,16 +43,16 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (*Cour
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, ErrCourierNotFound
+		return model.Courier{}, ErrCourierNotFound
 	}
 	if err != nil {
-		return nil, err
+		return model.Courier{}, err
 	}
 
-	return &c, nil
+	return model.Courier(c), nil
 }
 
-func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]CourierDB, error) {
+func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
 	queryBuilder := sq.
 		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn).
 		From(courierTable).
@@ -58,35 +60,35 @@ func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]CourierDB, er
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return []CourierDB{}, err
+		return nil, err
 	}
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return []CourierDB{}, err
+		return nil, err
 	}
 
 	defer rows.Close()
 
-	var couriers []CourierDB
+	var couriers []model.Courier
 	for rows.Next() {
 		var c CourierDB
 		err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType)
 		if err != nil {
-			return []CourierDB{}, err
+			return nil, err
 		}
-		couriers = append(couriers, c)
+		couriers = append(couriers, model.Courier(c))
 	}
 	return couriers, nil
 }
 
-func (r *CourierRepository) CreateCourier(ctx context.Context, courier *CourierDB) (int64, error) {
+func (r *CourierRepository) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) {
 	var id int64
 	queryBuilder := sq.
 		Insert(courierTable).
 		Columns(nameColumn, phoneColumn, statusColumn, transportTypeColumn, createdAtColumn, updatedAtColumn).
 		Values(courier.Name, courier.Phone, courier.Status, courier.TransportType, time.Now(), time.Now()).
-		Suffix("RETURNING id").
+		Suffix(buildReturningStatement(idColumn)).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
@@ -105,7 +107,7 @@ func (r *CourierRepository) CreateCourier(ctx context.Context, courier *CourierD
 	return id, nil
 }
 
-func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *CourierDB) error {
+func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Courier) error {
 	sets := sq.Eq{updatedAtColumn: time.Now()}
 	if courier.Name != "" {
 		sets[nameColumn] = courier.Name
@@ -147,7 +149,7 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier *CourierD
 	return nil
 }
 
-func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*CourierDB, error) {
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) {
 	queryBuilder := sq.
 		Select(courierID, courierName, courierPhone, courierStatus, courierTransportType).
 		From(courierTable).
@@ -160,7 +162,7 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*CourierD
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return model.Courier{}, err
 	}
 
 	var c CourierDB
@@ -168,12 +170,12 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (*CourierD
 		Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrCouriersBusy
+			return model.Courier{}, ErrCouriersBusy
 		}
-		return nil, err
-	}
+		return model.Courier{}, err
+	}	
 
-	return &c, nil
+	return model.Courier(c), nil
 }
 
 func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error {

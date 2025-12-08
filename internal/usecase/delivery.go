@@ -1,11 +1,11 @@
 package usecase
 
 import (
+	"errors"
+	"time"
 	"context"
 	"courier-service/internal/model"
 	"courier-service/internal/repository"
-	"errors"
-	"time"
 )
 
 type DelieveryUseCase struct {
@@ -39,18 +39,14 @@ func transportTypeTime(ttype string) (time.Duration, error) {
 	}
 }
 
-func (u *DelieveryUseCase) AssignDelivery(
-	ctx context.Context,
-	req *model.DeliveryAssignRequest,
-) (model.DeliveryAssignResponse, error) {
+func (u *DelieveryUseCase) AssignDelivery(ctx context.Context, req DeliveryAssignRequest) (DeliveryAssignResponse, error) {
 	if req.OrderID == "" {
-		return model.DeliveryAssignResponse{}, ErrNoOrderID
+		return DeliveryAssignResponse{}, ErrNoOrderID
 	}
 
-	var resp model.DeliveryAssignResponse
-
+	var resp DeliveryAssignResponse
 	err := u.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courierDB, err := u.courierRepository.FindAvailableCourier(txCtx)
+		courier, err := u.courierRepository.FindAvailableCourier(txCtx)
 		if err != nil {
 			if errors.Is(err, repository.ErrCouriersBusy) {
 				return ErrCouriersBusy
@@ -58,12 +54,19 @@ func (u *DelieveryUseCase) AssignDelivery(
 			return err
 		}
 
-		deliveryDB, err := deliveryAssignRequestToDeliveryDB(req.OrderID, *courierDB)
+		duration, err := transportTypeTime(courier.TransportType)
 		if err != nil {
 			return err
 		}
 
-		delivery, err := u.deliveryRepository.CreateDelivery(txCtx, &deliveryDB)
+		deliveryDomain := model.Delivery{
+			OrderID:    req.OrderID,
+			CourierID:  courier.ID,
+			AssignedAt: time.Now(),
+			Deadline:   time.Now().Add(duration),
+		}
+
+		delivery, err := u.deliveryRepository.CreateDelivery(txCtx, deliveryDomain)
 		if err != nil {
 			if errors.Is(err, repository.ErrOrderIDExists) {
 				return ErrOrderIDExists
@@ -71,32 +74,26 @@ func (u *DelieveryUseCase) AssignDelivery(
 			return err
 		}
 
-		courierDB.Status = "busy"
-		if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil {
+		courier.Status = "busy"
+		if err := u.courierRepository.UpdateCourier(txCtx, courier); err != nil {
 			return err
 		}
-
-		courier := model.Courier(*courierDB)
-		resp = delieveryAssignResponse(courier, *delivery)
+		resp = deliveryAssignResponse(courier, delivery)
 		return nil
 	})
 
 	if err != nil {
-		return model.DeliveryAssignResponse{}, err
+		return DeliveryAssignResponse{}, err
 	}
 	return resp, nil
 }
 
-func (u *DelieveryUseCase) UnassignDelivery(
-	ctx context.Context,
-	req *model.DeliveryUnassignRequest,
-) (model.DeliveryUnassignResponse, error) {
+func (u *DelieveryUseCase) UnassignDelivery(ctx context.Context, req DeliveryUnassignRequest) (DeliveryUnassignResponse, error) {
 	if req.OrderID == "" {
-		return model.DeliveryUnassignResponse{}, ErrNoOrderID
+		return DeliveryUnassignResponse{}, ErrNoOrderID
 	}
 
-	var resp model.DeliveryUnassignResponse
-
+	var resp DeliveryUnassignResponse
 	err := u.txRunner.Run(ctx, func(txCtx context.Context) error {
 		couriersDelivery, err := u.deliveryRepository.CouriersDelivery(txCtx, req.OrderID)
 		if err != nil {
@@ -113,24 +110,22 @@ func (u *DelieveryUseCase) UnassignDelivery(
 			return err
 		}
 
-		courierDB, err := u.courierRepository.GetCourierById(txCtx, couriersDelivery.CourierID)
+		courier, err := u.courierRepository.GetCourierById(txCtx, couriersDelivery.CourierID)
 		if err != nil {
 			return err
 		}
 
-		courierDB.Status = "available"
-		if err := u.courierRepository.UpdateCourier(txCtx, courierDB); err != nil {
+		courier.Status = "available"
+		if err := u.courierRepository.UpdateCourier(txCtx, courier); err != nil {
 			return err
 		}
 
-		courier := model.Courier(*courierDB)
-		delivery := model.Delivery(*couriersDelivery)
-		resp = delieveryUnassignResponse(courier, delivery)
+		resp = deliveryUnassignResponse(courier, couriersDelivery)
 
 		return nil
 	})
 	if err != nil {
-		return model.DeliveryUnassignResponse{}, err
+		return DeliveryUnassignResponse{}, err
 	}
 
 	return resp, nil

@@ -3,7 +3,8 @@ package handlers
 import (
 	"net/http"
 	"encoding/json"
-	"courier-service/internal/model"
+	"courier-service/internal/handlers/dto"
+	"courier-service/internal/usecase"
 )
 
 type DeliveryController struct {
@@ -16,13 +17,16 @@ func NewDeliveryController(usecase deliveryUseCase) *DeliveryController {
 
 func (c *DeliveryController) AssignDelivery(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req model.DeliveryAssignRequest
+	var req dto.DeliveryAssignRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return 
 	}
-	
-	delivery, err := c.usecase.AssignDelivery(ctx, &req)
+
+	delivery, err := c.usecase.AssignDelivery(ctx, usecase.DeliveryAssignRequest{
+		OrderID: req.OrderID,
+	})
+
 	if err != nil {
 		handleAssignDeliveryError(w, err)
 		return
@@ -32,13 +36,16 @@ func (c *DeliveryController) AssignDelivery(w http.ResponseWriter, r *http.Reque
 
 func (c *DeliveryController) UnassignDelivery(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req model.DeliveryUnassignRequest
+	var req dto.DeliveryUnassignRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	
-	delivery, err := c.usecase.UnassignDelivery(ctx, &req)
+	delivery, err := c.usecase.UnassignDelivery(ctx, usecase.DeliveryUnassignRequest{
+		OrderID: req.OrderID,
+	})
+	
 	if err != nil {
 		handleUnassignDeliveryError(w, err)
 		return

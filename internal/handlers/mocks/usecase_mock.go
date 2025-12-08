@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	model "courier-service/internal/model"
+	usecase "courier-service/internal/usecase"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,18 +37,18 @@ func (m *MockсourierUseCase) EXPECT() *MockсourierUseCaseMockRecorder {
 }
 
 // CreateCourier mocks base method.
-func (m *MockсourierUseCase) CreateCourier(ctx context.Context, req *model.CourierCreateRequest) (int64, error) {
+func (m *MockсourierUseCase) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCourier", ctx, req)
+	ret := m.ctrl.Call(m, "CreateCourier", ctx, courier)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateCourier indicates an expected call of CreateCourier.
-func (mr *MockсourierUseCaseMockRecorder) CreateCourier(ctx, req interface{}) *gomock.Call {
+func (mr *MockсourierUseCaseMockRecorder) CreateCourier(ctx, courier interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).CreateCourier), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).CreateCourier), ctx, courier)
 }
 
 // GetAllCouriers mocks base method.
@@ -66,10 +67,10 @@ func (mr *MockсourierUseCaseMockRecorder) GetAllCouriers(ctx interface{}) *gomo
 }
 
 // GetCourierById mocks base method.
-func (m *MockсourierUseCase) GetCourierById(ctx context.Context, id int64) (*model.Courier, error) {
+func (m *MockсourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCourierById", ctx, id)
-	ret0, _ := ret[0].(*model.Courier)
+	ret0, _ := ret[0].(model.Courier)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,17 +82,17 @@ func (mr *MockсourierUseCaseMockRecorder) GetCourierById(ctx, id interface{}) *
 }
 
 // UpdateCourier mocks base method.
-func (m *MockсourierUseCase) UpdateCourier(ctx context.Context, req *model.CourierUpdateRequest) error {
+func (m *MockсourierUseCase) UpdateCourier(ctx context.Context, courier model.Courier) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCourier", ctx, req)
+	ret := m.ctrl.Call(m, "UpdateCourier", ctx, courier)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateCourier indicates an expected call of UpdateCourier.
-func (mr *MockсourierUseCaseMockRecorder) UpdateCourier(ctx, req interface{}) *gomock.Call {
+func (mr *MockсourierUseCaseMockRecorder) UpdateCourier(ctx, courier interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).UpdateCourier), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourier", reflect.TypeOf((*MockсourierUseCase)(nil).UpdateCourier), ctx, courier)
 }
 
 // MockdeliveryUseCase is a mock of deliveryUseCase interface.
@@ -118,10 +119,10 @@ func (m *MockdeliveryUseCase) EXPECT() *MockdeliveryUseCaseMockRecorder {
 }
 
 // AssignDelivery mocks base method.
-func (m *MockdeliveryUseCase) AssignDelivery(ctx context.Context, req *model.DeliveryAssignRequest) (model.DeliveryAssignResponse, error) {
+func (m *MockdeliveryUseCase) AssignDelivery(ctx context.Context, req usecase.DeliveryAssignRequest) (usecase.DeliveryAssignResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignDelivery", ctx, req)
-	ret0, _ := ret[0].(model.DeliveryAssignResponse)
+	ret0, _ := ret[0].(usecase.DeliveryAssignResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -133,10 +134,10 @@ func (mr *MockdeliveryUseCaseMockRecorder) AssignDelivery(ctx, req interface{}) 
 }
 
 // UnassignDelivery mocks base method.
-func (m *MockdeliveryUseCase) UnassignDelivery(ctx context.Context, req *model.DeliveryUnassignRequest) (model.DeliveryUnassignResponse, error) {
+func (m *MockdeliveryUseCase) UnassignDelivery(ctx context.Context, req usecase.DeliveryUnassignRequest) (usecase.DeliveryUnassignResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UnassignDelivery", ctx, req)
-	ret0, _ := ret[0].(model.DeliveryUnassignResponse)
+	ret0, _ := ret[0].(usecase.DeliveryUnassignResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

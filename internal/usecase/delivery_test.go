@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
@@ -26,7 +25,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 			deliveryRepo *mocks.MockdeliveryRepository,
 			txRunner *mocks.MocktxRunner,
 		)
-		expectations func(t *testing.T, resp model.DeliveryAssignResponse, err error)
+		expectations func(t *testing.T, resp DeliveryAssignResponse, err error)
 	}{
 		{
 			name:    "success: delivery assigned",
@@ -44,7 +43,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
-					Return(&repository.CourierDB{
+					Return(model.Courier{
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
@@ -55,7 +54,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				now := time.Now()
 				deliveryRepo.EXPECT().
 					CreateDelivery(gomock.Any(), gomock.Any()).
-					Return(&model.Delivery{
+					Return(model.Delivery{
 						ID:         1,
 						CourierID:  1,
 						OrderID:    "550e8400-e29b-41d4-a716-446655440001",
@@ -65,12 +64,12 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, c *repository.CourierDB) error {
+					DoAndReturn(func(ctx context.Context, c model.Courier) error {
 						assert.Equal(t, "busy", c.Status)
 						return nil
 					})
 			},
-			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, int64(1), resp.CourierID)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440001", resp.OrderID)
@@ -87,10 +86,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 			) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrNoOrderID, err)
-				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+				assert.Equal(t, DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -109,12 +108,12 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
-					Return(nil, repository.ErrCouriersBusy)
+					Return(model.Courier{}, repository.ErrCouriersBusy)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrCouriersBusy, err)
-				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+				assert.Equal(t, DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -133,7 +132,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
-					Return(&repository.CourierDB{
+					Return(model.Courier{
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
@@ -143,12 +142,12 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				deliveryRepo.EXPECT().
 					CreateDelivery(gomock.Any(), gomock.Any()).
-					Return(nil, repository.ErrOrderIDExists)
+					Return(model.Delivery{}, repository.ErrOrderIDExists)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrOrderIDExists, err)
-				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+				assert.Equal(t, DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -167,7 +166,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
-					Return(&repository.CourierDB{
+					Return(model.Courier{
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
@@ -178,7 +177,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				now := time.Now()
 				deliveryRepo.EXPECT().
 					CreateDelivery(gomock.Any(), gomock.Any()).
-					Return(&model.Delivery{
+					Return(model.Delivery{
 						ID:         1,
 						CourierID:  1,
 						OrderID:    "550e8400-e29b-41d4-a716-446655440004",
@@ -188,12 +187,12 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
-					Return(errors.New("update error"))
+					Return(repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, "update error", err.Error())
-				assert.Equal(t, model.DeliveryAssignResponse{}, resp)
+				assert.Equal(t, repository.ErrCourierNotFound, err)
+				assert.Equal(t, DeliveryAssignResponse{}, resp)
 			},
 		},
 	}
@@ -213,7 +212,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
 
 			ctx := context.Background()
-			req := &model.DeliveryAssignRequest{
+			req := DeliveryAssignRequest{
 				OrderID: tc.orderID,
 			}
 
@@ -221,10 +220,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
 			}
 
-			resp, err := uc.AssignDelivery(ctx, req)
+			result, err := uc.AssignDelivery(ctx, req)
 
 			if tc.expectations != nil {
-				tc.expectations(t, resp, err)
+				tc.expectations(t, result, err)
 			}
 		})
 	}
@@ -241,7 +240,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			deliveryRepo *mocks.MockdeliveryRepository,
 			txRunner *mocks.MocktxRunner,
 		)
-		expectations func(t *testing.T, resp model.DeliveryUnassignResponse, err error)
+		expectations func(t *testing.T, resp DeliveryUnassignResponse, err error)
 	}{
 		{
 			name:    "success: delivery unassigned",
@@ -259,7 +258,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				deliveryRepo.EXPECT().
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440005").
-					Return(&model.DeliveryDB{
+					Return(model.Delivery{
 						ID:        1,
 						CourierID: 1,
 						OrderID:   "550e8400-e29b-41d4-a716-446655440005",
@@ -271,7 +270,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					GetCourierById(gomock.Any(), int64(1)).
-					Return(&repository.CourierDB{
+					Return(model.Courier{
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
@@ -281,12 +280,12 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, c *repository.CourierDB) error {
+					DoAndReturn(func(ctx context.Context, c model.Courier) error {
 						assert.Equal(t, "available", c.Status)
 						return nil
 					})
 			},
-			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440005", resp.OrderID)
 				assert.Equal(t, int64(1), resp.CourierID)
@@ -303,10 +302,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrNoOrderID, err)
-				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -325,12 +324,12 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				deliveryRepo.EXPECT().
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440006").
-					Return(nil, repository.ErrOrderIDNotFound)
+					Return(model.Delivery{}, repository.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrOrderIDNotFound, err)
-				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -349,7 +348,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				deliveryRepo.EXPECT().
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
-					Return(&model.DeliveryDB{
+					Return(model.Delivery{
 						ID:        1,
 						CourierID: 1,
 						OrderID:   "550e8400-e29b-41d4-a716-446655440007",
@@ -359,10 +358,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
 					Return(repository.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, ErrOrderIDNotFound, err)
-				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -381,7 +380,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				deliveryRepo.EXPECT().
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440008").
-					Return(&model.DeliveryDB{
+					Return(model.Delivery{
 						ID:        1,
 						CourierID: 999,
 						OrderID:   "550e8400-e29b-41d4-a716-446655440008",
@@ -393,12 +392,12 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 
 				courierRepo.EXPECT().
 					GetCourierById(gomock.Any(), int64(999)).
-					Return(nil, repository.ErrCourierNotFound)
+					Return(model.Courier{}, repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, resp model.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, repository.ErrCourierNotFound, err)
-				assert.Equal(t, model.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, DeliveryUnassignResponse{}, resp)
 			},
 		},
 	}
@@ -418,7 +417,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
 
 			ctx := context.Background()
-			req := &model.DeliveryUnassignRequest{
+			req := DeliveryUnassignRequest{
 				OrderID: tc.orderID,
 			}
 
@@ -497,7 +496,7 @@ func TestCheckFreeCouriers(t *testing.T) {
 			prepare: func(repo *mocks.MockсourierRepository) {
 				repo.EXPECT().
 					FreeCouriersWithInterval(gomock.Any()).
-					Return(errors.New("database error")).
+					Return(repository.ErrCouriersBusy).
 					MinTimes(2)
 			},
 			expectations: func(t *testing.T) {
