@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"courier-service/internal/handlers/dto"
 	"courier-service/internal/model"
 	"courier-service/internal/usecase"
 )
@@ -20,7 +21,7 @@ func NewCourierController(useCase сourierUseCase) *CourierController {
 	return &CourierController{useCase: useCase}
 }
 
-func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -28,41 +29,43 @@ func (c *CourierController) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	courier, err := c.useCase.GetById(ctx, id)
+	courier, err := c.useCase.GetCourierById(ctx, id)
 	if err != nil {
 		if errors.Is(err, usecase.ErrCourierNotFound) {
 			respondWithError(w, http.StatusNotFound, ErrCourierNotFound)
 			return
 		}
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondInternalServerError(w, err)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, courier)
 }
 
-func (c *CourierController) GetAll(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	couriers, err := c.useCase.GetAll(ctx)
+	couriers, err := c.useCase.GetAllCouriers(ctx)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondInternalServerError(w, err)
 		return
 	}
 	respondWithJSON(w, http.StatusOK, couriers)
 }
 
-func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var courier model.Courier
-	if err := json.NewDecoder(r.Body).Decode(&courier); err != nil {
+	var req dto.CourierCreateRequestDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := c.useCase.Create(ctx, &model.CourierCreateRequest{
-		Name:   courier.Name,
-		Phone:  courier.Phone,
-		Status: courier.Status,
+	id, err := c.useCase.CreateCourier(ctx, model.Courier{
+		Name:          req.Name,
+		Phone:         req.Phone,
+		TransportType: req.TransportType,
+		Status:        req.Status,
 	})
+
 	if err != nil {
 		handleCreateError(w, err)
 		return
@@ -74,9 +77,9 @@ func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
+func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req model.CourierUpdateRequest
+	var req dto.CourierUpdateRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -87,7 +90,8 @@ func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.useCase.Update(ctx, &req)
+	courier := dto.CourierUpdateToModel(req)
+	err := c.useCase.UpdateCourier(ctx, courier)
 	if err != nil {
 		handleUpdateError(w, err)
 		return

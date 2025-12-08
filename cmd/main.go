@@ -2,31 +2,44 @@ package main
 
 import (
 	"context"
-	"log"
-	"os/signal"
-	"syscall"
-
-	"courier-service/internal/app"
 	"courier-service/internal/core"
 	"courier-service/internal/handlers"
 	"courier-service/internal/repository"
+	"courier-service/internal/routing"
 	"courier-service/internal/usecase"
+	"log"
 )
 
-func main() {	
-	cfg, _ := core.LoadConfig()
+func main() {
+	backgroundCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	dbPool := core.InitPool(context.Background())
-	defer dbPool.Close()
-	courierRepository := repository.NewCourierRepository(dbPool)
-	courierUseCase := usecase.NewCourierUseCase(courierRepository)
-	courierController := handlers.NewCourierController(courierUseCase)
-
-	app := app.New(cfg.Port, courierController)
-
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-	if err := app.Run(ctx); err != nil {
-		log.Fatal(err)
+	cfg, err := core.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	dbPool := core.MustInitPool()
+
+	courierRepo := repository.NewCourierRepository(dbPool)
+	deliveryRepo := repository.NewDeliveryRepository(dbPool)
+	txRunner := repository.NewTxRunner(dbPool)
+
+	deliveryUseCase := usecase.NewDelieveryUseCase(courierRepo, deliveryRepo, txRunner)
+	courierUseCase := usecase.NewCourierUseCase(courierRepo)
+
+	go courierUseCase.CheckFreeCouriersWithInterval(backgroundCtx, cfg.CheckFreeCouriersInterval)
+
+	core.StartServer(
+		dbPool,
+		cfg.Port,
+		routing.Router(
+			handlers.NewCourierController(
+				courierUseCase,
+			),
+			handlers.NewDeliveryController(
+				deliveryUseCase,
+			),
+		),
+	)
 }

@@ -3,7 +3,10 @@ package core
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v3"
@@ -17,10 +20,11 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
+	CheckFreeCouriersInterval time.Duration
 }
 
 var (
-	PhoneRegex = `^\+[0-9]{11}$`
+	PhoneRegex                = `^\+[0-9]{11}$`
 )
 
 func LoadConfig() (*Config, error) {
@@ -39,6 +43,9 @@ func LoadConfig() (*Config, error) {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+	checker := os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS")
+	interval := secondsStringToDuration(checker)
+	cfg.CheckFreeCouriersInterval = interval
 
 	return cfg, nil
 }
@@ -74,3 +81,47 @@ func (c *Config) DBConnString() string {
 		ssl,
 	)
 }
+
+func DBConnStringFromEnv() string {
+	cfg, _ := LoadConfig()
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
+	)
+}
+
+func TestDBConnString() string {
+	_ = godotenv.Load(".env")
+
+	host := getEnvOrDefault("POSTGRES_HOST_TEST", "localhost")
+	port := getEnvOrDefault("POSTGRES_PORT_TEST", "5432")
+	user := getEnvOrDefault("POSTGRES_USER_TEST", "postgres")
+	password := getEnvOrDefault("POSTGRES_PASSWORD_TEST", "postgres")
+	dbname := getEnvOrDefault("POSTGRES_DB_TEST", "courier_service_test")
+	sslmode := "disable"
+
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		user,
+		password,
+		host,
+		port,
+		dbname,
+		sslmode,
+	)
+
+	log.Printf("TestDBConnString: %s", connStr)
+	return connStr
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func secondsStringToDuration(value string) time.Duration {
+	duration, _ := strconv.Atoi(value)
+	return time.Duration(duration) * time.Second
+}
+

@@ -10,4 +10,10 @@ var (
 	ErrInvalidCreate        = errors.New("name, phone and status are required")
 	ErrIdRequired        	= errors.New("id is required")
 	ErrInvalidUpdate      	= errors.New("no fields provided for update")
+	ErrCouriersBusy       	= errors.New("all couriers are busy")
+
+	ErrUnknownTransportType = errors.New("unknown transport type")
+	ErrNoOrderID            = errors.New("order id is required")
+	ErrOrderIDExists        = errors.New("order id already exists")
+	ErrOrderIDNotFound      = errors.New("order id not found")
 )
