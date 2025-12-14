@@ -1,4 +1,4 @@
-package usecase
+package usecase_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"courier-service/internal/model"
 	"courier-service/internal/repository"
+	"courier-service/internal/usecase"
 	"courier-service/internal/usecase/mocks"
 
 	"github.com/golang/mock/gomock"
@@ -24,8 +25,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 			courierRepo *mocks.MockсourierRepository,
 			deliveryRepo *mocks.MockdeliveryRepository,
 			txRunner *mocks.MocktxRunner,
+			factory *mocks.MockdeliveryCalculatorFactory,
+			ctrl *gomock.Controller,
 		)
-		expectations func(t *testing.T, resp DeliveryAssignResponse, err error)
+		expectations func(t *testing.T, resp usecase.DeliveryAssignResponse, err error)
 	}{
 		{
 			name:    "success: delivery assigned",
@@ -34,12 +37,24 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo *mocks.MockсourierRepository,
 				deliveryRepo *mocks.MockdeliveryRepository,
 				txRunner *mocks.MocktxRunner,
+				factory *mocks.MockdeliveryCalculatorFactory,
+				ctrl *gomock.Controller,
 			) {
+				now := time.Now()
+
 				txRunner.EXPECT().
 					Run(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					})
+
+				calculator := mocks.NewMockDeliveryCalculator(ctrl)
+				factory.EXPECT().
+					GetDeliveryCalculator(model.TransportTypeCar).
+					Return(calculator)
+				calculator.EXPECT().
+					CalculateDeadline().
+					Return(time.Now().Add(5 * time.Minute))
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
@@ -47,11 +62,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
-						Status:        "available",
+						Status:        model.CourierStatusAvailable,
 						TransportType: "car",
 					}, nil)
 
-				now := time.Now()
 				deliveryRepo.EXPECT().
 					CreateDelivery(gomock.Any(), gomock.Any()).
 					Return(model.Delivery{
@@ -65,11 +79,11 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, c model.Courier) error {
-						assert.Equal(t, "busy", c.Status)
+						assert.Equal(t, model.CourierStatusBusy, c.Status)
 						return nil
 					})
 			},
-			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryAssignResponse, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, int64(1), resp.CourierID)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440001", resp.OrderID)
@@ -83,13 +97,15 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo *mocks.MockсourierRepository,
 				deliveryRepo *mocks.MockdeliveryRepository,
 				txRunner *mocks.MocktxRunner,
+				factory *mocks.MockdeliveryCalculatorFactory,
+				ctrl *gomock.Controller,
 			) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrNoOrderID, err)
-				assert.Equal(t, DeliveryAssignResponse{}, resp)
+				assert.Equal(t, usecase.ErrNoOrderID, err)
+				assert.Equal(t, usecase.DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -99,6 +115,8 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo *mocks.MockсourierRepository,
 				deliveryRepo *mocks.MockdeliveryRepository,
 				txRunner *mocks.MocktxRunner,
+				factory *mocks.MockdeliveryCalculatorFactory,
+				ctrl *gomock.Controller,
 			) {
 				txRunner.EXPECT().
 					Run(gomock.Any(), gomock.Any()).
@@ -110,10 +128,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 					FindAvailableCourier(gomock.Any()).
 					Return(model.Courier{}, repository.ErrCouriersBusy)
 			},
-			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrCouriersBusy, err)
-				assert.Equal(t, DeliveryAssignResponse{}, resp)
+				assert.Equal(t, usecase.ErrCouriersBusy, err)
+				assert.Equal(t, usecase.DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -123,12 +141,23 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo *mocks.MockсourierRepository,
 				deliveryRepo *mocks.MockdeliveryRepository,
 				txRunner *mocks.MocktxRunner,
+				factory *mocks.MockdeliveryCalculatorFactory,
+				ctrl *gomock.Controller,
 			) {
+				calculator := mocks.NewMockDeliveryCalculator(ctrl)
+
 				txRunner.EXPECT().
 					Run(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					})
+
+				factory.EXPECT().
+					GetDeliveryCalculator(model.TransportTypeCar).
+					Return(calculator)
+				calculator.EXPECT().
+					CalculateDeadline().
+					Return(time.Now().Add(5 * time.Minute))
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
@@ -136,7 +165,7 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
-						Status:        "available",
+						Status:        model.CourierStatusAvailable,
 						TransportType: "car",
 					}, nil)
 
@@ -144,10 +173,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 					CreateDelivery(gomock.Any(), gomock.Any()).
 					Return(model.Delivery{}, repository.ErrOrderIDExists)
 			},
-			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrOrderIDExists, err)
-				assert.Equal(t, DeliveryAssignResponse{}, resp)
+				assert.Equal(t, usecase.ErrOrderIDExists, err)
+				assert.Equal(t, usecase.DeliveryAssignResponse{}, resp)
 			},
 		},
 		{
@@ -157,12 +186,19 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 				courierRepo *mocks.MockсourierRepository,
 				deliveryRepo *mocks.MockdeliveryRepository,
 				txRunner *mocks.MocktxRunner,
+				factory *mocks.MockdeliveryCalculatorFactory,
+				ctrl *gomock.Controller,
 			) {
 				txRunner.EXPECT().
 					Run(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
 						return fn(ctx)
 					})
+
+				calculator := mocks.NewMockDeliveryCalculator(ctrl)
+				factory.EXPECT().
+					GetDeliveryCalculator(model.TransportTypeCar).
+					Return(calculator)
 
 				courierRepo.EXPECT().
 					FindAvailableCourier(gomock.Any()).
@@ -175,6 +211,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 					}, nil)
 
 				now := time.Now()
+				calculator.EXPECT().
+					CalculateDeadline().
+					Return(now.Add(5 * time.Minute))
+
 				deliveryRepo.EXPECT().
 					CreateDelivery(gomock.Any(), gomock.Any()).
 					Return(model.Delivery{
@@ -189,10 +229,10 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					Return(repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, resp DeliveryAssignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryAssignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, repository.ErrCourierNotFound, err)
-				assert.Equal(t, DeliveryAssignResponse{}, resp)
+				assert.Equal(t, usecase.DeliveryAssignResponse{}, resp)
 			},
 		},
 	}
@@ -208,16 +248,17 @@ func TestDeliveryUseCase_AssignDelivery(t *testing.T) {
 			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
 			mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
 			mockTxRunner := mocks.NewMocktxRunner(ctrl)
+			mockFactory := mocks.NewMockdeliveryCalculatorFactory(ctrl)
 
-			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+			uc := usecase.NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner, mockFactory)
 
 			ctx := context.Background()
-			req := DeliveryAssignRequest{
+			req := usecase.DeliveryAssignRequest{
 				OrderID: tc.orderID,
 			}
 
 			if tc.prepare != nil {
-				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner, mockFactory, ctrl)
 			}
 
 			result, err := uc.AssignDelivery(ctx, req)
@@ -240,7 +281,7 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			deliveryRepo *mocks.MockdeliveryRepository,
 			txRunner *mocks.MocktxRunner,
 		)
-		expectations func(t *testing.T, resp DeliveryUnassignResponse, err error)
+		expectations func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error)
 	}{
 		{
 			name:    "success: delivery unassigned",
@@ -274,18 +315,18 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 						ID:            1,
 						Name:          "John",
 						Phone:         "+79991234567",
-						Status:        "busy",
+						Status:        model.CourierStatusBusy,
 						TransportType: "car",
 					}, nil)
 
 				courierRepo.EXPECT().
 					UpdateCourier(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(ctx context.Context, c model.Courier) error {
-						assert.Equal(t, "available", c.Status)
+						assert.Equal(t, model.CourierStatusAvailable, c.Status)
 						return nil
 					})
 			},
-			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440005", resp.OrderID)
 				assert.Equal(t, int64(1), resp.CourierID)
@@ -302,10 +343,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrNoOrderID, err)
-				assert.Equal(t, DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, usecase.ErrNoOrderID, err)
+				assert.Equal(t, usecase.DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -326,10 +367,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440006").
 					Return(model.Delivery{}, repository.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrOrderIDNotFound, err)
-				assert.Equal(t, DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, usecase.ErrOrderIDNotFound, err)
+				assert.Equal(t, usecase.DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -358,10 +399,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
 					Return(repository.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
-				assert.Equal(t, ErrOrderIDNotFound, err)
-				assert.Equal(t, DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, usecase.ErrOrderIDNotFound, err)
+				assert.Equal(t, usecase.DeliveryUnassignResponse{}, resp)
 			},
 		},
 		{
@@ -394,10 +435,10 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 					GetCourierById(gomock.Any(), int64(999)).
 					Return(model.Courier{}, repository.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, resp DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp usecase.DeliveryUnassignResponse, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, repository.ErrCourierNotFound, err)
-				assert.Equal(t, DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, usecase.DeliveryUnassignResponse{}, resp)
 			},
 		},
 	}
@@ -413,11 +454,12 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
 			mockDeliveryRepo := mocks.NewMockdeliveryRepository(ctrl)
 			mockTxRunner := mocks.NewMocktxRunner(ctrl)
+			mockFactory := mocks.NewMockdeliveryCalculatorFactory(ctrl)
 
-			uc := NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
+			uc := usecase.NewDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner, mockFactory)
 
 			ctx := context.Background()
-			req := DeliveryUnassignRequest{
+			req := usecase.DeliveryUnassignRequest{
 				OrderID: tc.orderID,
 			}
 
@@ -430,36 +472,6 @@ func TestDeliveryUseCase_UnassignDelivery(t *testing.T) {
 			if tc.expectations != nil {
 				tc.expectations(t, resp, err)
 			}
-		})
-	}
-}
-
-func TestTransportTypeTime(t *testing.T) {
-	testCases := []struct {
-		name          string
-		transportType string
-		expected      time.Duration
-		expectError   bool
-	}{
-		{"car", "car", 5 * time.Minute, false},
-		{"scooter", "scooter", 15 * time.Minute, false},
-		{"on_foot", "on_foot", 30 * time.Minute, false},
-		{"invalid", "rocket", 0, true},
-		{"empty", "", 0, true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			duration, err := transportTypeTime(tc.transportType)
-
-			if tc.expectError {
-				assert.Error(t, err)
-				assert.Equal(t, ErrUnknownTransportType, err)
-			} else {
-				assert.NoError(t, err)
-			}
-			assert.Equal(t, tc.expected, duration)
 		})
 	}
 }
@@ -526,7 +538,8 @@ func TestCheckFreeCouriers(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockCourierRepo := mocks.NewMockсourierRepository(ctrl)
-			uc := NewCourierUseCase(mockCourierRepo)
+			mockFactory := mocks.NewMockdeliveryCalculatorFactory(ctrl)
+			uc := usecase.NewCourierUseCase(mockCourierRepo, mockFactory)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()

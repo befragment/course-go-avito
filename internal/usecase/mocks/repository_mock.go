@@ -7,7 +7,9 @@ package mocks
 import (
 	context "context"
 	model "courier-service/internal/model"
+	usecase "courier-service/internal/usecase"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -240,4 +242,116 @@ func (m *MocktxRunner) Run(ctx context.Context, fn func(context.Context) error) 
 func (mr *MocktxRunnerMockRecorder) Run(ctx, fn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MocktxRunner)(nil).Run), ctx, fn)
+}
+
+// MockdeliveryCalculatorFactory is a mock of deliveryCalculatorFactory interface.
+type MockdeliveryCalculatorFactory struct {
+	ctrl     *gomock.Controller
+	recorder *MockdeliveryCalculatorFactoryMockRecorder
+}
+
+// MockdeliveryCalculatorFactoryMockRecorder is the mock recorder for MockdeliveryCalculatorFactory.
+type MockdeliveryCalculatorFactoryMockRecorder struct {
+	mock *MockdeliveryCalculatorFactory
+}
+
+// NewMockdeliveryCalculatorFactory creates a new mock instance.
+func NewMockdeliveryCalculatorFactory(ctrl *gomock.Controller) *MockdeliveryCalculatorFactory {
+	mock := &MockdeliveryCalculatorFactory{ctrl: ctrl}
+	mock.recorder = &MockdeliveryCalculatorFactoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockdeliveryCalculatorFactory) EXPECT() *MockdeliveryCalculatorFactoryMockRecorder {
+	return m.recorder
+}
+
+// GetDeliveryCalculator mocks base method.
+func (m *MockdeliveryCalculatorFactory) GetDeliveryCalculator(courierType model.CourierTransportType) usecase.DeliveryCalculator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeliveryCalculator", courierType)
+	ret0, _ := ret[0].(usecase.DeliveryCalculator)
+	return ret0
+}
+
+// GetDeliveryCalculator indicates an expected call of GetDeliveryCalculator.
+func (mr *MockdeliveryCalculatorFactoryMockRecorder) GetDeliveryCalculator(courierType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeliveryCalculator", reflect.TypeOf((*MockdeliveryCalculatorFactory)(nil).GetDeliveryCalculator), courierType)
+}
+
+// MockDeliveryCalculator is a mock of DeliveryCalculator interface.
+type MockDeliveryCalculator struct {
+	ctrl     *gomock.Controller
+	recorder *MockDeliveryCalculatorMockRecorder
+}
+
+// MockDeliveryCalculatorMockRecorder is the mock recorder for MockDeliveryCalculator.
+type MockDeliveryCalculatorMockRecorder struct {
+	mock *MockDeliveryCalculator
+}
+
+// NewMockDeliveryCalculator creates a new mock instance.
+func NewMockDeliveryCalculator(ctrl *gomock.Controller) *MockDeliveryCalculator {
+	mock := &MockDeliveryCalculator{ctrl: ctrl}
+	mock.recorder = &MockDeliveryCalculatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDeliveryCalculator) EXPECT() *MockDeliveryCalculatorMockRecorder {
+	return m.recorder
+}
+
+// CalculateDeadline mocks base method.
+func (m *MockDeliveryCalculator) CalculateDeadline() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateDeadline")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// CalculateDeadline indicates an expected call of CalculateDeadline.
+func (mr *MockDeliveryCalculatorMockRecorder) CalculateDeadline() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateDeadline", reflect.TypeOf((*MockDeliveryCalculator)(nil).CalculateDeadline))
+}
+
+// MockorderGateway is a mock of orderGateway interface.
+type MockorderGateway struct {
+	ctrl     *gomock.Controller
+	recorder *MockorderGatewayMockRecorder
+}
+
+// MockorderGatewayMockRecorder is the mock recorder for MockorderGateway.
+type MockorderGatewayMockRecorder struct {
+	mock *MockorderGateway
+}
+
+// NewMockorderGateway creates a new mock instance.
+func NewMockorderGateway(ctrl *gomock.Controller) *MockorderGateway {
+	mock := &MockorderGateway{ctrl: ctrl}
+	mock.recorder = &MockorderGatewayMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockorderGateway) EXPECT() *MockorderGatewayMockRecorder {
+	return m.recorder
+}
+
+// GetOrders mocks base method.
+func (m *MockorderGateway) GetOrders(ctx context.Context, from time.Time) ([]model.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrders", ctx, from)
+	ret0, _ := ret[0].([]model.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrders indicates an expected call of GetOrders.
+func (mr *MockorderGatewayMockRecorder) GetOrders(ctx, from interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrders", reflect.TypeOf((*MockorderGateway)(nil).GetOrders), ctx, from)
 }

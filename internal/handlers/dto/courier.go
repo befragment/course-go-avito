@@ -26,10 +26,10 @@ func CourierUpdateToModel(req CourierUpdateRequestDTO) model.Courier {
         courier.Phone = *req.Phone
     }
     if req.TransportType != nil {
-        courier.TransportType = *req.TransportType
+        courier.TransportType = model.CourierTransportType(*req.TransportType)
     }
     if req.Status != nil {
-        courier.Status = *req.Status
+        courier.Status = model.CourierStatus(*req.Status)
     }
     return courier
 }

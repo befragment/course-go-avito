@@ -1,4 +1,4 @@
-version: '3'
+version: "3.7"
 
 services:
   postgres:
@@ -12,6 +12,25 @@ services:
       - pgdata:/var/lib/postgresql/data 
     ports:
       - "${POSTGRES_PORT}:5432"
+    networks:
+      - infrastructure_default
+
+  service-courier:
+    build: .
+    ports:
+      - "8082:8080"    
+    env_file: .env
+    environment:
+      - PORT=${PORT}
+      - ORDER_SERVICE_HOST=http://service-order:8080
+      - POSTGRES_HOST=my-postgres
+      - TZ=Europe/Moscow
+    networks:
+      - infrastructure_default
 
 volumes:
   pgdata:
+  
+networks:
+  infrastructure_default:
+    external: true

@@ -82,7 +82,7 @@ func (s *CourierRepositoryTestSuite) TestGetById_Success() {
 	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
-		Status:        "available",
+		Status:        model.CourierStatusAvailable,
 		TransportType: "car",
 	}
 
@@ -95,8 +95,8 @@ func (s *CourierRepositoryTestSuite) TestGetById_Success() {
 	s.Equal(id, result.ID)
 	s.Equal("John Doe", result.Name)
 	s.Equal("+79991234567", result.Phone)
-	s.Equal("available", result.Status)
-	s.Equal("car", result.TransportType)
+	s.Equal(model.CourierStatusAvailable, result.Status)
+	s.Equal(model.TransportTypeCar, result.TransportType)
 }
 
 func (s *CourierRepositoryTestSuite) TestGetById_NotFound() {
@@ -113,9 +113,9 @@ func (s *CourierRepositoryTestSuite) TestGetAll_Success() {
 	ctx := context.Background()
 
 	couriers := []model.Courier{
-		{Name: "John", Phone: "+79991234567", Status: "available", TransportType: "car"},
-		{Name: "Jane", Phone: "+79991234568", Status: "available", TransportType: "scooter"},
-		{Name: "Bob", Phone: "+79991234569", Status: "available", TransportType: "on_foot"},
+		{Name: "John", Phone: "+79991234567", Status: model.CourierStatusAvailable, TransportType: "car"},
+		{Name: "Jane", Phone: "+79991234568", Status: model.CourierStatusAvailable, TransportType: "scooter"},
+		{Name: "Bob", Phone: "+79991234569", Status: model.CourierStatusAvailable, TransportType: "on_foot"},
 	}
 
 	for _, c := range couriers {
@@ -147,7 +147,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         "+79991234567",
-		Status:        "available",
+		Status:        model.CourierStatusAvailable,
 		TransportType: "car",
 	}
 	id, err := s.courierRepo.CreateCourier(ctx, courier)
@@ -156,7 +156,7 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	updated := model.Courier{
 		ID:            id,
 		Name:          "Jane Doe",
-		Status:        "busy",
+		Status:        model.CourierStatusBusy,
 		TransportType: "bike",
 	}
 
@@ -166,8 +166,8 @@ func (s *CourierRepositoryTestSuite) TestUpdate_Success() {
 	result, err := s.courierRepo.GetCourierById(ctx, id)
 	s.Require().NoError(err)
 	s.Equal("Jane Doe", result.Name)
-	s.Equal("busy", result.Status)
-	s.Equal("bike", result.TransportType)
+	s.Equal(model.CourierStatusBusy, result.Status)
+	s.Equal(model.CourierTransportType("bike"), result.TransportType)
 }
 
 func (s *CourierRepositoryTestSuite) TestUpdate_NotFound() {
@@ -215,7 +215,7 @@ func (s *CourierRepositoryTestSuite) TestExistsByPhone_True() {
 	courier := model.Courier{
 		Name:          "John Doe",
 		Phone:         phone,
-		Status:        "available",
+		Status:        model.CourierStatusAvailable,
 		TransportType: "car",
 	}
 	_, err := s.courierRepo.CreateCourier(ctx, courier)
@@ -249,7 +249,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				courier := model.Courier{
 					Name:          "John Doe",
 					Phone:         "+79990000001",
-					Status:        "available",
+					Status:        model.CourierStatusAvailable,
 					TransportType: "car",
 				}
 				_, err := s.courierRepo.CreateCourier(ctx, courier)
@@ -259,7 +259,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 
 				s.Require().NoError(err)
 				s.NotNil(result)
-				s.Equal("available", result.Status)
+				s.Equal(model.CourierStatusAvailable, result.Status)
 			},
 		},
 		{
@@ -268,7 +268,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				courier := model.Courier{
 					Name:          "John Doe",
 					Phone:         "+79990000002",
-					Status:        "available",
+					Status:        model.CourierStatusAvailable,
 					TransportType: "car",
 				}
 				id, err := s.courierRepo.CreateCourier(ctx, courier)
@@ -276,7 +276,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 
 				busyUpdate := model.Courier{
 					ID:     id,
-					Status: "busy",
+					Status: model.CourierStatusBusy,
 				}
 				err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
 				s.Require().NoError(err)
@@ -295,7 +295,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				courier1 := model.Courier{
 					Name:          "John",
 					Phone:         "+79990000003",
-					Status:        "available",
+					Status:        model.CourierStatusAvailable,
 					TransportType: "car",
 				}
 				id1, err := s.courierRepo.CreateCourier(ctx, courier1)
@@ -305,7 +305,7 @@ func (s *CourierRepositoryTestSuite) TestFindAvailable() {
 				courier2 := model.Courier{
 					Name:          "Jane",
 					Phone:         "+79990000004",
-					Status:        "available",
+					Status:        model.CourierStatusAvailable,
 					TransportType: "car",
 				}
 				id2, err := s.courierRepo.CreateCourier(ctx, courier2)
@@ -347,7 +347,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 		name            string
 		phone           string
 		setupDeliveries func(id int64)
-		expectedStatus  string
+		expectedStatus  model.CourierStatus
 	}{
 		{
 			name:  "success_expired_delivery_frees_courier",
@@ -361,7 +361,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 					id, orderID, pastTime, pastTime)
 				s.Require().NoError(err)
 			},
-			expectedStatus: "available",
+			expectedStatus: model.CourierStatusAvailable,
 		},
 		{
 			name:  "no_expired_deliveries_courier_stays_busy",
@@ -375,7 +375,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 					id, orderID, time.Now(), futureTime)
 				s.Require().NoError(err)
 			},
-			expectedStatus: "busy",
+			expectedStatus: model.CourierStatusBusy,
 		},
 		{
 			name:  "only_frees_when_all_deliveries_expired",
@@ -397,7 +397,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 					id, orderID2, time.Now(), futureTime)
 				s.Require().NoError(err)
 			},
-			expectedStatus: "busy",
+			expectedStatus: model.CourierStatusBusy,
 		},
 	}
 
@@ -407,7 +407,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 			courier := model.Courier{
 				Name:          "John",
 				Phone:         tt.phone,
-				Status:        "available",
+				Status:        model.CourierStatus(model.CourierStatusAvailable),
 				TransportType: "car",
 			}
 			id, err := s.courierRepo.CreateCourier(ctx, courier)
@@ -416,7 +416,7 @@ func (s *CourierRepositoryTestSuite) TestFreeCouriers() {
 			// помечаем как busy
 			busyUpdate := model.Courier{
 				ID:     id,
-				Status: "busy",
+				Status: model.CourierStatusBusy,
 			}
 			err = s.courierRepo.UpdateCourier(ctx, busyUpdate)
 			s.Require().NoError(err)

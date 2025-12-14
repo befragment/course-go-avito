@@ -3,8 +3,8 @@ package usecase
 
 import (
 	"context"
+	"time"
 	"courier-service/internal/model"
-
 )
 
 type сourierRepository interface {
@@ -26,3 +26,16 @@ type deliveryRepository interface {
 type txRunner interface {
 	Run(ctx context.Context, fn func(ctx context.Context) error) error
 }
+
+type deliveryCalculatorFactory interface {
+	GetDeliveryCalculator(courierType model.CourierTransportType) DeliveryCalculator
+}
+
+type DeliveryCalculator interface {
+	CalculateDeadline() time.Time
+}
+
+type orderGateway interface {
+	GetOrders(ctx context.Context, from time.Time) ([]model.Order, error)
+}
+

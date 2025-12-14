@@ -25,7 +25,7 @@ func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository {
 
 func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
 	queryBuilder := sq.
-		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn).
+		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn, createdAtColumn, updatedAtColumn).
 		From(courierTable).
 		Where(sq.Eq{idColumn: id}).
 		PlaceholderFormat(sq.Dollar)
@@ -39,7 +39,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
 	var c CourierDB
 
 	err = r.pool.QueryRow(ctx, query, args...).Scan(
-		&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType,
+		&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType, &c.CreatedAt, &c.UpdatedAt,
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -49,12 +49,12 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
 		return model.Courier{}, err
 	}
 
-	return model.Courier(c), nil
+	return courierDBToModel(c), nil
 }
 
 func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
 	queryBuilder := sq.
-		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn).
+		Select(idColumn, nameColumn, phoneColumn, statusColumn, transportTypeColumn, createdAtColumn, updatedAtColumn).
 		From(courierTable).
 		PlaceholderFormat(sq.Dollar)
 
@@ -73,11 +73,11 @@ func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier
 	var couriers []model.Courier
 	for rows.Next() {
 		var c CourierDB
-		err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType)
+		err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType, &c.CreatedAt, &c.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
-		couriers = append(couriers, model.Courier(c))
+		couriers = append(couriers, courierDBToModel(c))
 	}
 	return couriers, nil
 }
@@ -173,9 +173,9 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Cou
 			return model.Courier{}, ErrCouriersBusy
 		}
 		return model.Courier{}, err
-	}	
+	}
 
-	return model.Courier(c), nil
+	return courierDBToModel(c), nil
 }
 
 func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error {

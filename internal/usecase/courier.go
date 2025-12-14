@@ -13,10 +13,14 @@ import (
 
 type CourierUseCase struct {
 	repository сourierRepository
+	factory    deliveryCalculatorFactory
 }
 
-func NewCourierUseCase(repository сourierRepository) *CourierUseCase {
-	return &CourierUseCase{repository: repository}
+func NewCourierUseCase(repository сourierRepository, factory deliveryCalculatorFactory) *CourierUseCase {
+	return &CourierUseCase{
+		repository: repository,
+		factory:    factory,
+	}
 }
 
 func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, interval time.Duration) {
@@ -36,7 +40,7 @@ func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, inte
 	}
 }
 
-func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
+func (u *CourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Courier, error) {
 	courier, err := u.repository.GetCourierById(ctx, id)
 
 	if err != nil {
@@ -49,7 +53,7 @@ func (u CourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Cou
 	return courier, nil
 }
 
-func (u CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
+func (u *CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) {
 	couriers, err := u.repository.GetAllCouriers(ctx)
 	if err != nil {
 		return nil, err
@@ -57,12 +61,12 @@ func (u CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, er
 	return couriers, nil
 }
 
-func (u CourierUseCase) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) {
+func (u *CourierUseCase) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) {
 	if courier.Name == "" || courier.Phone == "" || courier.Status == "" || courier.TransportType == "" {
 		return 0, ErrInvalidCreate
 	}
 
-	if _, err := transportTypeTime(courier.TransportType); err != nil {
+	if u.factory.GetDeliveryCalculator(courier.TransportType) == nil {
 		return 0, ErrUnknownTransportType
 	}
 
@@ -79,12 +83,12 @@ func (u CourierUseCase) CreateCourier(ctx context.Context, courier model.Courier
 	return u.repository.CreateCourier(ctx, courier)
 }
 
-func (u CourierUseCase) UpdateCourier(ctx context.Context, courier model.Courier) error {
+func (u *CourierUseCase) UpdateCourier(ctx context.Context, courier model.Courier) error {
 	if courier.Name == "" && courier.Phone == "" && courier.Status == "" && courier.TransportType == "" {
 		return ErrInvalidUpdate
 	}
 	if courier.TransportType != "" {
-		if _, err := transportTypeTime(courier.TransportType); err != nil {
+		if u.factory.GetDeliveryCalculator(courier.TransportType) == nil {
 			return ErrUnknownTransportType
 		}
 	}

@@ -62,8 +62,8 @@ func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request
 	id, err := c.useCase.CreateCourier(ctx, model.Courier{
 		Name:          req.Name,
 		Phone:         req.Phone,
-		TransportType: req.TransportType,
-		Status:        req.Status,
+		TransportType: model.CourierTransportType(req.TransportType),
+		Status:        model.CourierStatus(req.Status),
 	})
 
 	if err != nil {

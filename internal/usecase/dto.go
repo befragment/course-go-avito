@@ -6,31 +6,31 @@ import (
 )
 
 type DeliveryAssignRequest struct {
-	OrderID string `json:"order_id"`
+	OrderID string
 }
 
 type DeliveryUnassignRequest struct {
-	OrderID string `json:"order_id"`
+	OrderID string
 }
 
 type DeliveryAssignResponse struct {
-	CourierID     int64     `json:"courier_id"`
-	OrderID       string    `json:"order_id"`
-	TransportType string    `json:"transport_type"`
-	Deadline      time.Time `json:"delivery_deadline"`
+	CourierID     int64     
+	OrderID       string    
+	TransportType string    
+	Deadline      time.Time 
 }
 
 type DeliveryUnassignResponse struct {
-	OrderID   string `json:"order_id"`
-	Status    string `json:"status"`
-	CourierID int64  `json:"courier_id"`
+	OrderID   string 
+	Status    string 
+	CourierID int64  
 }
 
 func deliveryAssignResponse(courier model.Courier, delivery model.Delivery) DeliveryAssignResponse {
 	return DeliveryAssignResponse{
 		CourierID:     courier.ID,
 		OrderID:       delivery.OrderID,
-		TransportType: courier.TransportType,
+		TransportType: string(courier.TransportType),
 		Deadline:      delivery.Deadline,
 	}
 }

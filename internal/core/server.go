@@ -12,9 +12,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc"
 )
 
-func StartServer(dbPool *pgxpool.Pool, port string, appRoutes *chi.Mux) {
+func StartServer(dbPool *pgxpool.Pool, grpcClient *grpc.ClientConn, port string, appRoutes *chi.Mux) {
 	srv := &http.Server{
 		Addr:    port,
 		Handler: appRoutes,
@@ -29,12 +30,12 @@ func StartServer(dbPool *pgxpool.Pool, port string, appRoutes *chi.Mux) {
 		}
 	}()
 
-	waitGracefulShutdown(srv, dbPool, serverErr)
+	waitGracefulShutdown(srv, dbPool, grpcClient, serverErr)
 
 	log.Println("Shutting down...")
 }
 
-func waitGracefulShutdown(srv *http.Server, dbPool *pgxpool.Pool, serverErr <-chan error) {
+func waitGracefulShutdown(srv *http.Server, dbPool *pgxpool.Pool, grpcClient *grpc.ClientConn, serverErr <-chan error) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -58,6 +59,8 @@ func waitGracefulShutdown(srv *http.Server, dbPool *pgxpool.Pool, serverErr <-ch
 		log.Println("Server shutdown")
 	}
 	dbPool.Close()
+	grpcClient.Close()
+	log.Println("GRPC client closed")
 	log.Println("Database connection pool closed")
 	log.Println("Service shutdown")
 }

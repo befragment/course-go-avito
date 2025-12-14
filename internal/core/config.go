@@ -21,10 +21,11 @@ type Config struct {
 	DBName     string
 	DBSSLMode  string
 	CheckFreeCouriersInterval time.Duration
+	OrderCheckCursorDelta time.Duration
 }
 
 var (
-	PhoneRegex                = `^\+[0-9]{11}$`
+	PhoneRegex = `^\+[0-9]{11}$`
 )
 
 func LoadConfig() (*Config, error) {
@@ -43,9 +44,14 @@ func LoadConfig() (*Config, error) {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
-	checker := os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS")
-	interval := secondsStringToDuration(checker)
+	rawFreeCouriersInterval := os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS")
+	rawOrderCheckCursorDelta := os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS")
+
+	interval := secondsStringToDuration(rawFreeCouriersInterval)
+	cursorDelta := secondsStringToDuration(rawOrderCheckCursorDelta)
+
 	cfg.CheckFreeCouriersInterval = interval
+	cfg.OrderCheckCursorDelta = cursorDelta
 
 	return cfg, nil
 }

@@ -95,11 +95,11 @@ func (s *RepositoryTestSuite) SetupTest() {
 	s.Require().NoError(err)
 }
 
-func (s *RepositoryTestSuite) createTestCourier(name, phone, transportType string) int64 {
+func (s *RepositoryTestSuite) createTestCourier(name, phone string, transportType model.CourierTransportType) int64 {
 	courier := model.Courier{
 		Name:          name,
 		Phone:         phone,
-		Status:        "available",
+		Status:        model.CourierStatusAvailable,
 		TransportType: transportType,
 	}
 	id, err := s.courierRepo.CreateCourier(context.Background(), courier)

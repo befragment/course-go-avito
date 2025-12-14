@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"courier-service/internal/handlers/dto"
 	"courier-service/internal/handlers/mocks"
 	"courier-service/internal/model"
 	"courier-service/internal/usecase"
@@ -10,7 +11,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"courier-service/internal/handlers/dto"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
@@ -384,7 +384,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 				reqBody := dto.CourierUpdateRequestDTO{
 					ID:            1,
 					Name:          stringPtr("Updated Name"),
-					TransportType: stringPtr("car"),
+					TransportType: stringPtr(string(model.TransportTypeCar)),
 				}
 				b, _ := json.Marshal(reqBody)
 				return b
@@ -395,7 +395,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 					DoAndReturn(func(ctx context.Context, c model.Courier) error {
 						assert.Equal(t, int64(1), c.ID)
 						assert.Equal(t, "Updated Name", c.Name)
-						assert.Equal(t, "car", c.TransportType)
+						assert.Equal(t, model.TransportTypeCar, c.TransportType)
 						return nil
 					})
 			},
@@ -449,7 +449,7 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 				reqBody := dto.CourierCreateRequestDTO{
 					Name:          "John Doe",
 					Phone:         "+79991234567",
-					TransportType: "car",
+					TransportType: string(model.TransportTypeCar),
 				}
 				b, _ := json.Marshal(reqBody)
 				return b
@@ -472,10 +472,10 @@ func TestCourierHandler_CreateCourier(t *testing.T) {
 			},
 		},
 		{
-			name:        "invalid json",
-			url:         "/courier",
-			requestBody: []byte("invalid json"),
-			prepare:     nil, // usecase вызываться не должен
+			name:           "invalid json",
+			url:            "/courier",
+			requestBody:    []byte("invalid json"),
+			prepare:        nil, // usecase вызываться не должен
 			wantStatusCode: http.StatusBadRequest,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
 				// при желании можно проверить тело/сообщение об ошибке

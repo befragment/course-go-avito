@@ -12,30 +12,20 @@ type DelieveryUseCase struct {
 	courierRepository  сourierRepository
 	deliveryRepository deliveryRepository
 	txRunner           txRunner
+	factory deliveryCalculatorFactory
 }
 
 func NewDelieveryUseCase(
 	courierRepository сourierRepository,
 	deliveryRepository deliveryRepository,
 	txRunner txRunner,
+	factory deliveryCalculatorFactory,
 ) *DelieveryUseCase {
 	return &DelieveryUseCase{
 		courierRepository:  courierRepository,
 		deliveryRepository: deliveryRepository,
 		txRunner:           txRunner,
-	}
-}
-
-func transportTypeTime(ttype string) (time.Duration, error) {
-	switch ttype {
-	case "car":
-		return 5 * time.Minute, nil
-	case "scooter":
-		return 15 * time.Minute, nil
-	case "on_foot":
-		return 30 * time.Minute, nil
-	default:
-		return 0, ErrUnknownTransportType
+		factory: factory,
 	}
 }
 
@@ -43,48 +33,12 @@ func (u *DelieveryUseCase) AssignDelivery(ctx context.Context, req DeliveryAssig
 	if req.OrderID == "" {
 		return DeliveryAssignResponse{}, ErrNoOrderID
 	}
-
 	var resp DeliveryAssignResponse
-	err := u.txRunner.Run(ctx, func(txCtx context.Context) error {
-		courier, err := u.courierRepository.FindAvailableCourier(txCtx)
-		if err != nil {
-			if errors.Is(err, repository.ErrCouriersBusy) {
-				return ErrCouriersBusy
-			}
-			return err
-		}
-
-		duration, err := transportTypeTime(courier.TransportType)
-		if err != nil {
-			return err
-		}
-
-		deliveryDomain := model.Delivery{
-			OrderID:    req.OrderID,
-			CourierID:  courier.ID,
-			AssignedAt: time.Now(),
-			Deadline:   time.Now().Add(duration),
-		}
-
-		delivery, err := u.deliveryRepository.CreateDelivery(txCtx, deliveryDomain)
-		if err != nil {
-			if errors.Is(err, repository.ErrOrderIDExists) {
-				return ErrOrderIDExists
-			}
-			return err
-		}
-
-		courier.Status = "busy"
-		if err := u.courierRepository.UpdateCourier(txCtx, courier); err != nil {
-			return err
-		}
-		resp = deliveryAssignResponse(courier, delivery)
-		return nil
-	})
-
+	courier, delivery, err := createAssignmentInTransaction(ctx, u.txRunner, u.courierRepository, u.deliveryRepository, u.factory, req.OrderID)
 	if err != nil {
 		return DeliveryAssignResponse{}, err
 	}
+	resp = deliveryAssignResponse(courier, delivery)
 	return resp, nil
 }
 
@@ -115,7 +69,7 @@ func (u *DelieveryUseCase) UnassignDelivery(ctx context.Context, req DeliveryUna
 			return err
 		}
 
-		courier.Status = "available"
+		courier.ChangeStatus(model.CourierStatusAvailable)
 		if err := u.courierRepository.UpdateCourier(txCtx, courier); err != nil {
 			return err
 		}
@@ -129,4 +83,61 @@ func (u *DelieveryUseCase) UnassignDelivery(ctx context.Context, req DeliveryUna
 	}
 
 	return resp, nil
+}
+
+func createAssignmentInTransaction(
+    ctx context.Context,
+    txRunner txRunner,
+    courierRepo сourierRepository,
+    deliveryRepo deliveryRepository,
+    factory deliveryCalculatorFactory,
+    orderID string,
+) (model.Courier, model.Delivery, error) {
+    var (
+        courier  model.Courier
+        delivery model.Delivery
+    )
+
+    err := txRunner.Run(ctx, func(txCtx context.Context) error {
+        c, err := courierRepo.FindAvailableCourier(txCtx)
+        if err != nil {
+            if errors.Is(err, repository.ErrCouriersBusy) {
+                return ErrCouriersBusy
+            }
+            return err
+        }
+
+		dc := factory.GetDeliveryCalculator(c.TransportType)
+		if dc == nil {
+			return ErrUnknownTransportType
+		}
+        deliveryDomain := model.Delivery{
+            OrderID:    orderID,
+            CourierID:  c.ID,
+            AssignedAt: time.Now(),
+            Deadline:   dc.CalculateDeadline(),
+        }
+
+        d, err := deliveryRepo.CreateDelivery(txCtx, deliveryDomain)
+        if err != nil {
+            if errors.Is(err, repository.ErrOrderIDExists) {
+                return ErrOrderIDExists
+            }
+            return err
+        }
+
+        c.ChangeStatus(model.CourierStatusBusy)
+        if err := courierRepo.UpdateCourier(txCtx, c); err != nil {
+            return err
+        }
+
+        courier = c
+        delivery = d
+        return nil
+    })
+    if err != nil {
+        return model.Courier{}, model.Delivery{}, err
+    }
+
+    return courier, delivery, nil
 }
