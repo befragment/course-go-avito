@@ -59,8 +59,12 @@ func waitGracefulShutdown(srv *http.Server, dbPool *pgxpool.Pool, grpcClient *gr
 		log.Println("Server shutdown")
 	}
 	dbPool.Close()
-	grpcClient.Close()
-	log.Println("GRPC client closed")
 	log.Println("Database connection pool closed")
+
+	if grpcClient != nil {
+		grpcClient.Close()
+		log.Println("GRPC client closed")
+	}
+
 	log.Println("Service shutdown")
 }

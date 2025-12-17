@@ -11,9 +11,9 @@ type Order struct {
     Items        []Item
     TotalPrice   int64
     Address      Address
-    Status       OrderStatus
     CreatedAt    time.Time
     UpdatedAt    time.Time
+    Status       OrderStatus
 }
 
 type OrderStatus string

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"strconv"
 	"time"
 
@@ -14,14 +15,23 @@ import (
 
 type Config struct {
 	Port       string
+
 	DBHost     string
 	DBPort     string
 	DBUser     string
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
+
 	CheckFreeCouriersInterval time.Duration
 	OrderCheckCursorDelta time.Duration
+
+	KafkaPort string
+	KafkaBrokers []string
+	KafkaGroupID string
+	KafkaTopic string
+
+	GRPCServiceOrderServer string
 }
 
 var (
@@ -44,14 +54,23 @@ func LoadConfig() (*Config, error) {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
-	rawFreeCouriersInterval := os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS")
-	rawOrderCheckCursorDelta := os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS")
 
-	interval := secondsStringToDuration(rawFreeCouriersInterval)
-	cursorDelta := secondsStringToDuration(rawOrderCheckCursorDelta)
+	cfg.OrderCheckCursorDelta = secondsStringToDuration(
+		os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS"))
+	cfg.CheckFreeCouriersInterval = secondsStringToDuration(
+		os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS"))
 
-	cfg.CheckFreeCouriersInterval = interval
-	cfg.OrderCheckCursorDelta = cursorDelta
+	cfg.KafkaBrokers = strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+	cfg.KafkaGroupID = os.Getenv("KAFKA_GROUP_ID")
+	cfg.KafkaTopic = os.Getenv("KAFKA_TOPIC")
+	cfg.KafkaPort = os.Getenv("KAFKA_PORT")
+
+	cfg.GRPCServiceOrderServer = os.Getenv("GRPC_SERVICE_ORDER_SERVER")
+	log.Printf("KafkaPort: %v", cfg.KafkaPort)
+	log.Printf("KafkaBrokers: %v", cfg.KafkaBrokers)
+	log.Printf("KafkaGroupID: %v", cfg.KafkaGroupID)
+	log.Printf("KafkaTopic: %v", cfg.KafkaTopic)
+	// log.Printf("GRPCServiceOrderServer: %v", cfg.GRPCServiceOrderServer)
 
 	return cfg, nil
 }
