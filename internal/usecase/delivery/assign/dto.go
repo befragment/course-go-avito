@@ -5,10 +5,6 @@ import (
 	"courier-service/internal/model"
 )
 
-type DeliveryAssignRequest struct {
-	OrderID string
-}
-
 type DeliveryAssignResponse struct {
 	CourierID     int64     
 	OrderID       string    

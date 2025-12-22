@@ -32,10 +32,5 @@ type deliveryCalculatorFactory interface {
 	GetDeliveryCalculator(courierType model.CourierTransportType) DeliveryCalculator
 }
 
-// DeliveryCalculator aliases the shared utils.DeliveryCalculator
-// so all usecases share the same delivery-time interface.
 type DeliveryCalculator = utils.DeliveryCalculator
 
-// type orderGateway interface {
-// 	GetOrders(ctx context.Context, from time.Time) ([]model.Order, error)
-// }

@@ -16,8 +16,8 @@ func NewCompleteDeliveryUseCase(courierRepository courierRepository) *CompleteDe
 	return &CompleteDeliveryUseCase{courierRepository: courierRepository}
 }
 
-func (u *CompleteDeliveryUseCase) Complete(ctx context.Context, req CompleteDeliveryRequest) error {
-	courierID, err := u.courierRepository.GetCourierIDByOrderID(ctx, req.OrderID)
+func (u *CompleteDeliveryUseCase) Complete(ctx context.Context, OrderID string) error {
+	courierID, err := u.courierRepository.GetCourierIDByOrderID(ctx, OrderID)
 	if err != nil {
 		if errors.Is(err, courierrepo.ErrOrderNotFound) {
 			return ErrOrderNotFound

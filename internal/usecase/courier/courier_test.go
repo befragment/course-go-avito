@@ -9,6 +9,7 @@ import (
 	"courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
 	"courier-service/internal/usecase/courier"
+	logger "courier-service/pkg/logger"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +73,11 @@ func TestCourierUseCase_GetById(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory)
+			logger, err := logger.New(logger.LogLevelInfo)
+			if err != nil {
+				t.Fatalf("Failed to create logger: %v", err)
+			}
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
 
 			ctx := context.Background()
 
@@ -140,7 +145,11 @@ func TestCourierUseCase_GetAll(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory)
+			logger, err := logger.New(logger.LogLevelInfo)
+			if err != nil {
+				t.Fatalf("Failed to create logger: %v", err)
+			}
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
 
 			ctx := context.Background()
 
@@ -199,7 +208,6 @@ func TestCourierUseCase_Create(t *testing.T) {
 				TransportType: "car",
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations - validation happens before any repo calls
 			},
 			expectations: func(t *testing.T, id int64, err error) {
 				assert.Error(t, err)
@@ -215,7 +223,6 @@ func TestCourierUseCase_Create(t *testing.T) {
 				TransportType: "car",
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations
 			},
 			expectations: func(t *testing.T, id int64, err error) {
 				assert.Error(t, err)
@@ -231,7 +238,6 @@ func TestCourierUseCase_Create(t *testing.T) {
 				TransportType: "car",
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations
 			},
 			expectations: func(t *testing.T, id int64, err error) {
 				assert.Error(t, err)
@@ -247,7 +253,6 @@ func TestCourierUseCase_Create(t *testing.T) {
 				Status: "available",
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations
 			},
 			expectations: func(t *testing.T, id int64, err error) {
 				assert.Error(t, err)
@@ -330,7 +335,11 @@ func TestCourierUseCase_Create(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory)
+			logger, err := logger.New(logger.LogLevelInfo)
+			if err != nil {
+				t.Fatalf("Failed to create logger: %v", err)
+			}
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
 
 			ctx := context.Background()
 
@@ -380,7 +389,6 @@ func TestCourierUseCase_Update(t *testing.T) {
 				ID: 1,
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations - validation happens before any repo calls
 			},
 			expectations: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -394,7 +402,6 @@ func TestCourierUseCase_Update(t *testing.T) {
 				TransportType: model.CourierTransportType(transportTypeUpdate),
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// factory should be called and return nil to signal unknown transport type
 				factory.EXPECT().
 					GetDeliveryCalculator(model.CourierTransportType(transportTypeUpdate)).
 					Return(nil)
@@ -411,7 +418,6 @@ func TestCourierUseCase_Update(t *testing.T) {
 				Phone: invalidPhone,
 			},
 			prepare: func(repo *MockcourierRepository, factory *MockdeliveryCalculatorFactory, ctrl *gomock.Controller) {
-				// No mock expectations
 			},
 			expectations: func(t *testing.T, err error) {
 				assert.Error(t, err)
@@ -478,7 +484,11 @@ func TestCourierUseCase_Update(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory)
+			logger, err := logger.New(logger.LogLevelInfo)
+			if err != nil {
+				t.Fatalf("Failed to create logger: %v", err)
+			}
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
 
 			ctx := context.Background()
 
@@ -486,7 +496,7 @@ func TestCourierUseCase_Update(t *testing.T) {
 				tc.prepare(mockRepo, mockFactory, ctrl)
 			}
 
-			err := uc.UpdateCourier(ctx, tc.request)
+			err = uc.UpdateCourier(ctx, tc.request)
 
 			if tc.expectations != nil {
 				tc.expectations(t, err)
@@ -540,7 +550,6 @@ func TestCheckFreeCouriers(t *testing.T) {
 					MinTimes(2)
 			},
 			expectations: func(t *testing.T) {
-				// goleak will verify no goroutines leaked
 			},
 		},
 		{
@@ -555,7 +564,6 @@ func TestCheckFreeCouriers(t *testing.T) {
 					MinTimes(2)
 			},
 			expectations: func(t *testing.T) {
-				// goleak will verify no goroutines leaked
 			},
 		},
 		{
@@ -564,10 +572,8 @@ func TestCheckFreeCouriers(t *testing.T) {
 			runDuration:       0,
 			cancelImmediately: true,
 			prepare: func(repo *MockcourierRepository) {
-				// No expectations - context should be cancelled before ticker fires
 			},
 			expectations: func(t *testing.T) {
-				// goleak will verify no goroutines leaked
 			},
 		},
 	}
@@ -582,7 +588,11 @@ func TestCheckFreeCouriers(t *testing.T) {
 
 			mockCourierRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			uc := courier.NewCourierUseCase(mockCourierRepo, mockFactory)
+			logger, err := logger.New(logger.LogLevelInfo)
+			if err != nil {
+				t.Fatalf("Failed to create logger: %v", err)
+			}
+			uc := courier.NewCourierUseCase(mockCourierRepo, mockFactory, logger)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()

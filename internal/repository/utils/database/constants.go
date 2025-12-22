@@ -28,13 +28,9 @@ const (
 	CourierPhone         = CourierTable + "." + PhoneColumn
 	CourierStatus        = CourierTable + "." + StatusColumn
 	CourierTransportType = CourierTable + "." + TransportTypeColumn
-	// CourierCreatedAt = CourierTable + "." + CreatedAtColumn
-	// CourierUpdatedAt = CourierTable + "." + UpdatedAtColumn
 
 	DeliveryID      = DeliveryTable + "." + IDColumn
 	DeliveryOrderID = DeliveryTable + "." + OrderIDColumn
-	// DeliveryAssignedAt = DeliveryTable + "." + AssignedAtColumn
-	// DeliveryDeadline   = DeliveryTable + "." + DeadlineColumn
 	DeliveryCourierID = DeliveryTable + "." + CourierIDColumn
 
 	CountAll = "count(*)"

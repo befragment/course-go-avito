@@ -6,20 +6,22 @@ import (
 	"courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
 	"errors"
-	"log"
 	"regexp"
 	"time"
+	logger "courier-service/pkg/logger"
 )
 
 type CourierUseCase struct {
 	repository courierRepository
 	factory    deliveryCalculatorFactory
+	logger     logger.Interface
 }
 
-func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory) *CourierUseCase {
+func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger.Interface) *CourierUseCase {
 	return &CourierUseCase{
 		repository: repository,
 		factory:    factory,
+		logger:     logger,
 	}
 }
 
@@ -33,9 +35,9 @@ func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, inte
 			return
 		case t := <-ticker.C:
 			if err := u.repository.FreeCouriersWithInterval(ctx); err != nil {
-				log.Printf("Failed to check free couriers: %v", err)
+				u.logger.Errorf("Failed to check free couriers: %v", err)
 			}
-			log.Printf("Checked free couriers at %s", t.Format(time.RFC3339))
+			u.logger.Debugf("Checked free couriers at %s", t.Format(time.RFC3339))
 		}
 	}
 }

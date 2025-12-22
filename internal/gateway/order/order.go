@@ -31,8 +31,8 @@ func (g *Gateway) GetOrders(ctx context.Context, from time.Time) ([]model.Order,
 	}
 
 	ordersList := make([]model.Order, len(orders.Orders))
-	for i, order := range orders.Orders {
-		ordersList[i] = orderFromProto(order)
+	for _, order := range orders.Orders {
+		ordersList = append(ordersList, orderModelFromProto(order))
 	}
 	return ordersList, nil
 }
@@ -47,5 +47,5 @@ func (g *Gateway) GetOrderById(ctx context.Context, id string) (model.Order, err
 	if order == nil {
 		return model.Order{}, errors.New("order not found")
 	}
-	return orderFromProto(order.Order), nil
+	return orderModelFromProto(order.Order), nil
 }

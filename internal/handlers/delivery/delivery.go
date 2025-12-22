@@ -2,8 +2,6 @@ package delivery
 
 import (
 	"courier-service/internal/handlers/utils"
-	assign "courier-service/internal/usecase/delivery/assign"
-	unassign "courier-service/internal/usecase/delivery/unassign"
 	"encoding/json"
 	"net/http"
 )
@@ -25,15 +23,14 @@ func (c *DeliveryController) AssignDelivery(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	delivery, err := c.assign.Assign(ctx, assign.DeliveryAssignRequest{
-		OrderID: req.OrderID,
-	})
+	assignment, err := c.assign.Assign(ctx, req.OrderID)
+	response := ToAssignCourierResponse(assignment)
 
 	if err != nil {
 		handleAssignDeliveryError(w, err)
 		return
 	}
-	utils.RespondWithJSON(w, http.StatusOK, delivery)
+	utils.RespondWithJSON(w, http.StatusOK, response)
 }
 
 func (c *DeliveryController) UnassignDelivery(w http.ResponseWriter, r *http.Request) {
@@ -44,13 +41,12 @@ func (c *DeliveryController) UnassignDelivery(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	delivery, err := c.unassign.Unassign(ctx, unassign.DeliveryUnassignRequest{
-		OrderID: req.OrderID,
-	})
+	courierID, err := c.unassign.Unassign(ctx, req.OrderID)
+	response := ToUnassignCourierResponse(courierID, req.OrderID)
 
 	if err != nil {
 		handleUnassignDeliveryError(w, err)
 		return
 	}
-	utils.RespondWithJSON(w, http.StatusOK, delivery)
+	utils.RespondWithJSON(w, http.StatusOK, response)
 }

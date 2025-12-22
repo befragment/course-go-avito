@@ -17,8 +17,6 @@ type courierRepository interface {
 	FreeCouriersWithInterval(ctx context.Context) error
 }
 
-// DeliveryCalculator aliases the shared utils.DeliveryCalculator
-// so there is a single interface type used across usecases and mocks.
 type DeliveryCalculator = utils.DeliveryCalculator
 
 type deliveryCalculatorFactory interface {

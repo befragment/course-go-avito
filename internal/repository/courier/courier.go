@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"courier-service/internal/model"
 	db "courier-service/internal/repository/utils/database"
 	logger "courier-service/pkg/logger"
+	entity "courier-service/internal/repository/entity"
 )
 
 type CourierRepository struct {
@@ -39,7 +39,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
 		return model.Courier{}, err
 	}
 
-	var c CourierDB
+	var c entity.CourierDB
 
 	err = r.pool.QueryRow(ctx, query, args...).Scan(
 		&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType, &c.CreatedAt, &c.UpdatedAt,
@@ -52,7 +52,6 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
 		return model.Courier{}, err
 	}
 
-	r.logger.Infow("Courier found", "courier", c.ToModel())
 	return c.ToModel(), nil
 }
 
@@ -76,7 +75,7 @@ func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier
 
 	var couriers []model.Courier
 	for rows.Next() {
-		var c CourierDB
+		var c entity.CourierDB
 		err = rows.Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType, &c.CreatedAt, &c.UpdatedAt)
 		if err != nil {
 			return nil, err
@@ -169,7 +168,7 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Cou
 		return model.Courier{}, err
 	}
 
-	var c CourierDB
+	var c entity.CourierDB
 	err = r.pool.QueryRow(ctx, query, args...).
 		Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.TransportType)
 	if err != nil {
@@ -217,7 +216,10 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
 		return err
 	}
 
-	log.Printf("FreeCouriers updated rows: %d", ct.RowsAffected())
+	if ct.RowsAffected() > 0 {
+		r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
+	}
+	
 	return nil
 }
 

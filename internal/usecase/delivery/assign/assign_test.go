@@ -253,15 +253,12 @@ func TestAssignDelivery(t *testing.T) {
 			uc := assign.NewAssignDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner, mockFactory)
 
 			ctx := context.Background()
-			req := assign.DeliveryAssignRequest{
-				OrderID: tc.orderID,
-			}
 
 			if tc.prepare != nil {
 				tc.prepare(mockCourierRepo, mockDeliveryRepo, mockTxRunner, mockFactory, ctrl)
 			}
 
-			result, err := uc.Assign(ctx, req)
+			result, err := uc.Assign(ctx, tc.orderID)
 
 			if tc.expectations != nil {
 				tc.expectations(t, result, err)

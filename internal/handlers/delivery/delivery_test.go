@@ -48,12 +48,13 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
-				var result assignusecase.DeliveryAssignResponse
+				var result deliveryhandler.DeliveryAssignResponseDTO
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
 
 				assert.Equal(t, int64(1), result.CourierID)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", result.OrderID)
+				assert.Equal(t, "car", result.TransportType)
 			},
 		},
 		{
@@ -62,7 +63,6 @@ func TestDeliveryHandler_AssignDelivery(t *testing.T) {
 			prepare:        nil, // usecase не вызывается
 			wantStatusCode: http.StatusBadRequest,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
-				// можно проверить тело/сообщение об ошибке при необходимости
 			},
 		},
 		{
@@ -177,11 +177,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 				return b
 			}(),
 			prepare: func(uc *MockunassignUsecase) {
-				expectedResponse := unassignusecase.DeliveryUnassignResponse{
-					OrderID:   "550e8400-e29b-41d4-a716-446655440000",
-					Status:    "unassigned",
-					CourierID: 1,
-				}
+				expectedResponse := int64(1)
 
 				uc.EXPECT().
 					Unassign(gomock.Any(), gomock.Any()).
@@ -189,13 +185,13 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			expectations: func(t *testing.T, rr *httptest.ResponseRecorder) {
-				var result unassignusecase.DeliveryUnassignResponse
+				var result deliveryhandler.DeliveryUnassignResponseDTO
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
-
-				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", result.OrderID)
-				assert.Equal(t, "unassigned", result.Status)
+		
 				assert.Equal(t, int64(1), result.CourierID)
+				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", result.OrderID)
+				assert.Equal(t, deliveryhandler.UnassignedStatus, result.Status)
 			},
 		},
 		{
@@ -219,7 +215,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *MockunassignUsecase) {
 				uc.EXPECT().
 					Unassign(gomock.Any(), gomock.Any()).
-					Return(unassignusecase.DeliveryUnassignResponse{}, unassignusecase.ErrNoOrderID)
+					Return(int64(0), unassignusecase.ErrNoOrderID)
 			},
 			wantStatusCode: http.StatusBadRequest,
 		},
@@ -235,7 +231,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *MockunassignUsecase) {
 				uc.EXPECT().
 					Unassign(gomock.Any(), gomock.Any()).
-					Return(unassignusecase.DeliveryUnassignResponse{}, unassignusecase.ErrOrderIDNotFound)
+					Return(int64(0), unassignusecase.ErrOrderIDNotFound)
 			},
 			wantStatusCode: http.StatusNotFound,
 		},
@@ -251,7 +247,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 			prepare: func(uc *MockunassignUsecase) {
 				uc.EXPECT().
 					Unassign(gomock.Any(), gomock.Any()).
-					Return(unassignusecase.DeliveryUnassignResponse{}, assert.AnError)
+					Return(int64(0), assert.AnError)
 			},
 			wantStatusCode: http.StatusInternalServerError,
 		},

@@ -5,13 +5,12 @@ import (
 	"context"
 
 	assign "courier-service/internal/usecase/delivery/assign"
-	unassign "courier-service/internal/usecase/delivery/unassign"
 )
 
 type assignUsecase interface {
-	Assign(context.Context, assign.DeliveryAssignRequest) (assign.DeliveryAssignResponse, error)
+	Assign(context.Context, string) (assign.DeliveryAssignResponse, error)
 }
 
 type unassignUsecase interface {
-	Unassign(context.Context, unassign.DeliveryUnassignRequest) (unassign.DeliveryUnassignResponse, error)
+	Unassign(context.Context, string) (int64, error)
 }

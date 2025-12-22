@@ -24,7 +24,7 @@ func TestUnassignDelivery(t *testing.T) {
 			deliveryRepository *MockdeliveryRepository,
 			txRunner *MocktxRunner,
 		)
-		expectations func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error)
+		expectations func(t *testing.T, resp int64, err error)
 	}{
 		{
 			name:    "success: delivery unassigned",
@@ -69,11 +69,9 @@ func TestUnassignDelivery(t *testing.T) {
 						return nil
 					})
 			},
-			expectations: func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error) {
+				expectations: func(t *testing.T, resp int64, err error) {
 				assert.NoError(t, err)
-				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440005", resp.OrderID)
-				assert.Equal(t, int64(1), resp.CourierID)
-				assert.Equal(t, "unassigned", resp.Status)
+				assert.Equal(t, int64(1), resp)
 			},
 		},
 		{
@@ -86,10 +84,10 @@ func TestUnassignDelivery(t *testing.T) {
 			) {
 				// No mock expectations - validation happens before any repo calls
 			},
-			expectations: func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp int64, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, unassign.ErrNoOrderID, err)
-				assert.Equal(t, unassign.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, int64(0), resp)
 			},
 		},
 		{
@@ -110,10 +108,10 @@ func TestUnassignDelivery(t *testing.T) {
 					CouriersDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440006").
 					Return(model.Delivery{}, deliverystorage.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp int64, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, unassign.ErrOrderIDNotFound, err)
-				assert.Equal(t, unassign.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, int64(0), resp)
 			},
 		},
 		{
@@ -142,10 +140,10 @@ func TestUnassignDelivery(t *testing.T) {
 					DeleteDelivery(gomock.Any(), "550e8400-e29b-41d4-a716-446655440007").
 					Return(deliverystorage.ErrOrderIDNotFound)
 			},
-			expectations: func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp int64, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, unassign.ErrOrderIDNotFound, err)
-				assert.Equal(t, unassign.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, int64(0), resp)
 			},
 		},
 		{
@@ -178,10 +176,10 @@ func TestUnassignDelivery(t *testing.T) {
 					GetCourierById(gomock.Any(), int64(999)).
 					Return(model.Courier{}, courierstorage.ErrCourierNotFound)
 			},
-			expectations: func(t *testing.T, resp unassign.DeliveryUnassignResponse, err error) {
+			expectations: func(t *testing.T, resp int64, err error) {
 				assert.Error(t, err)
 				assert.Equal(t, courierstorage.ErrCourierNotFound, err)
-				assert.Equal(t, unassign.DeliveryUnassignResponse{}, resp)
+				assert.Equal(t, int64(0), resp)
 			},
 		},
 	}
@@ -205,11 +203,8 @@ func TestUnassignDelivery(t *testing.T) {
 			uc := unassign.NewUnassignDelieveryUseCase(mockCourierRepo, mockDeliveryRepo, mockTxRunner)
 
 			ctx := context.Background()
-			req := unassign.DeliveryUnassignRequest{
-				OrderID: tc.orderID,
-			}
 
-			resp, err := uc.Unassign(ctx, req)
+			resp, err := uc.Unassign(ctx, tc.orderID)
 
 			if tc.expectations != nil {
 				tc.expectations(t, resp, err)

@@ -2,7 +2,7 @@ package logger
 
 import (
 	"os"
-	"strings"
+	// "strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -18,19 +18,71 @@ const (
 	LogLevelDebug LogLevel = "debug"
 )
 
+type Color string
+
+const (
+	ColorLightBlue   Color = "\x1b[94m"
+	ColorLightYellow Color = "\x1b[93m"
+	ColorLightRed    Color = "\x1b[91m"
+	ColorLightGreen  Color = "\x1b[92m"
+	ColorPurple      Color = "\x1b[95m"
+	ColorCyan        Color = "\x1b[96m"
+	ColorLightPink   Color = "\x1b[95m"
+
+	PrettyRequestLogFormat string = string(ColorPurple) + "time=%s " +
+		string(ColorLightBlue) + "method=%s " +
+		string(ColorLightGreen) + "path=%s " +
+		string(ColorLightYellow) + "status=%d " +
+		string(ColorCyan) + "duration=%fms" + "\x1b[0m"
+)
+
+func parseLevel(level LogLevel) zapcore.Level {
+	switch level {
+	case LogLevelInfo:
+		return zapcore.InfoLevel
+	case LogLevelError:
+		return zapcore.ErrorLevel
+	case LogLevelWarn:
+		return zapcore.WarnLevel
+	case LogLevelDebug:
+		return zapcore.DebugLevel
+	default:
+		return zapcore.InfoLevel
+	}
+}
+
+func levelColor(l zapcore.Level) Color {
+	switch l {
+	case zapcore.InfoLevel:
+		return ColorLightGreen
+	case zapcore.DebugLevel:
+		return ColorLightBlue
+	case zapcore.WarnLevel:
+		return ColorLightYellow
+	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
+		return ColorLightRed
+	default:
+		return ColorLightGreen
+	}
+}
+
+func levelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+	const reset = "\x1b[0m"
+	enc.AppendString(string(levelColor(l)) + "[" + l.CapitalString() + "]" + reset)
+}
+
 type Logger struct {
 	l *zap.SugaredLogger
 }
 
-// New creates production-ready logger
 func New(level LogLevel) (*Logger, error) {
 	zapLevel := parseLevel(level)
 
 	encoderCfg := zapcore.EncoderConfig{
-		TimeKey:        "time",
+		TimeKey:        zapcore.OmitKey,
 		LevelKey:       "level",
 		MessageKey:     "msg",
-		CallerKey:      zapcore.OmitKey,
+		CallerKey:      "caller",
 		EncodeTime:     timeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeLevel:    levelEncoder,
@@ -46,25 +98,8 @@ func New(level LogLevel) (*Logger, error) {
 	return &Logger{l: logger.Sugar()}, nil
 }
 
-func parseLevel(level LogLevel) zapcore.Level {
-	switch strings.ToLower(string(level)) {
-	case "error":
-		return zapcore.ErrorLevel
-	case "warn":
-		return zapcore.WarnLevel
-	case "debug":
-		return zapcore.DebugLevel
-	default:
-		return zapcore.InfoLevel
-	}
-}
-
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006/01/02 15:04:05"))
-}
-
-func levelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString("[" + strings.ToUpper(l.String()) + "]")
 }
 
 func (l *Logger) Debug(args ...interface{}) {

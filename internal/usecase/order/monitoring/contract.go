@@ -1,15 +1,14 @@
 //go:generate mockgen -source ${GOFILE} -package ${GOPACKAGE}_test -destination mocks_test.go
-package order
+package ordermonitoring
 
 import (
 	"context"
 	"courier-service/internal/model"
-	utils "courier-service/internal/usecase/utils"
 	"time"
+	utils "courier-service/internal/usecase/utils"
+	assign "courier-service/internal/usecase/delivery/assign"
 )
 
-// DeliveryCalculator aliases the shared utils.DeliveryCalculator
-// so that all usecases share the same delivery-time interface.
 type DeliveryCalculator = utils.DeliveryCalculator
 
 type deliveryCalculatorFactory interface {
@@ -38,4 +37,8 @@ type deliveryRepository interface {
 
 type txRunner interface {
 	Run(ctx context.Context, fn func(ctx context.Context) error) error
+}
+
+type assignUseCase interface {
+	Assign(ctx context.Context, orderID string) (assign.DeliveryAssignResponse, error)
 }

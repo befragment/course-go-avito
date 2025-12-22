@@ -7,7 +7,6 @@ package delivery_test
 import (
 	context "context"
 	assign "courier-service/internal/usecase/delivery/assign"
-	unassign "courier-service/internal/usecase/delivery/unassign"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -37,7 +36,7 @@ func (m *MockassignUsecase) EXPECT() *MockassignUsecaseMockRecorder {
 }
 
 // Assign mocks base method.
-func (m *MockassignUsecase) Assign(arg0 context.Context, arg1 assign.DeliveryAssignRequest) (assign.DeliveryAssignResponse, error) {
+func (m *MockassignUsecase) Assign(arg0 context.Context, arg1 string) (assign.DeliveryAssignResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Assign", arg0, arg1)
 	ret0, _ := ret[0].(assign.DeliveryAssignResponse)
@@ -75,10 +74,10 @@ func (m *MockunassignUsecase) EXPECT() *MockunassignUsecaseMockRecorder {
 }
 
 // Unassign mocks base method.
-func (m *MockunassignUsecase) Unassign(arg0 context.Context, arg1 unassign.DeliveryUnassignRequest) (unassign.DeliveryUnassignResponse, error) {
+func (m *MockunassignUsecase) Unassign(arg0 context.Context, arg1 string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Unassign", arg0, arg1)
-	ret0, _ := ret[0].(unassign.DeliveryUnassignResponse)
+	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

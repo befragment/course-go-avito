@@ -1,6 +1,14 @@
 package delivery
 
-import "time"
+
+import (
+	assign "courier-service/internal/usecase/delivery/assign"
+	"time"
+)
+
+const (
+	UnassignedStatus = "unassigned"
+)
 
 type DeliveryAssignRequestDTO struct {
     OrderID string `json:"order_id"`
@@ -23,3 +31,19 @@ type DeliveryUnassignResponseDTO struct {
 	CourierID int64  `json:"courier_id"`
 }
 
+func ToUnassignCourierResponse(courierID int64, orderID string) DeliveryUnassignResponseDTO {
+	return DeliveryUnassignResponseDTO{
+		OrderID:   orderID,
+		Status:    UnassignedStatus,
+		CourierID: courierID,
+	}
+}
+
+func ToAssignCourierResponse(delivery assign.DeliveryAssignResponse) DeliveryAssignResponseDTO {
+	return DeliveryAssignResponseDTO{
+		CourierID:     delivery.CourierID,
+		OrderID:       delivery.OrderID,
+		TransportType: delivery.TransportType,
+		Deadline:      delivery.Deadline,
+	}
+}

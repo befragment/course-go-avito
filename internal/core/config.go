@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"strconv"
@@ -66,12 +65,6 @@ func LoadConfig() (*Config, error) {
 	cfg.KafkaPort = os.Getenv("KAFKA_PORT")
 
 	cfg.GRPCServiceOrderServer = os.Getenv("GRPC_SERVICE_ORDER_SERVER")
-	log.Printf("KafkaPort: %v", cfg.KafkaPort)
-	log.Printf("KafkaBrokers: %v", cfg.KafkaBrokers)
-	log.Printf("KafkaGroupID: %v", cfg.KafkaGroupID)
-	log.Printf("KafkaTopic: %v", cfg.KafkaTopic)
-	// log.Printf("GRPCServiceOrderServer: %v", cfg.GRPCServiceOrderServer)
-
 	return cfg, nil
 }
 
@@ -107,46 +100,7 @@ func (c *Config) DBConnString() string {
 	)
 }
 
-func DBConnStringFromEnv() string {
-	cfg, _ := LoadConfig()
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
-	)
-}
-
-func TestDBConnString() string {
-	_ = godotenv.Load(".env")
-
-	host := getEnvOrDefault("POSTGRES_HOST_TEST", "localhost")
-	port := getEnvOrDefault("POSTGRES_PORT_TEST", "5432")
-	user := getEnvOrDefault("POSTGRES_USER_TEST", "postgres")
-	password := getEnvOrDefault("POSTGRES_PASSWORD_TEST", "postgres")
-	dbname := getEnvOrDefault("POSTGRES_DB_TEST", "courier_service_test")
-	sslmode := "disable"
-
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		user,
-		password,
-		host,
-		port,
-		dbname,
-		sslmode,
-	)
-
-	log.Printf("TestDBConnString: %s", connStr)
-	return connStr
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
 func secondsStringToDuration(value string) time.Duration {
 	duration, _ := strconv.Atoi(value)
 	return time.Duration(duration) * time.Second
 }
-

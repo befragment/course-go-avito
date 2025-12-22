@@ -25,14 +25,14 @@ func NewUnassignDelieveryUseCase(
 	}
 }
 
-func (u *UnassignDelieveryUseCase) Unassign(ctx context.Context, req DeliveryUnassignRequest) (DeliveryUnassignResponse, error) {
-	if req.OrderID == "" {
-		return DeliveryUnassignResponse{}, ErrNoOrderID
+func (u *UnassignDelieveryUseCase) Unassign(ctx context.Context, OrderID string) (int64, error) {
+	if OrderID == "" {
+		return 0, ErrNoOrderID
 	}
 
-	var resp DeliveryUnassignResponse
+	var courierID int64
 	err := u.txRunner.Run(ctx, func(txCtx context.Context) error {
-		couriersDelivery, err := u.deliveryRepository.CouriersDelivery(txCtx, req.OrderID)
+		couriersDelivery, err := u.deliveryRepository.CouriersDelivery(txCtx, OrderID)
 		if err != nil {
 			if errors.Is(err, deliveryRepo.ErrOrderIDNotFound) {
 				return ErrOrderIDNotFound
@@ -40,7 +40,7 @@ func (u *UnassignDelieveryUseCase) Unassign(ctx context.Context, req DeliveryUna
 			return err
 		}
 
-		if err := u.deliveryRepository.DeleteDelivery(txCtx, req.OrderID); err != nil {
+		if err := u.deliveryRepository.DeleteDelivery(txCtx, OrderID); err != nil {
 			if errors.Is(err, deliveryRepo.ErrOrderIDNotFound) {
 				return ErrOrderIDNotFound
 			}
@@ -57,13 +57,13 @@ func (u *UnassignDelieveryUseCase) Unassign(ctx context.Context, req DeliveryUna
 			return err
 		}
 
-		resp = deliveryUnassignResponse(courier, couriersDelivery)
+		courierID = courier.ID
 
 		return nil
 	})
 	if err != nil {
-		return DeliveryUnassignResponse{}, err
+		return 0, err
 	}
 
-	return resp, nil
+	return courierID, nil
 }
