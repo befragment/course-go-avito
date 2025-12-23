@@ -6,6 +6,8 @@ servers:
   - url: /
 tags:
   - name: Couriers
+  - name: Delivery
+  - name: Common
 paths:
   /courier/{id}:
     get:
@@ -137,40 +139,132 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /delievery/assign:
+  /delivery/assign:
     post:
+      tags: [Delivery]
+      summary: Assign courier for order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryAssignRequest'
+      responses:
+        '200':
+          description: Delivery assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAssignResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: All couriers are busy or order id exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /delievery/unassign:
+  /delivery/unassign:
     post:
+      tags: [Delivery]
+      summary: Unassign courier from order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryUnassignRequest'
+      responses:
+        '200':
+          description: Delivery unassigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryUnassignResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Order id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /ping:
+    get:
+      tags: [Common]
+      summary: Ping service
+      responses:
+        '200':
+          description: Pong
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+
+  /health:
+    get:
+      tags: [Common]
+      summary: Healthcheck
+      responses:
+        '204':
+          description: Service is healthy
 
 components:
   schemas:
     Courier:
       type: object
       properties:
-        id:
+        ID:
           type: integer
           format: int64
           example: 1
-        name:
+        Name:
           type: string
           example: Peter
-        phone:
+        Phone:
           type: string
           description: Phone number with optional leading +, 11 digits
           pattern: '^\+[0-9]{11}$'
           example: +79991234567
-        status:
+        Status:
           type: string
           description: Courier status
           enum: [available, busy]
           example: available
-        transport_type:
+        TransportType:
           type: string
           description: Courier transport type
           enum: [car, scooter, on_foot]
           example: scooter
-      required: [id, name, phone, status, transport_type]
+        CreatedAt:
+          type: string
+          format: date-time
+        UpdatedAt:
+          type: string
+          format: date-time
+      required: [ID, Name, Phone, Status, TransportType, CreatedAt, UpdatedAt]
     CreateCourierRequest:
       type: object
       properties:
@@ -228,4 +322,49 @@ components:
           type: string
           example: Courier updated successfully
       required: [message]
-
+    DeliveryAssignRequest:
+      type: object
+      properties:
+        order_id:
+          type: string
+      required: [order_id]
+    DeliveryUnassignRequest:
+      type: object
+      properties:
+        order_id:
+          type: string
+      required: [order_id]
+    DeliveryAssignResponse:
+      type: object
+      properties:
+        courier_id:
+          type: integer
+          format: int64
+        order_id:
+          type: string
+        transport_type:
+          type: string
+          enum: [car, scooter, on_foot]
+        delivery_deadline:
+          type: string
+          format: date-time
+      required: [courier_id, order_id, transport_type, delivery_deadline]
+    DeliveryUnassignResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+        status:
+          type: string
+          example: unassigned
+        courier_id:
+          type: integer
+          format: int64
+      required: [order_id, status, courier_id]
+    PingResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: pong
+      required: [message]

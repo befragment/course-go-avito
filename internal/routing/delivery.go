@@ -1,11 +1,11 @@
 package routing
 
 import (
-	"courier-service/internal/handlers"
+	"courier-service/internal/handlers/delivery"
 	"github.com/go-chi/chi/v5"
 )
 
-func registerDeliveryRoutes(r chi.Router, c *handlers.DeliveryController) {
+func registerDeliveryRoutes(r chi.Router, c *delivery.DeliveryController) {
 	r.Route("/delivery", func(r chi.Router) {
 		r.Post("/assign", c.AssignDelivery)
 		r.Post("/unassign", c.UnassignDelivery)

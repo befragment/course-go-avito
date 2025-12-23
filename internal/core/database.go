@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	logger "courier-service/pkg/logger"
 )
 
-func MustInitPool() *pgxpool.Pool {
+func MustInitPool(l logger.Interface) *pgxpool.Pool {
 	appCfg, _ := LoadConfig()
 	cfg, err := pgxpool.ParseConfig(appCfg.DBConnString())
 	if err != nil {
-		log.Fatal(err)
+		l.Fatal("Failed to parse database configuration: %v", err)
 	}
 
 	cfg.MaxConns = 10
@@ -37,16 +38,16 @@ func MustInitPool() *pgxpool.Pool {
 		if pingErr == nil {
 			break
 		}
-		log.Printf("db ping attempt %d failed: %v", i+1, pingErr)
+		l.Warnf("db ping attempt %d failed: %v", i+1, pingErr)
 		if i < pingAttemptLimit {
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
 
 	if pingErr != nil {
-		log.Fatalf("Unable to ping database")
+		l.Fatal("Unable to ping database")
 	}
-	log.Println("Database connection pool established")
+	l.Info("Database connection pool established")
 
 	return pool
 }

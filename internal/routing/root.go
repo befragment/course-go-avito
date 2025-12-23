@@ -2,17 +2,37 @@ package routing
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"courier-service/internal/handlers/courier"
+	"courier-service/internal/handlers/delivery"
+	"courier-service/internal/handlers/metrics"
+	middleware "courier-service/internal/handlers/middleware"
+	logger "courier-service/pkg/logger"
 
-	"courier-service/internal/handlers"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
 func Router(
-	courierController *handlers.CourierController,
-	deliveryController *handlers.DeliveryController,
+	logger logger.Interface,
+	courierController *courier.CourierController,
+	deliveryController *delivery.DeliveryController,
 ) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	normalizer := NewChiPathNormalizer()
+	httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+
+	r.Use(
+		middleware.LoggingMiddleware(
+			logger,
+			normalizer,
+			httpMetrics,
+		),
+	)
+	
+	registerCommonRoutes(r)
 	registerCourierRoutes(r, courierController)
 	registerDeliveryRoutes(r, deliveryController)
+
+	r.Handle("/metrics", promhttp.Handler())
 	return r
 }
