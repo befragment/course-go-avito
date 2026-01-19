@@ -19,10 +19,10 @@ import (
 
 type CourierRepository struct {
 	pool *pgxpool.Pool
-	logger logger.Interface
+	logger logger.LoggerInterface
 }
 
-func NewCourierRepository(pool *pgxpool.Pool, logger logger.Interface) *CourierRepository {
+func NewCourierRepository(pool *pgxpool.Pool, logger logger.LoggerInterface) *CourierRepository {
 	return &CourierRepository{pool: pool, logger: logger}
 }
 

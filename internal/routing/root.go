@@ -1,38 +1,48 @@
 package routing
 
 import (
-	"github.com/go-chi/chi/v5"
-	"courier-service/internal/handlers/courier"
-	"courier-service/internal/handlers/delivery"
-	"courier-service/internal/handlers/metrics"
-	middleware "courier-service/internal/handlers/middleware"
+	loggingmiddleware "courier-service/internal/handlers/middleware/logging"
+	ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
 	logger "courier-service/pkg/logger"
+	ratelimiter "courier-service/pkg/ratelimiter"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/go-chi/chi/v5"
 )
 
 func Router(
-	logger logger.Interface,
-	courierController *courier.CourierController,
-	deliveryController *delivery.DeliveryController,
+	logger logger.LoggerInterface,
+	rateLimiter ratelimiter.RateLimiterInterface,
+	metricsWriter httpMetricsWriter,
+	metricsHandler metricsHandler,
+	pathNormalizer pathNormalizer,
+	courierController courierHandler,
+	deliveryController deliveryHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
-	normalizer := NewChiPathNormalizer()
-	httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
 
-	r.Use(
-		middleware.LoggingMiddleware(
-			logger,
-			normalizer,
-			httpMetrics,
-		),
-	)
-	
-	registerCommonRoutes(r)
-	registerCourierRoutes(r, courierController)
-	registerDeliveryRoutes(r, deliveryController)
+	// /metrics endpoint БЕЗ rate limiting (для Prometheus)
+	r.Handle("/metrics", metricsHandler)
 
-	r.Handle("/metrics", promhttp.Handler())
+	// Группа маршрутов С middleware
+	r.Group(func(r chi.Router) {
+		r.Use(
+			ratelimitmiddleware.RateLimitMiddleware(
+				rateLimiter,
+				logger,
+				metricsWriter,
+				pathNormalizer,
+			),
+			loggingmiddleware.LoggingMiddleware(
+				logger,
+				metricsWriter,
+				pathNormalizer,
+			),
+		)
+
+		registerCommonRoutes(r)
+		registerCourierRoutes(r, courierController)
+		registerDeliveryRoutes(r, deliveryController)
+	})
+
 	return r
 }

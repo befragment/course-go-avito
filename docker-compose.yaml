@@ -33,15 +33,19 @@ services:
     build: .
     command: ["/worker"]
     env_file: .env
+    ports:
+      - "9101:9101"
     environment:
       - POSTGRES_HOST=my-postgres
       - TZ=Europe/Moscow
       - KAFKA_BROKERS=${KAFKA_BROKERS}
     networks:
       - infrastructure_default
+      - monitoring
     depends_on:
       - postgres
-      
+    
+
   prometheus:
     image: prom/prometheus
     ports: ["9090:9090"]

@@ -1,1 +1,6 @@
 .env 
+
+# Binaries
+main
+service
+worker

@@ -12,10 +12,10 @@ import (
 
 type OrderStatusChangedHandler struct {
     useCase orderChangedUseCase
-    logger logger.Interface
+    logger logger.LoggerInterface
 }
 
-func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger.Interface) *OrderStatusChangedHandler {
+func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger.LoggerInterface) *OrderStatusChangedHandler {
     return &OrderStatusChangedHandler{useCase: useCase, logger: logger}
 }
 

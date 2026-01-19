@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	logger "courier-service/pkg/logger"
+	l "courier-service/pkg/logger"
+	rlimiter "courier-service/pkg/ratelimiter"
+
 	core "courier-service/internal/core"
 
 	courierRepo "courier-service/internal/repository/courier"
@@ -22,7 +24,11 @@ import (
 	courierhandlers "courier-service/internal/handlers/courier"
 	deliveryhandlers "courier-service/internal/handlers/delivery"
 
+	interceptor "courier-service/internal/gateway/interceptor"
+	metrics "courier-service/internal/handlers/metrics"
 	routing "courier-service/internal/routing"
+
+	prometheus "github.com/prometheus/client_golang/prometheus"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,44 +37,70 @@ import (
 func main() {
 	ctx := core.WaitForShutdown()
 
-	logger, err := logger.New(logger.LogLevelInfo)
-	if err != nil { log.Fatalf("Failed to create logger: %v", err) }
+	logger, err := l.New(l.LogLevelInfo)
+	if err != nil {
+		log.Fatalf("Failed to create logger: %v", err)
+	}
 
 	cfg, err := core.LoadConfig()
-	if err != nil { logger.Error("Failed to load config: %v", err) }
+	if err != nil {
+		logger.Error("Failed to load config: %v", err)
+	}
+
+	ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate)
 
 	dbPool := core.MustInitPool(logger)
 	defer dbPool.Close()
 
-	grpcClient, err := grpc.NewClient(cfg.GRPCServiceOrderServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil { logger.Errorf("Failed to create grpc client: %v", err) }
+	// Создаем метрики до grpcClient, чтобы использовать в interceptor
+	httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+	metricsWriter := metrics.NewMetricsWriter(httpMetrics)
+
+	// Создаем grpcClient с interceptors
+	grpcClient, err := grpc.NewClient(
+		cfg.GRPCServiceOrderServer,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(
+			interceptor.LoggingMetricsInterceptor(logger, metricsWriter),
+		),
+	)
+	if err != nil {
+		logger.Errorf("Failed to create grpc client: %v", err)
+	}
 	defer grpcClient.Close()
+
 	courierRepo := courierRepo.NewCourierRepository(dbPool, logger)
 	deliveryRepo := deliveryRepo.NewDeliveryRepository(dbPool)
 	txRunner := txRunner.NewTxRunner(dbPool)
 
 	deliveryCalculator := deliverycalculator.NewTimeCalculatorFactory()
 	assignUseCase := deliveryassignusecase.NewAssignDelieveryUseCase(
-		courierRepo, 
-		deliveryRepo, 
-		txRunner, 
+		courierRepo,
+		deliveryRepo,
+		txRunner,
 		deliveryCalculator,
 	)
 	unassignUseCase := deliveryunassignusecase.NewUnassignDelieveryUseCase(
-		courierRepo, 
-		deliveryRepo, 
+		courierRepo,
+		deliveryRepo,
 		txRunner,
 	)
 	courierUseCase := courierusecase.NewCourierUseCase(
-		courierRepo, 
+		courierRepo,
 		deliveryCalculator,
 		logger,
 	)
 
 	go courierUseCase.CheckFreeCouriersWithInterval(ctx, cfg.CheckFreeCouriersInterval)
 
+	pathNormalizer := routing.NewChiPathNormalizer()
+	metricsHandler := metrics.NewMetricsHandler()
 	router := routing.Router(
 		logger,
+		ratelimiter,
+		metricsWriter,
+		metricsHandler,
+		pathNormalizer,
 		courierhandlers.NewCourierController(
 			courierUseCase,
 		),
@@ -83,34 +115,33 @@ func main() {
 	logger.Info("Service stopped gracefully")
 }
 
+func startServer(ctx context.Context, port string, handler http.Handler, logger l.LoggerInterface) {
+	srv := &http.Server{
+		Addr:    port,
+		Handler: handler,
+	}
 
-func startServer(ctx context.Context, port string, handler http.Handler, logger logger.Interface) {
-    srv := &http.Server{
-        Addr:    port,
-        Handler: handler,
-    }
+	serverErr := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+		}
+		close(serverErr)
+	}()
 
-    serverErr := make(chan error, 1)
-    go func() {
-        if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-            serverErr <- err
-        }
-        close(serverErr)
-    }()
+	select {
+	case <-ctx.Done():
+		logger.Info("Shutdown signal received")
+	case err := <-serverErr:
+		if err != nil {
+			logger.Errorf("Server error: %v", err)
+		}
+	}
 
-    select {
-    case <-ctx.Done():
-        logger.Info("Shutdown signal received")
-    case err := <-serverErr:
-        if err != nil {
-            logger.Errorf("Server error: %v", err)
-        }
-    }
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-    shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-    defer cancel()
-
-    if err := srv.Shutdown(shutdownCtx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		logger.Errorf("error shutting down server: %v", err)
 	}
 }

@@ -6,3 +6,6 @@ type pathNormalizer interface {
 	Normalize(r *http.Request) string
 }
 
+type metricsWriter interface {
+	RecordRateLimitExceeded(method, path string)
+}

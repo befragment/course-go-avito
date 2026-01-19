@@ -9,7 +9,7 @@ import (
 	logger "courier-service/pkg/logger"
 )
 
-func MustInitPool(l logger.Interface) *pgxpool.Pool {
+func MustInitPool(l logger.LoggerInterface) *pgxpool.Pool {
 	appCfg, _ := LoadConfig()
 	cfg, err := pgxpool.ParseConfig(appCfg.DBConnString())
 	if err != nil {

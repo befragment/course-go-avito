@@ -2,15 +2,25 @@ package main
 
 import (
 	"context"
-	logger "courier-service/pkg/logger"
+	"net/http"
+
+	interceptor "courier-service/internal/gateway/interceptor"
+	retryexec "courier-service/internal/gateway/retry"
+	l "courier-service/pkg/logger"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	orderpb "courier-service/proto/order"
 	"log"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/prometheus/client_golang/prometheus"
 
 	core "courier-service/internal/core"
 	ordergw "courier-service/internal/gateway/order"
+
+	metrics "courier-service/internal/handlers/metrics"
 	orderhandler "courier-service/internal/handlers/queues/order/changed"
 	courierRepo "courier-service/internal/repository/courier"
 	deliveryRepo "courier-service/internal/repository/delivery"
@@ -31,7 +41,7 @@ import (
 func main() {
 	ctx := core.WaitForShutdown()
 
-	logger, err := logger.New(logger.LogLevelInfo)
+	logger, err := l.New(l.LogLevelInfo)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
@@ -40,7 +50,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-		
+
+	go initMetricsServer(ctx, ":9101")
+
 	config := sarama.NewConfig()
 	configureKafkaClient(config)
 	logger.Info("Kafka client configured")
@@ -49,14 +61,25 @@ func main() {
 	groupID := cfg.KafkaGroupID
 	brokers := cfg.KafkaBrokers
 
-	grpcClient, err := grpc.NewClient(cfg.GRPCServiceOrderServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// Создаем метрики для worker
+	httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+	metricsWriter := metrics.NewMetricsWriter(httpMetrics)
+
+	grpcClient, err := grpc.NewClient(
+		cfg.GRPCServiceOrderServer,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(
+			interceptor.LoggingMetricsInterceptor(logger, metricsWriter),
+		),
+	)
 	if err != nil {
 		logger.Errorf("Failed to create grpc client: %v", err)
 	}
 	defer grpcClient.Close()
-
 	ordersClient := orderpb.NewOrdersServiceClient(grpcClient)
-	orderGateway := ordergw.NewGateway(ordersClient)
+	retryCfg := configureRetry(cfg.RetryMaxAttempts)
+	retry := retryexec.NewRetryExecutor(retryCfg, logger)
+	orderGateway := ordergw.NewGateway(ordersClient, retry, logger)
 
 	dbPool := core.MustInitPool(logger)
 	defer dbPool.Close()
@@ -113,7 +136,7 @@ func configureKafkaClient(config *sarama.Config) {
 
 func runKafkaConsumer(
 	ctx context.Context,
-	logger logger.Interface,
+	logger l.LoggerInterface,
 	brokers []string,
 	groupID string,
 	topic string,
@@ -141,4 +164,31 @@ func runKafkaConsumer(
 			return nil
 		}
 	}
+}
+
+func configureRetry(maxAttemps int) retryexec.RetryConfig {
+	fullJitter := retryexec.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0)
+	return retryexec.RetryConfig{
+		MaxAttempts: maxAttemps,
+		Strategy:    fullJitter,
+		ShouldRetry: nil,
+	}
+}
+
+func initMetricsServer(ctx context.Context, addr string) {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	go func() {
+		<-ctx.Done()
+		_ = srv.Shutdown(context.Background())
+	}()
+
+	srv.ListenAndServe()
 }

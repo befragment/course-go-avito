@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	Port       string
+	Port string
 
 	DBHost     string
 	DBPort     string
@@ -23,19 +23,20 @@ type Config struct {
 	DBSSLMode  string
 
 	CheckFreeCouriersInterval time.Duration
-	OrderCheckCursorDelta time.Duration
+	OrderCheckCursorDelta     time.Duration
 
-	KafkaPort string
+	KafkaPort    string
 	KafkaBrokers []string
 	KafkaGroupID string
-	KafkaTopic string
+	KafkaTopic   string
 
 	GRPCServiceOrderServer string
-}
 
-var (
-	PhoneRegex = `^\+[0-9]{11}$`
-)
+	TokenBucketCapacity   int
+	TokenBucketRefillRate int
+
+	RetryMaxAttempts int
+}
 
 func LoadConfig() (*Config, error) {
 	_ = godotenv.Load(".env")
@@ -65,6 +66,10 @@ func LoadConfig() (*Config, error) {
 	cfg.KafkaPort = os.Getenv("KAFKA_PORT")
 
 	cfg.GRPCServiceOrderServer = os.Getenv("GRPC_SERVICE_ORDER_SERVER")
+
+	cfg.TokenBucketCapacity = toInt(os.Getenv("TOKEN_BUCKET_CAPACITY"))
+	cfg.TokenBucketRefillRate = toInt(os.Getenv("TOKEN_BUCKET_REFILL_RATE"))
+	cfg.RetryMaxAttempts = toInt(os.Getenv("RETRY_MAX_ATTEMPTS"))
 	return cfg, nil
 }
 
@@ -100,7 +105,15 @@ func (c *Config) DBConnString() string {
 	)
 }
 
+func toInt(value string) int {
+	integer, err := strconv.Atoi(value)
+	if err != nil {
+		panic(fmt.Sprintf("invalid integer config value %q: %v", value, err))
+	}
+	return integer
+}
+
 func secondsStringToDuration(value string) time.Duration {
-	duration, _ := strconv.Atoi(value)
+	duration := toInt(value)
 	return time.Duration(duration) * time.Second
 }
