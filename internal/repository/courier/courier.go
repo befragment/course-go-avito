@@ -153,6 +153,7 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Cou
 }
 
 func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) {
+	// Great idea to add index here on delivery.courier_id
 	queryBuilder := sq.
 		Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
 		From(db.CourierTable).

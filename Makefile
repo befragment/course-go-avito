@@ -17,6 +17,7 @@ help:
 	@echo "  test            - run go test ./..."
 	@echo "  test-nocache    - run go test ./... -count=1"
 	@echo "  lint            - run go vet ./..."
+	@echo "  migrate-create  - create new migration (usage: make migrate-create NAME=migration_name)"
 	@echo "  migrate-up      - apply DB migrations (scripts/migrate.sh up)"
 	@echo "  migrate-down    - rollback last DB migration (scripts/migrate.sh down)"
 	@echo "  migrate-status  - show DB migrations status"
@@ -57,6 +58,14 @@ test-nocache:
 .PHONY: lint
 lint:
 	go vet ./...
+
+.PHONY: migrate-create
+migrate-create:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	goose -dir ./migrations create $(NAME) sql
 
 .PHONY: migrate-up
 migrate-up:
