@@ -4,13 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
 	"courier-service/internal/model"
 	courierstorage "courier-service/internal/repository/courier"
 	deliverystorage "courier-service/internal/repository/delivery"
 	"courier-service/internal/usecase/delivery/unassign"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUnassignDelivery(t *testing.T) {
@@ -69,7 +69,7 @@ func TestUnassignDelivery(t *testing.T) {
 						return nil
 					})
 			},
-				expectations: func(t *testing.T, resp int64, err error) {
+			expectations: func(t *testing.T, resp int64, err error) {
 				assert.NoError(t, err)
 				assert.Equal(t, int64(1), resp)
 			},

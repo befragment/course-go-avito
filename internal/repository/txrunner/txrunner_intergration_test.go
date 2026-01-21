@@ -2,7 +2,6 @@ package txrunner_test
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"errors"
 	"testing"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
+	"courier-service/internal/model"
 	integration "courier-service/internal/persistence/database/integration"
 	courierstorage "courier-service/internal/repository/courier"
 	deliverystorage "courier-service/internal/repository/delivery"

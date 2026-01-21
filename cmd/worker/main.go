@@ -2,40 +2,35 @@ package main
 
 import (
 	"context"
-	"net/http"
-
-	interceptor "courier-service/internal/gateway/interceptor"
-	retryexec "courier-service/internal/gateway/retry"
-	l "courier-service/pkg/logger"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	orderpb "courier-service/proto/order"
+	"errors"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	core "courier-service/internal/core"
+	interceptor "courier-service/internal/gateway/interceptor"
 	ordergw "courier-service/internal/gateway/order"
-
+	retryexec "courier-service/internal/gateway/retry"
 	metrics "courier-service/internal/handlers/metrics"
 	orderhandler "courier-service/internal/handlers/queues/order/changed"
+	model "courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
 	deliveryRepo "courier-service/internal/repository/delivery"
 	txRunner "courier-service/internal/repository/txrunner"
-
-	model "courier-service/internal/model"
 	deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
 	deliverycompleteusecase "courier-service/internal/usecase/delivery/complete"
 	deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
 	changed "courier-service/internal/usecase/order/changed"
 	processor "courier-service/internal/usecase/order/changed/processor"
 	deliverycalculator "courier-service/internal/usecase/utils"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	l "courier-service/pkg/logger"
+	orderpb "courier-service/proto/order"
 )
 
 func main() {
@@ -51,7 +46,7 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	go initMetricsServer(ctx, ":9101")
+	go initMetricsServer(ctx, ":9101", logger)
 
 	config := sarama.NewConfig()
 	configureKafkaClient(config)
@@ -75,7 +70,12 @@ func main() {
 	if err != nil {
 		logger.Errorf("Failed to create grpc client: %v", err)
 	}
-	defer grpcClient.Close()
+	defer func() {
+		if err := grpcClient.Close(); err != nil {
+			logger.Errorf("Failed to close grpc client: %v", err)
+		}
+	}()
+
 	ordersClient := orderpb.NewOrdersServiceClient(grpcClient)
 	retryCfg := configureRetry(cfg.RetryMaxAttempts)
 	retry := retryexec.NewRetryExecutor(retryCfg, logger)
@@ -175,7 +175,7 @@ func configureRetry(maxAttemps int) retryexec.RetryConfig {
 	}
 }
 
-func initMetricsServer(ctx context.Context, addr string) {
+func initMetricsServer(ctx context.Context, addr string, logger l.LoggerInterface) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
@@ -190,5 +190,7 @@ func initMetricsServer(ctx context.Context, addr string) {
 		_ = srv.Shutdown(context.Background())
 	}()
 
-	srv.ListenAndServe()
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Errorf("metrics server listen failed on %s: %v", addr, err)
+	}
 }

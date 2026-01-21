@@ -3,10 +3,11 @@ package common_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"courier-service/internal/handlers/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"courier-service/internal/handlers/common"
 )
 
 func TestPing(t *testing.T) {

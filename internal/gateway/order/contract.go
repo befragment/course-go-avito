@@ -2,10 +2,11 @@ package order
 
 import (
 	"context"
-	pb "courier-service/proto/order"
 	"time"
 
 	"google.golang.org/grpc"
+
+	pb "courier-service/proto/order"
 )
 
 type client interface {

@@ -6,38 +6,37 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	"courier-service/internal/model"
 	"courier-service/internal/persistence/database/integration"
 	courierstorage "courier-service/internal/repository/courier"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	logger "courier-service/pkg/logger"
 )
 
 type CourierTestSuite struct {
 	suite.Suite
-	ctx  context.Context
-	pool *pgxpool.Pool
-	repo *courierstorage.CourierRepository
-	pgContainer *postgres.PostgresContainer 
+	ctx         context.Context
+	pool        *pgxpool.Pool
+	repo        *courierstorage.CourierRepository
+	pgContainer *postgres.PostgresContainer
 }
 
 func (s *CourierTestSuite) SetupSuite() {
-    s.ctx = context.Background()
+	s.ctx = context.Background()
 
-    container, connStr, err := integration.TestWithMigrations()
-    s.Require().NoError(err)
-    s.pgContainer = container
+	container, connStr, err := integration.TestWithMigrations()
+	s.Require().NoError(err)
+	s.pgContainer = container
 
-    pool, err := pgxpool.New(s.ctx, connStr)
-    s.Require().NoError(err)
-    s.pool = pool
-    logger, err := logger.New(logger.LogLevelInfo)
-    s.Require().NoError(err)
-    s.repo = courierstorage.NewCourierRepository(s.pool, logger)
+	pool, err := pgxpool.New(s.ctx, connStr)
+	s.Require().NoError(err)
+	s.pool = pool
+	logger, err := logger.New(logger.LogLevelInfo)
+	s.Require().NoError(err)
+	s.repo = courierstorage.NewCourierRepository(s.pool, logger)
 }
 
 func (s *CourierTestSuite) SetupTest() {

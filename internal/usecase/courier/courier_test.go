@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/goleak"
+
 	"courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
 	"courier-service/internal/usecase/courier"
 	logger "courier-service/pkg/logger"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/goleak"
 )
 
 func TestCourierUseCase_GetById(t *testing.T) {

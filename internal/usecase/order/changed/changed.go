@@ -35,7 +35,6 @@ func (uc *OrderChangedUseCase) HandleOrderStatusChanged(ctx context.Context, sta
 		}
 	}
 
-
 	processor, ok := uc.factory.Get(status)
 	if !ok {
 		return nil

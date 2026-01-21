@@ -7,13 +7,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	deliveryhandler "courier-service/internal/handlers/delivery"
-	assignusecase "courier-service/internal/usecase/delivery/assign"
-	unassignusecase "courier-service/internal/usecase/delivery/unassign"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	deliveryhandler "courier-service/internal/handlers/delivery"
+	assignusecase "courier-service/internal/usecase/delivery/assign"
+	unassignusecase "courier-service/internal/usecase/delivery/unassign"
 )
 
 func TestDeliveryHandler_AssignDelivery(t *testing.T) {
@@ -188,7 +188,7 @@ func TestDeliveryHandler_UnassignDelivery(t *testing.T) {
 				var result deliveryhandler.DeliveryUnassignResponseDTO
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
-		
+
 				assert.Equal(t, int64(1), result.CourierID)
 				assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", result.OrderID)
 				assert.Equal(t, deliveryhandler.UnassignedStatus, result.Status)

@@ -1,20 +1,19 @@
 package processor
 
 import (
-    "context"
+	"context"
 
-    assign "courier-service/internal/usecase/delivery/assign"
+	assign "courier-service/internal/usecase/delivery/assign"
 )
 
 type assignUseCase interface {
-    Assign(ctx context.Context, OrderID string) (assign.DeliveryAssignResponse, error)
+	Assign(ctx context.Context, OrderID string) (assign.DeliveryAssignResponse, error)
 }
 
 type unassignUseCase interface {
-    Unassign(ctx context.Context, OrderID string) (int64, error)
+	Unassign(ctx context.Context, OrderID string) (int64, error)
 }
 
 type completeUseCase interface {
-    Complete(ctx context.Context, OrderID string) error
+	Complete(ctx context.Context, OrderID string) error
 }
-

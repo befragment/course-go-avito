@@ -12,13 +12,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"courier-service/internal/model"
+	entity "courier-service/internal/repository/entity"
 	db "courier-service/internal/repository/utils/database"
 	logger "courier-service/pkg/logger"
-	entity "courier-service/internal/repository/entity"
 )
 
 type CourierRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
 	logger logger.LoggerInterface
 }
 
@@ -219,7 +219,7 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
 	if ct.RowsAffected() > 0 {
 		r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
 	}
-	
+
 	return nil
 }
 

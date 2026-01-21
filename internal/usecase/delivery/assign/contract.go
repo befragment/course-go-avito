@@ -3,6 +3,7 @@ package assign
 
 import (
 	"context"
+
 	"courier-service/internal/model"
 	utils "courier-service/internal/usecase/utils"
 )
@@ -33,4 +34,3 @@ type deliveryCalculatorFactory interface {
 }
 
 type DeliveryCalculator = utils.DeliveryCalculator
-

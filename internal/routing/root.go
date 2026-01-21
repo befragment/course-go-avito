@@ -1,12 +1,12 @@
 package routing
 
 import (
+	"github.com/go-chi/chi/v5"
+
 	loggingmiddleware "courier-service/internal/handlers/middleware/logging"
 	ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
 	logger "courier-service/pkg/logger"
 	ratelimiter "courier-service/pkg/ratelimiter"
-
-	"github.com/go-chi/chi/v5"
 )
 
 func Router(

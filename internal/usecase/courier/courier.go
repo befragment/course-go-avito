@@ -2,11 +2,12 @@ package courier
 
 import (
 	"context"
-	"courier-service/internal/model"
-	courierRepo "courier-service/internal/repository/courier"
 	"errors"
 	"regexp"
 	"time"
+
+	"courier-service/internal/model"
+	courierRepo "courier-service/internal/repository/courier"
 	logger "courier-service/pkg/logger"
 )
 

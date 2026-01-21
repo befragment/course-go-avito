@@ -2,9 +2,10 @@ package assign
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"errors"
 	"time"
+
+	"courier-service/internal/model"
 	courierrepoerrors "courier-service/internal/repository/courier"
 	deliveryrepoerrors "courier-service/internal/repository/delivery"
 )

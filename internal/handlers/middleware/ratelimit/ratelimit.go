@@ -22,8 +22,9 @@ func RateLimitMiddleware(
 				w.Header().Set("X-RateLimit-Limit", "10")
 				w.Header().Set("X-RateLimit-Remaining", "0")
 				w.WriteHeader(http.StatusTooManyRequests)
-				w.Write([]byte("Rate limit exceeded"))
-
+				if _, err := w.Write([]byte("Rate limit exceeded")); err != nil {
+					logger.Warnf("Failed to write rate limit response for %s: %v", path, err)
+				}
 				return
 			}
 

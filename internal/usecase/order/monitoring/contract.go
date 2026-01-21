@@ -3,10 +3,11 @@ package ordermonitoring
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"time"
-	utils "courier-service/internal/usecase/utils"
+
+	"courier-service/internal/model"
 	assign "courier-service/internal/usecase/delivery/assign"
+	utils "courier-service/internal/usecase/utils"
 )
 
 type DeliveryCalculator = utils.DeliveryCalculator

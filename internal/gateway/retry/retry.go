@@ -71,22 +71,22 @@ func (r *RetryExecutor) ExecuteWithContext(ctx context.Context, fn func(context.
 	var lastErr error
 
 	for attempt := 1; attempt <= r.config.MaxAttempts; attempt++ {
-		
+
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		
+
 		err := fn(ctx)
 		if err == nil {
 			return nil
 		}
-		
+
 		lastErr = err
-		
+
 		if !r.config.ShouldRetry(err) {
 			return err
 		}
-		
+
 		if attempt == r.config.MaxAttempts {
 			r.logger.Warnf("Attempt %d failed (last), retrying is stopped", attempt)
 			break

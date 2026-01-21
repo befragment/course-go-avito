@@ -2,16 +2,16 @@ package order
 
 import (
 	"context"
-	"courier-service/internal/model"
-	pb "courier-service/proto/order"
 	"errors"
 	"fmt"
 	"time"
 
-	re "courier-service/internal/gateway/retry"
-	l "courier-service/pkg/logger"
-
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	re "courier-service/internal/gateway/retry"
+	"courier-service/internal/model"
+	l "courier-service/pkg/logger"
+	pb "courier-service/proto/order"
 )
 
 type Gateway struct {
@@ -49,7 +49,7 @@ func (g *Gateway) GetOrders(ctx context.Context, from time.Time) ([]model.Order,
 		return nil, err
 	}
 
-	ordersList := make([]model.Order, len(orders.Orders))
+	ordersList := make([]model.Order, 0, len(orders.Orders))
 	for _, order := range orders.Orders {
 		ordersList = append(ordersList, orderModelFromProto(order))
 	}

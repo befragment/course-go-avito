@@ -2,18 +2,19 @@ package delivery_test
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"testing"
 	"time"
 
-	integration "courier-service/internal/persistence/database/integration"
-	courierstorage "courier-service/internal/repository/courier"
-	deliverystorage "courier-service/internal/repository/delivery"
-	logger "courier-service/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+
+	"courier-service/internal/model"
+	integration "courier-service/internal/persistence/database/integration"
+	courierstorage "courier-service/internal/repository/courier"
+	deliverystorage "courier-service/internal/repository/delivery"
+	logger "courier-service/pkg/logger"
 )
 
 type DeliveryTestSuite struct {

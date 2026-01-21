@@ -7,31 +7,25 @@ import (
 	"net/http"
 	"time"
 
-	l "courier-service/pkg/logger"
-	rlimiter "courier-service/pkg/ratelimiter"
+	prometheus "github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	core "courier-service/internal/core"
-
+	interceptor "courier-service/internal/gateway/interceptor"
+	courierhandlers "courier-service/internal/handlers/courier"
+	deliveryhandlers "courier-service/internal/handlers/delivery"
+	metrics "courier-service/internal/handlers/metrics"
 	courierRepo "courier-service/internal/repository/courier"
 	deliveryRepo "courier-service/internal/repository/delivery"
 	txRunner "courier-service/internal/repository/txrunner"
-
+	routing "courier-service/internal/routing"
 	courierusecase "courier-service/internal/usecase/courier"
 	deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
 	deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
 	deliverycalculator "courier-service/internal/usecase/utils"
-
-	courierhandlers "courier-service/internal/handlers/courier"
-	deliveryhandlers "courier-service/internal/handlers/delivery"
-
-	interceptor "courier-service/internal/gateway/interceptor"
-	metrics "courier-service/internal/handlers/metrics"
-	routing "courier-service/internal/routing"
-
-	prometheus "github.com/prometheus/client_golang/prometheus"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	l "courier-service/pkg/logger"
+	rlimiter "courier-service/pkg/ratelimiter"
 )
 
 func main() {
@@ -66,8 +60,14 @@ func main() {
 	)
 	if err != nil {
 		logger.Errorf("Failed to create grpc client: %v", err)
+		return
 	}
-	defer grpcClient.Close()
+
+	defer func() {
+		if err := grpcClient.Close(); err != nil {
+			logger.Errorf("Failed to close grpc client: %v", err)
+		}
+	}()
 
 	courierRepo := courierRepo.NewCourierRepository(dbPool, logger)
 	deliveryRepo := deliveryRepo.NewDeliveryRepository(dbPool)

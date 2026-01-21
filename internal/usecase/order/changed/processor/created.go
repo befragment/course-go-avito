@@ -1,20 +1,20 @@
 package processor
 
 import (
-    "context"
+	"context"
 
-    "courier-service/internal/model"
+	"courier-service/internal/model"
 )
 
 type CreatedProcessor struct {
-    assignUC assignUseCase
+	assignUC assignUseCase
 }
 
 func NewCreatedProcessor(assignUC assignUseCase) *CreatedProcessor {
-    return &CreatedProcessor{assignUC: assignUC}
+	return &CreatedProcessor{assignUC: assignUC}
 }
 
 func (p *CreatedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error {
-    _, err := p.assignUC.Assign(ctx, orderID)
-    return err
+	_, err := p.assignUC.Assign(ctx, orderID)
+	return err
 }

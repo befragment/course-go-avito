@@ -1,9 +1,10 @@
 package delivery
 
 import (
-	"courier-service/internal/handlers/utils"
 	"encoding/json"
 	"net/http"
+
+	"courier-service/internal/handlers/utils"
 )
 
 type DeliveryController struct {
