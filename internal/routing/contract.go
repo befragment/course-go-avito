@@ -28,3 +28,7 @@ type deliveryHandler interface {
 type metricsHandler interface {
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
+
+type rateLimiter interface {
+	Allow() bool
+}

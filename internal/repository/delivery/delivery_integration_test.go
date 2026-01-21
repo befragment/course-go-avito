@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package delivery_test
 
 import (

@@ -15,7 +15,6 @@ import (
 	interceptor "courier-service/internal/gateway/interceptor"
 	courierhandlers "courier-service/internal/handlers/courier"
 	deliveryhandlers "courier-service/internal/handlers/delivery"
-	metrics "courier-service/internal/handlers/metrics"
 	courierRepo "courier-service/internal/repository/courier"
 	deliveryRepo "courier-service/internal/repository/delivery"
 	txRunner "courier-service/internal/repository/txrunner"
@@ -25,6 +24,7 @@ import (
 	deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
 	deliverycalculator "courier-service/internal/usecase/utils"
 	l "courier-service/pkg/logger"
+	metrics "courier-service/pkg/metrics"
 	rlimiter "courier-service/pkg/ratelimiter"
 )
 

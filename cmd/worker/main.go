@@ -17,7 +17,6 @@ import (
 	interceptor "courier-service/internal/gateway/interceptor"
 	ordergw "courier-service/internal/gateway/order"
 	retryexec "courier-service/internal/gateway/retry"
-	metrics "courier-service/internal/handlers/metrics"
 	orderhandler "courier-service/internal/handlers/queues/order/changed"
 	model "courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
@@ -30,6 +29,7 @@ import (
 	processor "courier-service/internal/usecase/order/changed/processor"
 	deliverycalculator "courier-service/internal/usecase/utils"
 	l "courier-service/pkg/logger"
+	metrics "courier-service/pkg/metrics"
 	orderpb "courier-service/proto/order"
 )
 

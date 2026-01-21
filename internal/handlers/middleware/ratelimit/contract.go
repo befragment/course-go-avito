@@ -9,3 +9,7 @@ type pathNormalizer interface {
 type metricsWriter interface {
 	RecordRateLimitExceeded(method, path string)
 }
+
+type rateLimiter interface {
+	Allow() bool
+}

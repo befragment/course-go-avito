@@ -6,12 +6,11 @@ import (
 	loggingmiddleware "courier-service/internal/handlers/middleware/logging"
 	ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
 	logger "courier-service/pkg/logger"
-	ratelimiter "courier-service/pkg/ratelimiter"
 )
 
 func Router(
 	logger logger.LoggerInterface,
-	rateLimiter ratelimiter.RateLimiterInterface,
+	rateLimiter rateLimiter,
 	metricsWriter httpMetricsWriter,
 	metricsHandler metricsHandler,
 	pathNormalizer pathNormalizer,
@@ -20,10 +19,9 @@ func Router(
 ) *chi.Mux {
 	r := chi.NewRouter()
 
-	// /metrics endpoint БЕЗ rate limiting (для Prometheus)
+	// /metrics endpoint БЕЗ rate limiting
 	r.Handle("/metrics", metricsHandler)
 
-	// Группа маршрутов С middleware
 	r.Group(func(r chi.Router) {
 		r.Use(
 			ratelimitmiddleware.RateLimitMiddleware(

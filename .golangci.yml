@@ -46,6 +46,7 @@ formatters:
       - api
       - assets
       - githooks
+      - .github
       - proto 
       - scripts 
       - testdata

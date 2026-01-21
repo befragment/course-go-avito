@@ -4,11 +4,10 @@ import (
 	"net/http"
 
 	lpkg "courier-service/pkg/logger"
-	rlpkg "courier-service/pkg/ratelimiter"
 )
 
 func RateLimitMiddleware(
-	limiter rlpkg.RateLimiterInterface,
+	limiter rateLimiter,
 	logger lpkg.LoggerInterface,
 	metricsWriter metricsWriter,
 	normalizer pathNormalizer,
