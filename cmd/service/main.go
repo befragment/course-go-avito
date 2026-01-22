@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	prometheus "github.com/prometheus/client_golang/prometheus"
@@ -26,10 +27,11 @@ import (
 	l "courier-service/pkg/logger"
 	metrics "courier-service/pkg/metrics"
 	rlimiter "courier-service/pkg/ratelimiter"
+	shutdown "courier-service/pkg/shutdown"
 )
 
 func main() {
-	ctx := core.WaitForShutdown()
+	ctx := shutdown.WaitForShutdown()
 
 	logger, err := l.New(l.LogLevelInfo)
 	if err != nil {
@@ -40,6 +42,8 @@ func main() {
 	if err != nil {
 		logger.Error("Failed to load config: %v", err)
 	}
+
+	logger.Info(cfg.PprofAddress)
 
 	ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate)
 
@@ -109,13 +113,15 @@ func main() {
 			unassignUseCase,
 		),
 	)
-
-	startServer(ctx, cfg.Port, router, logger)
+	logger.Info("Starting service server...")
+	go startServer(ctx, cfg.Port, router, logger)
+	logger.Info("Starting pprof server...")
+	go startPprofServer(ctx, cfg.PprofAddress, logger)
 	<-ctx.Done()
 	logger.Info("Service stopped gracefully")
 }
 
-func startServer(ctx context.Context, port string, handler http.Handler, logger l.LoggerInterface) {
+func startServer(ctx context.Context, port string, handler http.Handler, logger *l.Logger) {
 	srv := &http.Server{
 		Addr:    port,
 		Handler: handler,
@@ -143,5 +149,39 @@ func startServer(ctx context.Context, port string, handler http.Handler, logger 
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		logger.Errorf("error shutting down server: %v", err)
+	}
+}
+
+func startPprofServer(ctx context.Context, addr string, logger *l.Logger) {
+	logger.Infof("%s", addr)
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           http.DefaultServeMux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		logger.Infof("pprof listening on http://%s/debug/pprof/", addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- err
+		}
+		close(serverErr)
+	}()
+
+	select {
+	case <-ctx.Done():
+		logger.Info("pprof shutdown signal received")
+	case err := <-serverErr:
+		if err != nil {
+			logger.Errorf("pprof server error: %v", err)
+		}
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Errorf("error shutting down pprof server: %v", err)
 	}
 }

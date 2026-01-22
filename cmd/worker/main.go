@@ -30,11 +30,12 @@ import (
 	deliverycalculator "courier-service/internal/usecase/utils"
 	l "courier-service/pkg/logger"
 	metrics "courier-service/pkg/metrics"
+	shutdown "courier-service/pkg/shutdown"
 	orderpb "courier-service/proto/order"
 )
 
 func main() {
-	ctx := core.WaitForShutdown()
+	ctx := shutdown.WaitForShutdown()
 
 	logger, err := l.New(l.LogLevelInfo)
 	if err != nil {
@@ -136,7 +137,7 @@ func configureKafkaClient(config *sarama.Config) {
 
 func runKafkaConsumer(
 	ctx context.Context,
-	logger l.LoggerInterface,
+	logger *l.Logger,
 	brokers []string,
 	groupID string,
 	topic string,
@@ -175,7 +176,7 @@ func configureRetry(maxAttemps int) retryexec.RetryConfig {
 	}
 }
 
-func initMetricsServer(ctx context.Context, addr string, logger l.LoggerInterface) {
+func initMetricsServer(ctx context.Context, addr string, logger *l.Logger) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 

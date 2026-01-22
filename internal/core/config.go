@@ -36,6 +36,8 @@ type Config struct {
 	TokenBucketRefillRate int
 
 	RetryMaxAttempts int
+
+	PprofAddress string
 }
 
 func LoadConfig() (*Config, error) {
@@ -70,6 +72,8 @@ func LoadConfig() (*Config, error) {
 	cfg.TokenBucketCapacity = toInt(os.Getenv("TOKEN_BUCKET_CAPACITY"))
 	cfg.TokenBucketRefillRate = toInt(os.Getenv("TOKEN_BUCKET_REFILL_RATE"))
 	cfg.RetryMaxAttempts = toInt(os.Getenv("RETRY_MAX_ATTEMPTS"))
+
+	cfg.PprofAddress = os.Getenv("PPROF_ADDR")
 	return cfg, nil
 }
 
