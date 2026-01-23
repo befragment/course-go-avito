@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -93,22 +94,6 @@ func getCmd(cfg *Config) *cli.Command {
 	}
 }
 
-func (c *Config) DBConnString() string {
-	ssl := c.DBSSLMode
-	if ssl == "" {
-		ssl = "disable"
-	}
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		c.DBUser,
-		c.DBPassword,
-		c.DBHost,
-		c.DBPort,
-		c.DBName,
-		ssl,
-	)
-}
-
 func toInt(value string) int {
 	integer, err := strconv.Atoi(value)
 	if err != nil {
@@ -120,4 +105,27 @@ func toInt(value string) int {
 func secondsStringToDuration(value string) time.Duration {
 	duration := toInt(value)
 	return time.Duration(duration) * time.Second
+}
+
+func (c *Config) PostgresDSN() string {
+	ssl := c.DBSSLMode
+	if ssl == "" {
+		ssl = "disable"
+	}
+	host := c.DBHost
+	if host == "" {
+		host = "localhost"
+	}
+	port := c.DBPort
+	if port == "" {
+		port = "5432"
+	}
+
+	user := url.QueryEscape(c.DBUser)
+	pass := url.QueryEscape(c.DBPassword)
+	db := url.PathEscape(c.DBName)
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		user, pass, host, port, db, url.QueryEscape(ssl),
+	)
 }

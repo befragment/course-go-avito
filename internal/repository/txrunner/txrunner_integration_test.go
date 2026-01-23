@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
@@ -19,7 +20,6 @@ import (
 	courierstorage "courier-service/internal/repository/courier"
 	deliverystorage "courier-service/internal/repository/delivery"
 	txrunner "courier-service/internal/repository/txrunner"
-	logger "courier-service/pkg/logger"
 )
 
 type TxRunnerTestSuite struct {
@@ -30,6 +30,8 @@ type TxRunnerTestSuite struct {
 	courierRepo  *courierstorage.CourierRepository
 	txRunner     *txrunner.PgxTxRunner
 	pgContainer  *postgres.PostgresContainer
+	ctrl         *gomock.Controller
+	mockLogger   *Mocklogger
 }
 
 func TestTxRunnerTestSuite(t *testing.T) {
@@ -47,17 +49,35 @@ func (s *TxRunnerTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.pool = pool
 
-	log, err := logger.New(logger.LogLevelInfo)
-	s.Require().NoError(err)
-
-	s.courierRepo = courierstorage.NewCourierRepository(s.pool, log)
 	s.deliveryRepo = deliverystorage.NewDeliveryRepository(s.pool)
 	s.txRunner = txrunner.NewTxRunner(s.pool)
 }
 
 func (s *TxRunnerTestSuite) SetupTest() {
+	s.ctrl = gomock.NewController(s.T())
+	s.mockLogger = NewMocklogger(s.ctrl)
+
+	// Allow any logging calls during tests
+	s.mockLogger.EXPECT().Debug(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Debugf(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Debugw(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Info(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Warn(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Error(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+
+	s.courierRepo = courierstorage.NewCourierRepository(s.pool, s.mockLogger)
+
 	err := integration.TruncateAll(s.ctx, s.pool)
 	s.Require().NoError(err)
+}
+
+func (s *TxRunnerTestSuite) TearDownTest() {
+	if s.ctrl != nil {
+		s.ctrl.Finish()
+	}
 }
 
 func (s *TxRunnerTestSuite) TestTxRunner_CommitOnSuccess() {

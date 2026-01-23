@@ -2,7 +2,6 @@ package logger
 
 import (
 	"os"
-	// "strings"
 	"time"
 
 	"go.uber.org/zap"

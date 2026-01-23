@@ -2,13 +2,11 @@ package middleware
 
 import (
 	"net/http"
-
-	lpkg "courier-service/pkg/logger"
 )
 
 func RateLimitMiddleware(
 	limiter rateLimiter,
-	logger lpkg.LoggerInterface,
+	logger logger,
 	metricsWriter metricsWriter,
 	normalizer pathNormalizer,
 ) func(http.Handler) http.Handler {

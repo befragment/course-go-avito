@@ -8,16 +8,15 @@ import (
 
 	"courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
-	logger "courier-service/pkg/logger"
 )
 
 type CourierUseCase struct {
 	repository courierRepository
 	factory    deliveryCalculatorFactory
-	logger     logger.LoggerInterface
+	logger     logger
 }
 
-func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger.LoggerInterface) *CourierUseCase {
+func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger) *CourierUseCase {
 	return &CourierUseCase{
 		repository: repository,
 		factory:    factory,

@@ -10,21 +10,20 @@ import (
 
 	re "courier-service/internal/gateway/retry"
 	"courier-service/internal/model"
-	l "courier-service/pkg/logger"
 	pb "courier-service/proto/order"
 )
 
 type Gateway struct {
 	client    client
 	retryexec retryexec
-	logger    l.LoggerInterface
+	logger    logger
 }
 
-func NewGateway(client client, rexec retryexec, l l.LoggerInterface) *Gateway {
+func NewGateway(client client, rexec retryexec, logger logger) *Gateway {
 	return &Gateway{
 		client:    client,
 		retryexec: rexec,
-		logger:    l,
+		logger:    logger,
 	}
 }
 

@@ -8,11 +8,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	l "courier-service/pkg/logger"
 )
 
 // LoggingMetricsInterceptor создает unary interceptor для логирования и метрик
-func LoggingMetricsInterceptor(logger l.LoggerInterface, metrics metricsWriter) grpc.UnaryClientInterceptor {
+func LoggingMetricsInterceptor(logger logger, metrics metricsWriter) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		method string,
@@ -77,7 +76,7 @@ func MetricsInterceptor(metrics metricsWriter) grpc.UnaryClientInterceptor {
 }
 
 // LoggingInterceptor создает unary interceptor только для логирования (без метрик)
-func LoggingInterceptor(logger l.LoggerInterface) grpc.UnaryClientInterceptor {
+func LoggingInterceptor(logger logger) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		method string,

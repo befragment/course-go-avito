@@ -4,16 +4,15 @@ import (
 	"context"
 
 	"courier-service/internal/model"
-	logger "courier-service/pkg/logger"
 )
 
 type OrderChangedUseCase struct {
 	factory      orderChangedFactory
 	orderGateway orderGateway
-	logger       logger.LoggerInterface
+	logger       logger
 }
 
-func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, log logger.LoggerInterface) *OrderChangedUseCase {
+func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, log logger) *OrderChangedUseCase {
 	return &OrderChangedUseCase{
 		factory:      factory,
 		orderGateway: gateway,

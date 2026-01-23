@@ -28,8 +28,10 @@ import (
 	changed "courier-service/internal/usecase/order/changed"
 	processor "courier-service/internal/usecase/order/changed/processor"
 	deliverycalculator "courier-service/internal/usecase/utils"
-	l "courier-service/pkg/logger"
-	metrics "courier-service/pkg/metrics"
+	database "courier-service/pkg/database/postgres"
+	delay "courier-service/pkg/delay/fulljitter"
+	l "courier-service/pkg/logger/zap"
+	metrics "courier-service/pkg/metrics/prometheus"
 	shutdown "courier-service/pkg/shutdown"
 	orderpb "courier-service/proto/order"
 )
@@ -82,7 +84,7 @@ func main() {
 	retry := retryexec.NewRetryExecutor(retryCfg, logger)
 	orderGateway := ordergw.NewGateway(ordersClient, retry, logger)
 
-	dbPool := core.MustInitPool(logger)
+	dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
 	defer dbPool.Close()
 	courierRepository := courierRepo.NewCourierRepository(dbPool, logger)
 	deliveryRepository := deliveryRepo.NewDeliveryRepository(dbPool)
@@ -168,7 +170,7 @@ func runKafkaConsumer(
 }
 
 func configureRetry(maxAttemps int) retryexec.RetryConfig {
-	fullJitter := retryexec.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0)
+	fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0)
 	return retryexec.RetryConfig{
 		MaxAttempts: maxAttemps,
 		Strategy:    fullJitter,

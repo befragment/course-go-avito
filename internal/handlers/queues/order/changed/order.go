@@ -8,15 +8,14 @@ import (
 
 	"courier-service/internal/model"
 	changed "courier-service/internal/usecase/order/changed"
-	logger "courier-service/pkg/logger"
 )
 
 type OrderStatusChangedHandler struct {
 	useCase orderChangedUseCase
-	logger  logger.LoggerInterface
+	logger  logger
 }
 
-func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger.LoggerInterface) *OrderStatusChangedHandler {
+func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger) *OrderStatusChangedHandler {
 	return &OrderStatusChangedHandler{useCase: useCase, logger: logger}
 }
 

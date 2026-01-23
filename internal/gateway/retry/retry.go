@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
-	"math/rand"
 	"time"
 
-	l "courier-service/pkg/logger"
 )
 
 var ErrMaxAttemptsExceeded = errors.New("max retry attempts exceeded")
@@ -25,15 +22,12 @@ type RetryConfig struct {
 
 type RetryExecutor struct {
 	config RetryConfig
-	logger l.LoggerInterface
+	logger logger
 }
 
-func NewRetryExecutor(config RetryConfig, logger l.LoggerInterface) *RetryExecutor {
+func NewRetryExecutor(config RetryConfig, logger logger) *RetryExecutor {
 	if config.MaxAttempts == 0 {
 		config.MaxAttempts = 3
-	}
-	if config.Strategy == nil {
-		config.Strategy = NewFullJitter(100*time.Millisecond, 5*time.Second, 2.0)
 	}
 	if config.ShouldRetry == nil {
 		config.ShouldRetry = func(err error) bool { return err != nil }
@@ -138,27 +132,4 @@ func (r *RetryExecutor) ExecuteWithCallback(
 	}
 
 	return fmt.Errorf("%w: %v", ErrMaxAttemptsExceeded, lastErr)
-}
-
-type FullJitter struct {
-	BaseDelay  time.Duration
-	MaxDelay   time.Duration
-	Multiplier float64
-}
-
-func NewFullJitter(base, max time.Duration, multiplier float64) *FullJitter {
-	return &FullJitter{
-		BaseDelay:  base,
-		MaxDelay:   max,
-		Multiplier: multiplier,
-	}
-}
-
-func (f *FullJitter) NextDelay(attempt int) time.Duration {
-	maxDelay := float64(f.BaseDelay) * math.Pow(f.Multiplier, float64(attempt-1))
-	if maxDelay > float64(f.MaxDelay) {
-		maxDelay = float64(f.MaxDelay)
-	}
-
-	return time.Duration(rand.Float64() * maxDelay)
 }

@@ -14,15 +14,14 @@ import (
 	"courier-service/internal/model"
 	entity "courier-service/internal/repository/entity"
 	db "courier-service/internal/repository/utils/database"
-	logger "courier-service/pkg/logger"
 )
 
 type CourierRepository struct {
 	pool   *pgxpool.Pool
-	logger logger.LoggerInterface
+	logger logger
 }
 
-func NewCourierRepository(pool *pgxpool.Pool, logger logger.LoggerInterface) *CourierRepository {
+func NewCourierRepository(pool *pgxpool.Pool, logger logger) *CourierRepository {
 	return &CourierRepository{pool: pool, logger: logger}
 }
 

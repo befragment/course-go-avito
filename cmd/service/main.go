@@ -24,9 +24,10 @@ import (
 	deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
 	deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
 	deliverycalculator "courier-service/internal/usecase/utils"
-	l "courier-service/pkg/logger"
-	metrics "courier-service/pkg/metrics"
-	rlimiter "courier-service/pkg/ratelimiter"
+	database "courier-service/pkg/database/postgres"
+	l "courier-service/pkg/logger/zap"
+	metrics "courier-service/pkg/metrics/prometheus"
+	rlimiter "courier-service/pkg/ratelimiter/tokenbucket"
 	shutdown "courier-service/pkg/shutdown"
 )
 
@@ -45,9 +46,9 @@ func main() {
 
 	logger.Info(cfg.PprofAddress)
 
-	ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate)
+	ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate, time.Now)
 
-	dbPool := core.MustInitPool(logger)
+	dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
 	defer dbPool.Close()
 
 	// Создаем метрики до grpcClient, чтобы использовать в interceptor

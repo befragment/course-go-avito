@@ -5,11 +5,10 @@ import (
 
 	loggingmiddleware "courier-service/internal/handlers/middleware/logging"
 	ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
-	logger "courier-service/pkg/logger"
 )
 
 func Router(
-	logger logger.LoggerInterface,
+	logger logger,
 	rateLimiter rateLimiter,
 	metricsWriter httpMetricsWriter,
 	metricsHandler metricsHandler,

@@ -1,4 +1,4 @@
-package core
+package database
 
 import (
 	"context"
@@ -6,13 +6,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	logger "courier-service/pkg/logger"
 )
 
-func MustInitPool(l logger.LoggerInterface) *pgxpool.Pool {
-	appCfg, _ := LoadConfig()
-	cfg, err := pgxpool.ParseConfig(appCfg.DBConnString())
+func MustInitPool(connString string, l logger) *pgxpool.Pool {
+	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		l.Fatal("Failed to parse database configuration: %v", err)
 	}
