@@ -1,14 +1,14 @@
 package fulljitter_test
 
 import (
-	"courier-service/pkg/delay/fulljitter"
 	"math"
-	"math/rand"
 	"testing"
 	"time"
+
+	"courier-service/pkg/delay/fulljitter"
 )
 
-func TestFullJitter_Table(t *testing.T) {
+func TestFullJitter(t *testing.T) {
 	seed := func(v int64) *int64 { return &v }
 
 	type tc struct {
@@ -63,12 +63,7 @@ func TestFullJitter_Table(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.seed != nil {
-				rand.Seed(*tt.seed)
-			}
-
-			f := fulljitter.NewFullJitter(tt.base, tt.max, tt.multiplier)
-
+			f := fulljitter.NewFullJitter(tt.base, tt.max, tt.multiplier, tt.seed)
 			// 1) проверяем формулу upper bound
 			upper := float64(f.BaseDelay) * math.Pow(f.Multiplier, float64(tt.attempt-1))
 			if upper > float64(f.MaxDelay) {

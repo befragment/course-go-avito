@@ -8,12 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
-
-	"github.com/golang/mock/gomock"
 
 	"courier-service/internal/model"
 	"courier-service/internal/persistence/database/integration"

@@ -129,35 +129,37 @@
 				
 				<option value="file36">courier-service/internal/usecase/delivery/unassign/unassign.go (88.0%)</option>
 				
-				<option value="file37">courier-service/internal/usecase/order/changed/changed.go (0.0%)</option>
+				<option value="file37">courier-service/internal/usecase/order/changed/changed.go (100.0%)</option>
 				
-				<option value="file38">courier-service/internal/usecase/order/changed/factory.go (0.0%)</option>
+				<option value="file38">courier-service/internal/usecase/order/changed/factory.go (100.0%)</option>
 				
-				<option value="file39">courier-service/internal/usecase/order/changed/processor/cancelled.go (0.0%)</option>
+				<option value="file39">courier-service/internal/usecase/order/changed/processor/cancelled.go (100.0%)</option>
 				
-				<option value="file40">courier-service/internal/usecase/order/changed/processor/completed.go (0.0%)</option>
+				<option value="file40">courier-service/internal/usecase/order/changed/processor/completed.go (100.0%)</option>
 				
-				<option value="file41">courier-service/internal/usecase/order/changed/processor/created.go (0.0%)</option>
+				<option value="file41">courier-service/internal/usecase/order/changed/processor/created.go (100.0%)</option>
 				
-				<option value="file42">courier-service/internal/usecase/order/monitoring/monitoring.go (0.0%)</option>
+				<option value="file42">courier-service/internal/usecase/order/monitoring/monitoring.go (100.0%)</option>
 				
 				<option value="file43">courier-service/internal/usecase/utils/timecalculator.go (0.0%)</option>
 				
-				<option value="file44">courier-service/pkg/database/database.go (0.0%)</option>
+				<option value="file44">courier-service/pkg/database/postgres/database.go (0.0%)</option>
 				
-				<option value="file45">courier-service/pkg/logger/logger.go (38.2%)</option>
+				<option value="file45">courier-service/pkg/delay/fulljitter/fulljitter.go (100.0%)</option>
 				
-				<option value="file46">courier-service/pkg/metrics/handler.go (0.0%)</option>
+				<option value="file46">courier-service/pkg/logger/zap/logger.go (0.0%)</option>
 				
-				<option value="file47">courier-service/pkg/metrics/metrics.go (0.0%)</option>
+				<option value="file47">courier-service/pkg/metrics/prometheus/handler.go (0.0%)</option>
 				
-				<option value="file48">courier-service/pkg/ratelimiter/tokenbucket.go (100.0%)</option>
+				<option value="file48">courier-service/pkg/metrics/prometheus/metrics.go (0.0%)</option>
 				
-				<option value="file49">courier-service/pkg/shutdown/shutdown.go (0.0%)</option>
+				<option value="file49">courier-service/pkg/ratelimiter/tokenbucket/tokenbucket.go (95.7%)</option>
 				
-				<option value="file50">courier-service/proto/order/order.pb.go (0.0%)</option>
+				<option value="file50">courier-service/pkg/shutdown/shutdown.go (0.0%)</option>
 				
-				<option value="file51">courier-service/proto/order/order_grpc.pb.go (0.0%)</option>
+				<option value="file51">courier-service/proto/order/order.pb.go (0.0%)</option>
+				
+				<option value="file52">courier-service/proto/order/order_grpc.pb.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -197,29 +199,27 @@ import (
         deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
         deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
         deliverycalculator "courier-service/internal/usecase/utils"
-        database "courier-service/pkg/database"
-        l "courier-service/pkg/logger"
-        metrics "courier-service/pkg/metrics"
-        rlimiter "courier-service/pkg/ratelimiter"
+        database "courier-service/pkg/database/postgres"
+        l "courier-service/pkg/logger/zap"
+        metrics "courier-service/pkg/metrics/prometheus"
+        rlimiter "courier-service/pkg/ratelimiter/tokenbucket"
         shutdown "courier-service/pkg/shutdown"
 )
 
 func main() <span class="cov0" title="0">{
         ctx := shutdown.WaitForShutdown()
 
-        logger, err := l.New(l.LogLevelInfo)
+        cfg, err := core.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load config: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">logger, err := l.New(cfg.LogLevel)
         if err != nil </span><span class="cov0" title="0">{
                 log.Fatalf("Failed to create logger: %v", err)
         }</span>
 
-        <span class="cov0" title="0">cfg, err := core.LoadConfig()
-        if err != nil </span><span class="cov0" title="0">{
-                logger.Error("Failed to load config: %v", err)
-        }</span>
-
-        <span class="cov0" title="0">logger.Info(cfg.PprofAddress)
-
-        ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate)
+        <span class="cov0" title="0">ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate, time.Now)
 
         dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
         defer dbPool.Close()
@@ -391,24 +391,25 @@ import (
         changed "courier-service/internal/usecase/order/changed"
         processor "courier-service/internal/usecase/order/changed/processor"
         deliverycalculator "courier-service/internal/usecase/utils"
-        database "courier-service/pkg/database"
-        l "courier-service/pkg/logger"
-        metrics "courier-service/pkg/metrics"
+        database "courier-service/pkg/database/postgres"
+        delay "courier-service/pkg/delay/fulljitter"
+        l "courier-service/pkg/logger/zap"
+        metrics "courier-service/pkg/metrics/prometheus"
         shutdown "courier-service/pkg/shutdown"
         orderpb "courier-service/proto/order"
 )
 
 func main() <span class="cov0" title="0">{
         ctx := shutdown.WaitForShutdown()
+        cfg, err := core.LoadConfig()
 
-        logger, err := l.New(l.LogLevelInfo)
-        if err != nil </span><span class="cov0" title="0">{
-                log.Fatalf("Failed to create logger: %v", err)
-        }</span>
-
-        <span class="cov0" title="0">cfg, err := core.LoadConfig()
         if err != nil </span><span class="cov0" title="0">{
                 log.Fatalf("Failed to load config: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">logger, err := l.New(cfg.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to create logger: %v", err)
         }</span>
 
         <span class="cov0" title="0">go initMetricsServer(ctx, ":9101", logger)
@@ -532,7 +533,7 @@ func runKafkaConsumer(
 }
 
 func configureRetry(maxAttemps int) retryexec.RetryConfig <span class="cov0" title="0">{
-        fullJitter := retryexec.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0)
+        fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0, nil)
         return retryexec.RetryConfig{
                 MaxAttempts: maxAttemps,
                 Strategy:    fullJitter,
@@ -586,6 +587,8 @@ type Config struct {
         DBName     string
         DBSSLMode  string
 
+        LogLevel string
+
         CheckFreeCouriersInterval time.Duration
         OrderCheckCursorDelta     time.Duration
 
@@ -620,6 +623,8 @@ func LoadConfig() (*Config, error) <span class="cov0" title="0">{
         cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
         cfg.DBName = os.Getenv("POSTGRES_DB")
         cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+
+        cfg.LogLevel = os.Getenv("LOG_LEVEL")
 
         cfg.OrderCheckCursorDelta = secondsStringToDuration(
                 os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS"))
@@ -691,7 +696,8 @@ func (c *Config) PostgresDSN() string <span class="cov0" title="0">{
         return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
                 user, pass, host, port, db, url.QueryEscape(ssl),
         )</span>
-}</pre>
+}
+</pre>
 		
 		<pre class="file" id="file3" style="display: none">package interceptor
 
@@ -702,12 +708,10 @@ import (
         "google.golang.org/grpc"
         "google.golang.org/grpc/codes"
         "google.golang.org/grpc/status"
-
-        l "courier-service/pkg/logger"
 )
 
 // LoggingMetricsInterceptor создает unary interceptor для логирования и метрик
-func LoggingMetricsInterceptor(logger l.LoggerInterface, metrics metricsWriter) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
+func LoggingMetricsInterceptor(logger logger, metrics metricsWriter) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
         return func(
                 ctx context.Context,
                 method string,
@@ -772,7 +776,7 @@ func MetricsInterceptor(metrics metricsWriter) grpc.UnaryClientInterceptor <span
 }
 
 // LoggingInterceptor создает unary interceptor только для логирования (без метрик)
-func LoggingInterceptor(logger l.LoggerInterface) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
+func LoggingInterceptor(logger logger) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
         return func(
                 ctx context.Context,
                 method string,
@@ -849,21 +853,20 @@ import (
 
         re "courier-service/internal/gateway/retry"
         "courier-service/internal/model"
-        l "courier-service/pkg/logger"
         pb "courier-service/proto/order"
 )
 
 type Gateway struct {
         client    client
         retryexec retryexec
-        logger    l.LoggerInterface
+        logger    logger
 }
 
-func NewGateway(client client, rexec retryexec, l l.LoggerInterface) *Gateway <span class="cov0" title="0">{
+func NewGateway(client client, rexec retryexec, logger logger) *Gateway <span class="cov0" title="0">{
         return &amp;Gateway{
                 client:    client,
                 retryexec: rexec,
-                logger:    l,
+                logger:    logger,
         }
 }</span>
 
@@ -930,36 +933,25 @@ import (
         "context"
         "errors"
         "fmt"
-        "math"
-        "math/rand"
         "time"
-
-        l "courier-service/pkg/logger"
 )
 
 var ErrMaxAttemptsExceeded = errors.New("max retry attempts exceeded")
 
-type Strategy interface {
-        NextDelay(attempt int) time.Duration
-}
-
 type RetryConfig struct {
         MaxAttempts int
-        Strategy    Strategy
+        Strategy    strategy
         ShouldRetry func(error) bool
 }
 
 type RetryExecutor struct {
         config RetryConfig
-        logger l.LoggerInterface
+        logger logger
 }
 
-func NewRetryExecutor(config RetryConfig, logger l.LoggerInterface) *RetryExecutor <span class="cov0" title="0">{
+func NewRetryExecutor(config RetryConfig, logger logger) *RetryExecutor <span class="cov0" title="0">{
         if config.MaxAttempts == 0 </span><span class="cov0" title="0">{
                 config.MaxAttempts = 3
-        }</span>
-        <span class="cov0" title="0">if config.Strategy == nil </span><span class="cov0" title="0">{
-                config.Strategy = NewFullJitter(100*time.Millisecond, 5*time.Second, 2.0)
         }</span>
         <span class="cov0" title="0">if config.ShouldRetry == nil </span><span class="cov0" title="0">{
                 config.ShouldRetry = func(err error) bool </span><span class="cov0" title="0">{ return err != nil }</span>
@@ -1064,29 +1056,6 @@ func (r *RetryExecutor) ExecuteWithCallback(
         }
 
         <span class="cov0" title="0">return fmt.Errorf("%w: %v", ErrMaxAttemptsExceeded, lastErr)</span>
-}
-
-type FullJitter struct {
-        BaseDelay  time.Duration
-        MaxDelay   time.Duration
-        Multiplier float64
-}
-
-func NewFullJitter(base, max time.Duration, multiplier float64) *FullJitter <span class="cov0" title="0">{
-        return &amp;FullJitter{
-                BaseDelay:  base,
-                MaxDelay:   max,
-                Multiplier: multiplier,
-        }
-}</span>
-
-func (f *FullJitter) NextDelay(attempt int) time.Duration <span class="cov0" title="0">{
-        maxDelay := float64(f.BaseDelay) * math.Pow(f.Multiplier, float64(attempt-1))
-        if maxDelay &gt; float64(f.MaxDelay) </span><span class="cov0" title="0">{
-                maxDelay = float64(f.MaxDelay)
-        }</span>
-
-        <span class="cov0" title="0">return time.Duration(rand.Float64() * maxDelay)</span>
 }
 </pre>
 		
@@ -1466,12 +1435,10 @@ import (
         "net/http"
         "strconv"
         "time"
-
-        l "courier-service/pkg/logger"
 )
 
 func LoggingMiddleware(
-        logger l.LoggerInterface,
+        logger logger,
         metricsWriter metricsWriter,
         normalizer pathNormalizer,
 ) func(http.Handler) http.Handler <span class="cov0" title="0">{
@@ -1497,7 +1464,7 @@ func LoggingMiddleware(
                         metricsWriter.RecordRequest(r.Method, path, status)
                         metricsWriter.RecordDuration(r.Method, path, status, duration)
 
-                        logger.Infof(l.PrettyRequestLogFormat,
+                        logger.Infof(PrettyRequestLogFormat,
                                 time.Now().Format("2006/01/02 15:04:05"),
                                 r.Method,
                                 path,
@@ -1517,19 +1484,35 @@ func (r *responseRecorder) WriteHeader(code int) <span class="cov0" title="0">{
         r.status = code
         r.ResponseWriter.WriteHeader(code)
 }</span>
+
+type Color string
+
+const (
+        ColorLightBlue   Color = "\x1b[94m"
+        ColorLightYellow Color = "\x1b[93m"
+        ColorLightRed    Color = "\x1b[91m"
+        ColorLightGreen  Color = "\x1b[92m"
+        ColorPurple      Color = "\x1b[95m"
+        ColorCyan        Color = "\x1b[96m"
+        ColorLightPink   Color = "\x1b[95m"
+
+        PrettyRequestLogFormat string = string(ColorPurple) + "time=%s " +
+                string(ColorLightBlue) + "method=%s " +
+                string(ColorLightGreen) + "path=%s " +
+                string(ColorLightYellow) + "status=%d " +
+                string(ColorCyan) + "duration=%fms" + "\x1b[0m"
+)
 </pre>
 		
 		<pre class="file" id="file15" style="display: none">package middleware
 
 import (
         "net/http"
-
-        lpkg "courier-service/pkg/logger"
 )
 
 func RateLimitMiddleware(
         limiter rateLimiter,
-        logger lpkg.LoggerInterface,
+        logger logger,
         metricsWriter metricsWriter,
         normalizer pathNormalizer,
 ) func(http.Handler) http.Handler <span class="cov0" title="0">{
@@ -1565,15 +1548,14 @@ import (
 
         "courier-service/internal/model"
         changed "courier-service/internal/usecase/order/changed"
-        logger "courier-service/pkg/logger"
 )
 
 type OrderStatusChangedHandler struct {
         useCase orderChangedUseCase
-        logger  logger.LoggerInterface
+        logger  logger
 }
 
-func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger.LoggerInterface) *OrderStatusChangedHandler <span class="cov0" title="0">{
+func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger) *OrderStatusChangedHandler <span class="cov0" title="0">{
         return &amp;OrderStatusChangedHandler{useCase: useCase, logger: logger}
 }</span>
 
@@ -1786,15 +1768,14 @@ import (
         "courier-service/internal/model"
         entity "courier-service/internal/repository/entity"
         db "courier-service/internal/repository/utils/database"
-        logger "courier-service/pkg/logger"
 )
 
 type CourierRepository struct {
         pool   *pgxpool.Pool
-        logger logger.LoggerInterface
+        logger logger
 }
 
-func NewCourierRepository(pool *pgxpool.Pool, logger logger.LoggerInterface) *CourierRepository <span class="cov0" title="0">{
+func NewCourierRepository(pool *pgxpool.Pool, logger logger) *CourierRepository <span class="cov0" title="0">{
         return &amp;CourierRepository{pool: pool, logger: logger}
 }</span>
 
@@ -2338,11 +2319,10 @@ import (
 
         loggingmiddleware "courier-service/internal/handlers/middleware/logging"
         ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
-        logger "courier-service/pkg/logger"
 )
 
 func Router(
-        logger logger.LoggerInterface,
+        logger logger,
         rateLimiter rateLimiter,
         metricsWriter httpMetricsWriter,
         metricsHandler metricsHandler,
@@ -2389,16 +2369,15 @@ import (
 
         "courier-service/internal/model"
         courierRepo "courier-service/internal/repository/courier"
-        logger "courier-service/pkg/logger"
 )
 
 type CourierUseCase struct {
         repository courierRepository
         factory    deliveryCalculatorFactory
-        logger     logger.LoggerInterface
+        logger     logger
 }
 
-func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger.LoggerInterface) *CourierUseCase <span class="cov8" title="1">{
+func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger) *CourierUseCase <span class="cov8" title="1">{
         return &amp;CourierUseCase{
                 repository: repository,
                 factory:    factory,
@@ -2728,16 +2707,15 @@ import (
         "context"
 
         "courier-service/internal/model"
-        logger "courier-service/pkg/logger"
 )
 
 type OrderChangedUseCase struct {
         factory      orderChangedFactory
         orderGateway orderGateway
-        logger       logger.LoggerInterface
+        logger       logger
 }
 
-func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, log logger.LoggerInterface) *OrderChangedUseCase <span class="cov0" title="0">{
+func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, log logger) *OrderChangedUseCase <span class="cov8" title="1">{
         return &amp;OrderChangedUseCase{
                 factory:      factory,
                 orderGateway: gateway,
@@ -2745,25 +2723,25 @@ func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, l
         }
 }</span>
 
-func (uc *OrderChangedUseCase) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov0" title="0">{
-        if status != model.OrderStatusCompleted </span><span class="cov0" title="0">{
+func (uc *OrderChangedUseCase) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
+        if status != model.OrderStatusCompleted </span><span class="cov8" title="1">{
                 uc.logger.Debugf("sending grpc request for checking status for order %s", orderID)
                 order, err := uc.orderGateway.GetOrderById(ctx, orderID)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return err
                 }</span>
 
-                <span class="cov0" title="0">if order.Status != status </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if order.Status != status </span><span class="cov8" title="1">{
                         uc.logger.Warnf("order status mismatch: expected %s, got %s for order %s", status, order.Status, orderID)
                         return ErrOrderStatusMismatch
                 }</span>
         }
 
-        <span class="cov0" title="0">processor, ok := uc.factory.Get(status)
-        if !ok </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">processor, ok := uc.factory.Get(status)
+        if !ok </span><span class="cov8" title="1">{
                 return nil
         }</span>
-        <span class="cov0" title="0">return processor.HandleOrderStatusChanged(ctx, status, orderID)</span>
+        <span class="cov8" title="1">return processor.HandleOrderStatusChanged(ctx, status, orderID)</span>
 }
 </pre>
 		
@@ -2775,11 +2753,11 @@ type Factory struct {
         processors map[model.OrderStatus]Processor
 }
 
-func NewFactory(processors map[model.OrderStatus]Processor) *Factory <span class="cov0" title="0">{
+func NewFactory(processors map[model.OrderStatus]Processor) *Factory <span class="cov8" title="1">{
         return &amp;Factory{processors: processors}
 }</span>
 
-func (f *Factory) Get(status model.OrderStatus) (Processor, bool) <span class="cov0" title="0">{
+func (f *Factory) Get(status model.OrderStatus) (Processor, bool) <span class="cov8" title="1">{
         p, ok := f.processors[status]
         return p, ok
 }</span>
@@ -2797,11 +2775,11 @@ type CancelledProcessor struct {
         unassignUC unassignUseCase
 }
 
-func NewCancelledProcessor(unassignUC unassignUseCase) *CancelledProcessor <span class="cov0" title="0">{
+func NewCancelledProcessor(unassignUC unassignUseCase) *CancelledProcessor <span class="cov8" title="1">{
         return &amp;CancelledProcessor{unassignUC: unassignUC}
 }</span>
 
-func (p *CancelledProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov0" title="0">{
+func (p *CancelledProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
         _, err := p.unassignUC.Unassign(ctx, orderID)
         return err
 }</span>
@@ -2823,19 +2801,19 @@ type CompletedProcessor struct {
         completeUC completeUseCase
 }
 
-func NewCompletedProcessor(completeUC completeUseCase) *CompletedProcessor <span class="cov0" title="0">{
+func NewCompletedProcessor(completeUC completeUseCase) *CompletedProcessor <span class="cov8" title="1">{
         return &amp;CompletedProcessor{completeUC: completeUC}
 }</span>
 
-func (p *CompletedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov0" title="0">{
+func (p *CompletedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
         err := p.completeUC.Complete(ctx, orderID)
-        if err != nil </span><span class="cov0" title="0">{
-                if errors.Is(err, complete.ErrOrderNotFound) </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, complete.ErrOrderNotFound) </span><span class="cov8" title="1">{
                         return changed.ErrOrderNotFound
                 }</span>
-                <span class="cov0" title="0">return fmt.Errorf("database error: %w", err)</span>
+                <span class="cov8" title="1">return fmt.Errorf("database error: %w", err)</span>
         }
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
@@ -2851,11 +2829,11 @@ type CreatedProcessor struct {
         assignUC assignUseCase
 }
 
-func NewCreatedProcessor(assignUC assignUseCase) *CreatedProcessor <span class="cov0" title="0">{
+func NewCreatedProcessor(assignUC assignUseCase) *CreatedProcessor <span class="cov8" title="1">{
         return &amp;CreatedProcessor{assignUC: assignUC}
 }</span>
 
-func (p *CreatedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov0" title="0">{
+func (p *CreatedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
         _, err := p.assignUC.Assign(ctx, orderID)
         return err
 }</span>
@@ -2885,7 +2863,7 @@ func NewOrderMonitoringUseCase(
         txRunner txRunner,
         deliveryCalculatorFactory deliveryCalculatorFactory,
         assignUseCase assignUseCase,
-) *OrderMonitoringUseCase <span class="cov0" title="0">{
+) *OrderMonitoringUseCase <span class="cov8" title="1">{
         return &amp;OrderMonitoringUseCase{
                 orderGateway:              orderGateway,
                 courierRepository:         courierRepository,
@@ -2896,29 +2874,29 @@ func NewOrderMonitoringUseCase(
         }
 }</span>
 
-func (u *OrderMonitoringUseCase) MonitorOrders(ctx context.Context, interval time.Duration) <span class="cov0" title="0">{
+func (u *OrderMonitoringUseCase) MonitorOrders(ctx context.Context, interval time.Duration) <span class="cov8" title="1">{
         ticker := time.NewTicker(interval)
         defer ticker.Stop()
 
-        for </span><span class="cov0" title="0">{
+        for </span><span class="cov8" title="1">{
                 select </span>{
-                case &lt;-ctx.Done():<span class="cov0" title="0">
+                case &lt;-ctx.Done():<span class="cov8" title="1">
                         return</span>
-                case &lt;-ticker.C:<span class="cov0" title="0">
+                case &lt;-ticker.C:<span class="cov8" title="1">
                         from := time.Now().Add(-interval)
                         log.Printf("getting orders from gateway, cursor: %s\n", from.Format(time.RFC3339))
                         orders, err := u.orderGateway.GetOrders(ctx, from)
-                        if err != nil </span><span class="cov0" title="0">{
+                        if err != nil </span><span class="cov8" title="1">{
                                 log.Printf("failed to get orders from gateway: %v\n", err)
                                 continue</span>
                         }
-                        <span class="cov0" title="0">for _, order := range orders </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">for _, order := range orders </span><span class="cov8" title="1">{
                                 assignment, err := u.assignUseCase.Assign(ctx, order.ID)
-                                if err != nil </span><span class="cov0" title="0">{
+                                if err != nil </span><span class="cov8" title="1">{
                                         log.Printf("failed to create assignment for order %s: %v\n", order.ID, err)
                                         continue</span>
                                 }
-                                <span class="cov0" title="0">log.Printf("applied courier %d to order %s", assignment.CourierID, order.ID)</span>
+                                <span class="cov8" title="1">log.Printf("applied courier %d to order %s", assignment.CourierID, order.ID)</span>
                         }
                 }
         }
@@ -2981,11 +2959,9 @@ import (
         "time"
 
         "github.com/jackc/pgx/v5/pgxpool"
-
-        logger "courier-service/pkg/logger"
 )
 
-func MustInitPool(connString string, l logger.LoggerInterface) *pgxpool.Pool <span class="cov0" title="0">{
+func MustInitPool(connString string, l logger) *pgxpool.Pool <span class="cov0" title="0">{
         cfg, err := pgxpool.ParseConfig(connString)
         if err != nil </span><span class="cov0" title="0">{
                 l.Fatal("Failed to parse database configuration: %v", err)
@@ -3028,7 +3004,49 @@ func MustInitPool(connString string, l logger.LoggerInterface) *pgxpool.Pool <sp
 }
 </pre>
 		
-		<pre class="file" id="file45" style="display: none">package logger
+		<pre class="file" id="file45" style="display: none">package fulljitter
+
+import (
+        "math"
+        "math/rand"
+        "time"
+)
+
+// FullJitter implements exponential backoff with full jitter strategy.
+// It calculates delay as: random(0, min(base * multiplier^(attempt-1), max))
+type FullJitter struct {
+        BaseDelay  time.Duration
+        MaxDelay   time.Duration
+        Multiplier float64
+        rnd        *rand.Rand
+}
+
+func NewFullJitter(base, max time.Duration, multiplier float64, initialSeed *int64) *FullJitter <span class="cov8" title="1">{
+        var seed int64
+        if initialSeed == nil </span><span class="cov8" title="1">{
+                seed = time.Now().UnixNano()
+        }</span> else<span class="cov8" title="1"> {
+                seed = *initialSeed
+        }</span>
+        <span class="cov8" title="1">return &amp;FullJitter{
+                BaseDelay:  base,
+                MaxDelay:   max,
+                Multiplier: multiplier,
+                rnd:        rand.New(rand.NewSource(seed)),
+        }</span>
+}
+
+func (f *FullJitter) NextDelay(attempt int) time.Duration <span class="cov8" title="1">{
+        maxDelay := float64(f.BaseDelay) * math.Pow(f.Multiplier, float64(attempt-1))
+        if maxDelay &gt; float64(f.MaxDelay) </span><span class="cov8" title="1">{
+                maxDelay = float64(f.MaxDelay)
+        }</span>
+
+        <span class="cov8" title="1">return time.Duration(f.rnd.Float64() * maxDelay)</span>
+}
+</pre>
+		
+		<pre class="file" id="file46" style="display: none">package logger
 
 import (
         "os"
@@ -3057,17 +3075,11 @@ const (
         ColorPurple      Color = "\x1b[95m"
         ColorCyan        Color = "\x1b[96m"
         ColorLightPink   Color = "\x1b[95m"
-
-        PrettyRequestLogFormat string = string(ColorPurple) + "time=%s " +
-                string(ColorLightBlue) + "method=%s " +
-                string(ColorLightGreen) + "path=%s " +
-                string(ColorLightYellow) + "status=%d " +
-                string(ColorCyan) + "duration=%fms" + "\x1b[0m"
 )
 
-func parseLevel(level LogLevel) zapcore.Level <span class="cov8" title="1">{
+func parseLevel(level LogLevel) zapcore.Level <span class="cov0" title="0">{
         switch level </span>{
-        case LogLevelInfo:<span class="cov8" title="1">
+        case LogLevelInfo:<span class="cov0" title="0">
                 return zapcore.InfoLevel</span>
         case LogLevelError:<span class="cov0" title="0">
                 return zapcore.ErrorLevel</span>
@@ -3080,7 +3092,7 @@ func parseLevel(level LogLevel) zapcore.Level <span class="cov8" title="1">{
         }
 }
 
-func levelColor(l zapcore.Level) Color <span class="cov8" title="1">{
+func levelColor(l zapcore.Level) Color <span class="cov0" title="0">{
         switch l </span>{
         case zapcore.InfoLevel:<span class="cov0" title="0">
                 return ColorLightGreen</span>
@@ -3088,14 +3100,14 @@ func levelColor(l zapcore.Level) Color <span class="cov8" title="1">{
                 return ColorLightBlue</span>
         case zapcore.WarnLevel:<span class="cov0" title="0">
                 return ColorLightYellow</span>
-        case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:<span class="cov8" title="1">
+        case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:<span class="cov0" title="0">
                 return ColorLightRed</span>
         default:<span class="cov0" title="0">
                 return ColorLightGreen</span>
         }
 }
 
-func levelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) <span class="cov8" title="1">{
+func levelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) <span class="cov0" title="0">{
         const reset = "\x1b[0m"
         enc.AppendString(string(levelColor(l)) + "[" + l.CapitalString() + "]" + reset)
 }</span>
@@ -3104,8 +3116,8 @@ type Logger struct {
         l *zap.SugaredLogger
 }
 
-func New(level LogLevel) (*Logger, error) <span class="cov8" title="1">{
-        zapLevel := parseLevel(level)
+func New(level string) (*Logger, error) <span class="cov0" title="0">{
+        zapLevel := parseLevel(LogLevel(level))
 
         encoderCfg := zapcore.EncoderConfig{
                 TimeKey:        zapcore.OmitKey,
@@ -3135,7 +3147,7 @@ func (l *Logger) Debug(args ...interface{}) <span class="cov0" title="0">{
         l.l.Debug(args...)
 }</span>
 
-func (l *Logger) Debugf(format string, args ...interface{}) <span class="cov8" title="1">{
+func (l *Logger) Debugf(format string, args ...interface{}) <span class="cov0" title="0">{
         l.l.Debugf(format, args...)
 }</span>
 
@@ -3171,7 +3183,7 @@ func (l *Logger) Error(args ...interface{}) <span class="cov0" title="0">{
         l.l.Error(args...)
 }</span>
 
-func (l *Logger) Errorf(format string, args ...interface{}) <span class="cov8" title="1">{
+func (l *Logger) Errorf(format string, args ...interface{}) <span class="cov0" title="0">{
         l.l.Errorf(format, args...)
 }</span>
 
@@ -3188,7 +3200,7 @@ func (l *Logger) Fatalf(format string, args ...interface{}) <span class="cov0" t
 }</span>
 </pre>
 		
-		<pre class="file" id="file46" style="display: none">package metrics
+		<pre class="file" id="file47" style="display: none">package metrics
 
 import (
         "net/http"
@@ -3211,7 +3223,7 @@ func (h *MetricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) <span
 }</span>
 </pre>
 		
-		<pre class="file" id="file47" style="display: none">package metrics
+		<pre class="file" id="file48" style="display: none">package metrics
 
 import (
         "github.com/prometheus/client_golang/prometheus"
@@ -3292,7 +3304,7 @@ func (w *MetricsWriter) RecordRateLimitExceeded(method, path string) <span class
 }</span>
 </pre>
 		
-		<pre class="file" id="file48" style="display: none">package ratelimiter
+		<pre class="file" id="file49" style="display: none">package tokenbucket
 
 import (
         "sync"
@@ -3306,18 +3318,22 @@ type TokenBucket struct {
         lastRefill time.Time
         mu         sync.Mutex
 
-        now        func () time.Time
+        now func() time.Time
 }
 
-func NewTokenBucket(capacity, refillRate int) *TokenBucket <span class="cov8" title="1">{
-        return &amp;TokenBucket{
+func NewTokenBucket(capacity, refillRate int, nowFn func() time.Time) *TokenBucket <span class="cov8" title="1">{
+        if nowFn == nil </span><span class="cov0" title="0">{
+                nowFn = time.Now
+        }</span>
+        <span class="cov8" title="1">tb := &amp;TokenBucket{
                 capacity:   capacity,
                 tokens:     capacity,
                 refillRate: refillRate,
-                lastRefill: time.Now(),
-                now:        time.Now, // now stores a func
+                now:        nowFn,
         }
-}</span>
+        tb.lastRefill = tb.now()
+        return tb</span>
+}
 
 func (tb *TokenBucket) Allow() bool <span class="cov8" title="1">{
         tb.mu.Lock()
@@ -3346,9 +3362,15 @@ func (tb *TokenBucket) refill() <span class="cov8" title="1">{
                 <span class="cov8" title="1">tb.lastRefill = now</span>
         }
 }
+
+func (tb *TokenBucket) Tokens() int <span class="cov8" title="1">{
+        tb.mu.Lock()
+        defer tb.mu.Unlock()
+        return tb.tokens
+}</span>
 </pre>
 		
-		<pre class="file" id="file49" style="display: none">package shutdown
+		<pre class="file" id="file50" style="display: none">package shutdown
 
 import (
         "context"
@@ -3372,7 +3394,7 @@ func WaitForShutdown() context.Context <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file50" style="display: none">// orders.proto
+		<pre class="file" id="file51" style="display: none">// orders.proto
 
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
@@ -3963,7 +3985,7 @@ func file_proto_order_order_proto_init() <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file51" style="display: none">// orders.proto
+		<pre class="file" id="file52" style="display: none">// orders.proto
 
 // Code generated by protoc-gen-go-grpc. DO NOT EDIT.
 // versions:

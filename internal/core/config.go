@@ -23,6 +23,8 @@ type Config struct {
 	DBName     string
 	DBSSLMode  string
 
+	LogLevel string
+
 	CheckFreeCouriersInterval time.Duration
 	OrderCheckCursorDelta     time.Duration
 
@@ -57,6 +59,8 @@ func LoadConfig() (*Config, error) {
 	cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
 	cfg.DBName = os.Getenv("POSTGRES_DB")
 	cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+
+	cfg.LogLevel = os.Getenv("LOG_LEVEL")
 
 	cfg.OrderCheckCursorDelta = secondsStringToDuration(
 		os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS"))

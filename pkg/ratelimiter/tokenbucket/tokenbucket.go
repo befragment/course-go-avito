@@ -12,7 +12,7 @@ type TokenBucket struct {
 	lastRefill time.Time
 	mu         sync.Mutex
 
-	now        func () time.Time
+	now func() time.Time
 }
 
 func NewTokenBucket(capacity, refillRate int, nowFn func() time.Time) *TokenBucket {

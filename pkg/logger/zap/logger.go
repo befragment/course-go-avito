@@ -27,12 +27,6 @@ const (
 	ColorPurple      Color = "\x1b[95m"
 	ColorCyan        Color = "\x1b[96m"
 	ColorLightPink   Color = "\x1b[95m"
-
-	PrettyRequestLogFormat string = string(ColorPurple) + "time=%s " +
-		string(ColorLightBlue) + "method=%s " +
-		string(ColorLightGreen) + "path=%s " +
-		string(ColorLightYellow) + "status=%d " +
-		string(ColorCyan) + "duration=%fms" + "\x1b[0m"
 )
 
 func parseLevel(level LogLevel) zapcore.Level {
@@ -74,8 +68,8 @@ type Logger struct {
 	l *zap.SugaredLogger
 }
 
-func New(level LogLevel) (*Logger, error) {
-	zapLevel := parseLevel(level)
+func New(level string) (*Logger, error) {
+	zapLevel := parseLevel(LogLevel(level))
 
 	encoderCfg := zapcore.EncoderConfig{
 		TimeKey:        zapcore.OmitKey,

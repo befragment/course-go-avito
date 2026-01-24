@@ -16,6 +16,7 @@ help:
 	@echo "  run-worker      - run worker with go run"
 	@echo "  test            - run go test ./..."
 	@echo "  test-nocache    - run go test ./... -count=1"
+	@echo "  tcoverage       - generate and open html with test coverage report"
 	@echo "  lint            - run go vet ./..."
 	@echo "  migrate-create  - create new migration (usage: make migrate-create NAME=migration_name)"
 	@echo "  migrate-up      - apply DB migrations (scripts/migrate.sh up)"
@@ -102,3 +103,10 @@ dc-logs:
 .PHONY: dc-psql
 dc-psql:
 	sh ./scripts/psql-container.sh
+
+.PHONY:
+tcoverage:
+	go test ./... -coverprofile=coverage.out -coverpkg=./...
+	go tool cover -func=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
+	open coverage.html

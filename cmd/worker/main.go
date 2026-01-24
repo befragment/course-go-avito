@@ -38,15 +38,15 @@ import (
 
 func main() {
 	ctx := shutdown.WaitForShutdown()
-
-	logger, err := l.New(l.LogLevelInfo)
-	if err != nil {
-		log.Fatalf("Failed to create logger: %v", err)
-	}
-
 	cfg, err := core.LoadConfig()
+
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	logger, err := l.New(cfg.LogLevel)
+	if err != nil {
+		log.Fatalf("Failed to create logger: %v", err)
 	}
 
 	go initMetricsServer(ctx, ":9101", logger)
@@ -170,7 +170,7 @@ func runKafkaConsumer(
 }
 
 func configureRetry(maxAttemps int) retryexec.RetryConfig {
-	fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0)
+	fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0, nil)
 	return retryexec.RetryConfig{
 		MaxAttempts: maxAttemps,
 		Strategy:    fullJitter,

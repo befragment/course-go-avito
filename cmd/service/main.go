@@ -34,17 +34,15 @@ import (
 func main() {
 	ctx := shutdown.WaitForShutdown()
 
-	logger, err := l.New(l.LogLevelInfo)
+	cfg, err := core.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	logger, err := l.New(cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
-
-	cfg, err := core.LoadConfig()
-	if err != nil {
-		logger.Error("Failed to load config: %v", err)
-	}
-
-	logger.Info(cfg.PprofAddress)
 
 	ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate, time.Now)
 

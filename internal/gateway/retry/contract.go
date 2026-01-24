@@ -1,5 +1,7 @@
 package retry
 
+import "time"
+
 type logger interface {
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
@@ -16,4 +18,8 @@ type logger interface {
 
 	Fatal(args ...interface{})
 	Fatalf(format string, args ...interface{})
+}
+
+type strategy interface {
+	NextDelay(attempt int) time.Duration
 }

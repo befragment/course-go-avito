@@ -5,18 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
 )
 
 var ErrMaxAttemptsExceeded = errors.New("max retry attempts exceeded")
 
-type Strategy interface {
-	NextDelay(attempt int) time.Duration
-}
-
 type RetryConfig struct {
 	MaxAttempts int
-	Strategy    Strategy
+	Strategy    strategy
 	ShouldRetry func(error) bool
 }
 
