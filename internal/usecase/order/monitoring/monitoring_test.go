@@ -3,6 +3,7 @@ package ordermonitoring_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -249,10 +250,13 @@ func TestOrderMonitoringUseCase_MonitorOrders_TimeWindow(t *testing.T) {
 	interval := 100 * time.Millisecond
 
 	var capturedTime time.Time
+	var mu sync.Mutex
 	mockGateway.EXPECT().
 		GetOrders(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(ctx context.Context, from time.Time) ([]model.Order, error) {
+			mu.Lock()
 			capturedTime = from
+			mu.Unlock()
 			return []model.Order{}, nil
 		}).
 		Times(1)
@@ -272,7 +276,9 @@ func TestOrderMonitoringUseCase_MonitorOrders_TimeWindow(t *testing.T) {
 
 	// Verify that the time window is approximately correct
 	expectedTime := startTime.Add(-interval)
+	mu.Lock()
 	timeDiff := capturedTime.Sub(expectedTime)
+	mu.Unlock()
 	assert.True(t, timeDiff < 150*time.Millisecond && timeDiff > -150*time.Millisecond,
 		"Time window should be approximately %v ago, but was %v", interval, timeDiff)
 }
