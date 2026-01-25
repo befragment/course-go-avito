@@ -4,3 +4,7 @@
 main
 service
 worker
+
+# Coverage
+coverage.out
+coverage.html
