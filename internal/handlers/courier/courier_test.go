@@ -194,7 +194,7 @@ func TestCourierHandler_UpdateCourier(t *testing.T) {
 				var result map[string]string
 				err := json.Unmarshal(rr.Body.Bytes(), &result)
 				require.NoError(t, err)
-				assert.Contains(t, result["error"], "unexpected")
+				assert.Contains(t, result["error"], "Id is required")
 			},
 		},
 	}

@@ -71,7 +71,7 @@
 				
 				<option value="file7">courier-service/internal/handlers/common/common.go (75.0%)</option>
 				
-				<option value="file8">courier-service/internal/handlers/courier/courier.go (54.5%)</option>
+				<option value="file8">courier-service/internal/handlers/courier/courier.go (59.1%)</option>
 				
 				<option value="file9">courier-service/internal/handlers/courier/dto.go (100.0%)</option>
 				
@@ -1165,7 +1165,7 @@ func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request
                 return
         }</span>
 
-        <span class="cov8" title="1">if req.ID == 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.ID == 0 </span><span class="cov8" title="1">{
                 utils.RespondWithError(w, http.StatusBadRequest, ErrIDRequired)
                 return
         }</span>
@@ -1783,7 +1783,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
         queryBuilder := sq.
                 Select(db.IDColumn, db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
                 From(db.CourierTable).
-                Where(sq.Eq{db.IDColumn: id}). // 
+                Where(sq.Eq{db.IDColumn: id}). //
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
@@ -1905,7 +1905,7 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Cou
         <span class="cov0" title="0">return nil</span>
 }
 
-func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) <span class="cov0" title="0">{        
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) <span class="cov0" title="0">{
         subqueryCountDeliveries := sq.
                 Select(db.CourierIDColumn, "COUNT(*) AS cnt").
                 From(db.DeliveryTable).
@@ -1918,20 +1918,19 @@ func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Cou
                 return model.Courier{}, err
         }
 
-        // Основ�</span></span></span></span></span><span class="cov0" title="0">�ой запрос
+        // Основ�</span></span></span></span></span></span></span></span><span class="cov0" title="0">�ой запрос
         queryBuilder := sq.
                 </span>Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
                 From(db.CourierTable).
-                LeftJoin(fmt.Sprintf("(%s) d ON d.%s = %s", 
-                                        subqueryCountDeliveriesSQL, 
-                                        db.CourierIDColumn, 
-                                        db.CourierID,
-                                ), subqueryArgs...).
+                LeftJoin(fmt.Sprintf("(%s) d ON d.%s = %s",
+                        subqueryCountDeliveriesSQL,
+                        db.CourierIDColumn,
+                        db.CourierID,
+                ), subqueryArgs...).
                 Where(sq.Eq{db.CourierStatus: db.StatusAvailable}).
                 OrderBy("COALESCE(d.cnt, 0) ASC").
                 Limit(1).
                 PlaceholderFormat(sq.Dollar)
-
 
         query, args, err := queryBuilder.ToSql()
         if err != nil </span></span></span></span></span></span><span class="cov0" title="0">{
@@ -1961,9 +1960,9 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
                 Update(db.CourierTable + " c").
                 SetMap(sm).
                 Where(sq.Eq{db.StatusColumn: db.StatusBusy}).
-                Where(sq.Expr</span></span></span></span></span></span>(`
+                Where(sq.Expr(`
                         EXISTS (
-                                SELECT 1
+</span></span></span></span></span></span>                                SELECT 1
                                 FROM delivery d
                                 WHERE d.courier_id = c.id
                                 AND d.assigned_at = (
@@ -1986,15 +1985,15 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
                 return err
         }
 
-</span></span></span>        if ct.RowsAffected() &gt; 0 {
-                </span></span>r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
-        }</span>
+        if ct.RowsAffe</span></span></span>cted() &gt; 0 </span>{
+                r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
+        }</span></span>
 
-        return nil
+        <span class="cov0" title="0">return nil</span>
 }
-</span></span>
-fu</span>nc (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) <span class="cov0" title="0">{
-        queryBuilder := sq.
+
+</span></span></span></span></span></span>func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) {
+        q</span>ueryBuilder := sq.
                 Select(db.CountAll).
                 From(db.CourierTable).
                 Where(sq.Eq{db.CourierPhone: phone}).
@@ -2006,23 +2005,23 @@ fu</span>nc (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, pho
         }
 
         var count int64
-        err = r.pool.Q</span></span>ueryRow(ctx, query, args...).Scan(&amp;count)
-        if err != nil </span>{
-                </span>return false, err
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;count)
+        if err != nil </span></span></span><span class="cov0" title="0">{
+                return false, err
         }</span>
         <span class="cov0" title="0">return count &gt; 0, nil</span>
-}
+}<span class="cov0" title="0">
 
-</span></span></span></span></span></span></span>func (r *CourierRepository) GetCour</span><span class="cov0" title="0">ierIDByOrderID(ctx context.Context, orderID string) (int64, error) {
+func (r *Courie</span><span class="cov0" title="0">rRepository) GetCourierIDByOrderID(ctx context.Context, orderID string) (int64, error) {
         queryBuilder := sq.
-                S</span>elect(db.DeliveryCourierID).
+</span>                Select(db.DeliveryCourierID).
                 From(db.DeliveryTable).
-                Where(sq.Eq{db.DeliveryOrderID: orderID}). // order id 
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). // order id
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
 
-        if err != nil </span></span></span><span class="cov0" title="0">{
+        if err != nil </span></span></span></span><span class="cov0" title="0">{
                 return 0, err
         }</span>
 
@@ -2094,7 +2093,7 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
                 Select(db.DeliveryOrderID, db.CourierID).
                 From(db.DeliveryTable).
                 Join(fmt.Sprintf("%s ON %s = %s", db.CourierTable, db.DeliveryCourierID, db.CourierID)).
-                Where(sq.Eq{db.DeliveryOrderID: orderID}). // 
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). //
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
