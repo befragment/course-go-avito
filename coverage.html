@@ -71,9 +71,9 @@
 				
 				<option value="file7">courier-service/internal/handlers/common/common.go (75.0%)</option>
 				
-				<option value="file8">courier-service/internal/handlers/courier/courier.go (0.0%)</option>
+				<option value="file8">courier-service/internal/handlers/courier/courier.go (54.5%)</option>
 				
-				<option value="file9">courier-service/internal/handlers/courier/dto.go (0.0%)</option>
+				<option value="file9">courier-service/internal/handlers/courier/dto.go (100.0%)</option>
 				
 				<option value="file10">courier-service/internal/handlers/courier/errors.go (0.0%)</option>
 				
@@ -1097,28 +1097,28 @@ type CourierController struct {
         useCase courierUseCase
 }
 
-func NewCourierController(useCase courierUseCase) *CourierController <span class="cov0" title="0">{
+func NewCourierController(useCase courierUseCase) *CourierController <span class="cov8" title="1">{
         return &amp;CourierController{useCase: useCase}
 }</span>
 
-func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
         ctx := r.Context()
         id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 utils.RespondWithError(w, http.StatusBadRequest, ErrInvalidID)
                 return
         }</span>
 
-        <span class="cov0" title="0">courier, err := c.useCase.GetCourierById(ctx, id)
-        if err != nil </span><span class="cov0" title="0">{
-                if errors.Is(err, usecase.ErrCourierNotFound) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">courier, err := c.useCase.GetCourierById(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, usecase.ErrCourierNotFound) </span><span class="cov8" title="1">{
                         utils.RespondWithError(w, http.StatusNotFound, ErrCourierNotFound)
                         return
                 }</span>
-                <span class="cov0" title="0">utils.RespondInternalServerError(w, err)
+                <span class="cov8" title="1">utils.RespondInternalServerError(w, err)
                 return</span>
         }
-        <span class="cov0" title="0">utils.RespondWithJSON(w, http.StatusOK, courier)</span>
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, courier)</span>
 }
 
 func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
@@ -1157,27 +1157,27 @@ func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request
         })</span>
 }
 
-func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
         ctx := r.Context()
         var req CourierUpdateRequestDTO
-        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov0" title="0">{
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
                 utils.RespondWithError(w, http.StatusBadRequest, err.Error())
                 return
         }</span>
 
-        <span class="cov0" title="0">if req.ID == 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.ID == 0 </span><span class="cov0" title="0">{
                 utils.RespondWithError(w, http.StatusBadRequest, ErrIDRequired)
                 return
         }</span>
 
-        <span class="cov0" title="0">courier := req.ToModel()
+        <span class="cov8" title="1">courier := req.ToModel()
         err := c.useCase.UpdateCourier(ctx, courier)
         if err != nil </span><span class="cov0" title="0">{
                 handleUpdateError(w, err)
                 return
         }</span>
 
-        <span class="cov0" title="0">utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, map[string]string{
                 "message": "Courier updated successfully",
         })</span>
 }
@@ -1202,21 +1202,21 @@ type CourierUpdateRequestDTO struct {
         Status        *string `json:"status"`
 }
 
-func (req CourierUpdateRequestDTO) ToModel() model.Courier <span class="cov0" title="0">{
+func (req CourierUpdateRequestDTO) ToModel() model.Courier <span class="cov8" title="1">{
         courier := model.Courier{ID: req.ID}
-        if req.Name != nil </span><span class="cov0" title="0">{
+        if req.Name != nil </span><span class="cov8" title="1">{
                 courier.Name = *req.Name
         }</span>
-        <span class="cov0" title="0">if req.Phone != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Phone != nil </span><span class="cov8" title="1">{
                 courier.Phone = *req.Phone
         }</span>
-        <span class="cov0" title="0">if req.TransportType != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.TransportType != nil </span><span class="cov8" title="1">{
                 courier.TransportType = model.CourierTransportType(*req.TransportType)
         }</span>
-        <span class="cov0" title="0">if req.Status != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Status != nil </span><span class="cov8" title="1">{
                 courier.Status = model.CourierStatus(*req.Status)
         }</span>
-        <span class="cov0" title="0">return courier</span>
+        <span class="cov8" title="1">return courier</span>
 }
 </pre>
 		
@@ -1783,7 +1783,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
         queryBuilder := sq.
                 Select(db.IDColumn, db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
                 From(db.CourierTable).
-                Where(sq.Eq{db.IDColumn: id}).
+                Where(sq.Eq{db.IDColumn: id}). // 
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
@@ -1905,37 +1905,53 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Cou
         <span class="cov0" title="0">return nil</span>
 }
 
-func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) <span class="cov0" title="0">{
-        // Great idea to add index here on delivery.courier_id
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) <span class="cov0" title="0">{        
+        subqueryCountDeliveries := sq.
+                Select(db.CourierIDColumn, "COUNT(*) AS cnt").
+                From(db.DeliveryTable).
+                GroupBy(db.CourierIDColumn).
+                PlaceholderFormat(sq.Dollar)
+
+        // Преобразуем подзапрос в строку для JOIN
+        subqueryCountDeliveriesSQL, subqueryArgs, err := subqueryCountDeliveries.ToSql()
+        if err != nil </span>{
+                return model.Courier{}, err
+        }
+
+        // Основ�</span></span></span></span></span><span class="cov0" title="0">�ой запрос
         queryBuilder := sq.
-                Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
+                </span>Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
                 From(db.CourierTable).
-                LeftJoin(fmt.Sprintf("%s ON %s = %s", db.DeliveryTable, db.CourierID, db.DeliveryCourierID)).
+                LeftJoin(fmt.Sprintf("(%s) d ON d.%s = %s", 
+                                        subqueryCountDeliveriesSQL, 
+                                        db.CourierIDColumn, 
+                                        db.CourierID,
+                                ), subqueryArgs...).
                 Where(sq.Eq{db.CourierStatus: db.StatusAvailable}).
-                GroupBy(db.CourierID).
-                OrderBy(fmt.Sprintf("COUNT(%s) asc", db.DeliveryID)).
+                OrderBy("COALESCE(d.cnt, 0) ASC").
                 Limit(1).
                 PlaceholderFormat(sq.Dollar)
 
+
         query, args, err := queryBuilder.ToSql()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span></span></span></span></span></span><span class="cov0" title="0">{
                 return model.Courier{}, err
         }</span>
 
-        <span class="cov0" title="0">var c entity.CourierDB
+        var c entity.CourierDB
         err = r.pool.QueryRow(ctx, query, args...).
                 Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
-        if err != nil </span><span class="cov0" title="0">{
-                if errors.Is(err, pgx.ErrNoRows) </span><span class="cov0" title="0">{
+        if err != nil {
+                if errors.Is(err, pgx.ErrNoRows) {
                         return model.Courier{}, ErrCouriersBusy
-                }</span>
-                <span class="cov0" title="0">return model.Courier{}, err</span>
+                }
+                return model.Courier{}, err
         }
 
-        <span class="cov0" title="0">return c.ToModel(), nil</span>
+        return c.ToModel(), nil
 }
 
-func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error <span class="cov0" title="0">{
+func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error {
         sm := sq.Eq{
                 db.UpdatedAtColumn: time.Now(),
                 db.StatusColumn:    db.StatusAvailable,
@@ -1945,7 +1961,7 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
                 Update(db.CourierTable + " c").
                 SetMap(sm).
                 Where(sq.Eq{db.StatusColumn: db.StatusBusy}).
-                Where(sq.Expr(`
+                Where(sq.Expr</span></span></span></span></span></span>(`
                         EXISTS (
                                 SELECT 1
                                 FROM delivery d
@@ -1961,23 +1977,23 @@ func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error 
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span></span></span></span></span></span></span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">ct, err := r.pool.Exec(ctx, query, args...)
-        if err != nil </span><span class="cov0" title="0">{
+        ct, err := r.pool.Exec(ctx, query, args...)
+        if err != nil {
                 return err
+        }
+
+</span></span></span>        if ct.RowsAffected() &gt; 0 {
+                </span></span>r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
         }</span>
 
-        <span class="cov0" title="0">if ct.RowsAffected() &gt; 0 </span><span class="cov0" title="0">{
-                r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
-        }</span>
-
-        <span class="cov0" title="0">return nil</span>
+        return nil
 }
-
-func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) <span class="cov0" title="0">{
+</span></span>
+fu</span>nc (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) <span class="cov0" title="0">{
         queryBuilder := sq.
                 Select(db.CountAll).
                 From(db.CourierTable).
@@ -1985,28 +2001,28 @@ func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone stri
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span></span>{
                 return false, err
-        }</span>
+        }
 
-        <span class="cov0" title="0">var count int64
-        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;count)
-        if err != nil </span><span class="cov0" title="0">{
-                return false, err
+        var count int64
+        err = r.pool.Q</span></span>ueryRow(ctx, query, args...).Scan(&amp;count)
+        if err != nil </span>{
+                </span>return false, err
         }</span>
         <span class="cov0" title="0">return count &gt; 0, nil</span>
 }
 
-func (r *CourierRepository) GetCourierIDByOrderID(ctx context.Context, orderID string) (int64, error) <span class="cov0" title="0">{
+</span></span></span></span></span></span></span>func (r *CourierRepository) GetCour</span><span class="cov0" title="0">ierIDByOrderID(ctx context.Context, orderID string) (int64, error) {
         queryBuilder := sq.
-                Select(db.DeliveryCourierID).
+                S</span>elect(db.DeliveryCourierID).
                 From(db.DeliveryTable).
-                Where(sq.Eq{db.DeliveryOrderID: orderID}).
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). // order id 
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()
 
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span></span></span><span class="cov0" title="0">{
                 return 0, err
         }</span>
 
@@ -2078,7 +2094,7 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
                 Select(db.DeliveryOrderID, db.CourierID).
                 From(db.DeliveryTable).
                 Join(fmt.Sprintf("%s ON %s = %s", db.CourierTable, db.DeliveryCourierID, db.CourierID)).
-                Where(sq.Eq{db.DeliveryOrderID: orderID}).
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). // 
                 PlaceholderFormat(sq.Dollar)
 
         query, args, err := queryBuilder.ToSql()

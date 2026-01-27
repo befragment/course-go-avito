@@ -6,5 +6,4 @@ service
 worker
 
 # Coverage
-coverage.out
-coverage.html
+coverage.*

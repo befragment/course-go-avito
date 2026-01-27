@@ -1,31 +1,42 @@
--- Seed data for couriers
--- Phone format: +[0-9]{11}
--- transport_type: 'on_foot', 'scooter', 'car'
+BEGIN;
 
-INSERT INTO couriers 
-    (name,       phone,          status,      transport_type)
-VALUES
-    ('Vasya',    '+79000000001', 'available', 'scooter'),
-    ('Petya',    '+79000000002', 'available', 'on_foot'),
-    ('Masha',    '+79000000003', 'available', 'car'),
-    ('Dasha',    '+79000000004', 'available', 'scooter'),
-    ('Serega',   '+79000000005', 'available', 'on_foot'),
-    ('Oleg',     '+79000000006', 'available', 'car'),
-    ('Irina',    '+79000000007', 'available', 'scooter'),
-    ('Nastya',   '+79000000008', 'available', 'on_foot'),
-    ('Alex',     '+79000000009', 'available', 'car'),
-    ('Nikolay',  '+79000000010', 'available', 'scooter'),
-    ('Polina',   '+79000000011', 'available', 'on_foot'),
-    ('Denis',    '+79000000012', 'available', 'car'),
-    ('Sergey',   '+79000000013', 'available', 'scooter'),
-    ('Alina',    '+79000000014', 'available', 'on_foot'),
-    ('Roman',    '+79000000015', 'available', 'car'),
-    ('Dmitry',   '+79000000016', 'available', 'scooter'),
-    ('Olga',     '+79000000017', 'available', 'on_foot'),
-    ('Yana',     '+79000000018', 'available', 'car'),
-    ('Kirill',   '+79000000019', 'available', 'scooter'),
-    ('Victoria', '+79000000020', 'available', 'on_foot'),
-    ('Andrey',   '+79000000021', 'available', 'car'),
-    ('Igor',     '+79000000022', 'available', 'scooter'),
-    ('Elena',    '+79000000023', 'available', 'on_foot'),
-    ('Tatiana',  '+79000000024', 'available', 'car');
+-- ускорение на время наполнения
+SET LOCAL synchronous_commit = OFF;
+SET LOCAL work_mem = '256MB';
+
+-- нужно один раз (можно оставить, если уже включено)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- очистка (если надо)
+TRUNCATE TABLE delivery, couriers RESTART IDENTITY CASCADE;
+
+-- 1) couriers: 100 000
+INSERT INTO couriers (name, phone, status, created_at, updated_at, transport_type)
+SELECT
+  'Courier ' || gs::text AS name,
+  -- уникальный телефон: +79XXXXXXXXX
+  '+79' || lpad(gs::text, 9, '0') AS phone,
+  (ARRAY['available','busy','inactive'])[1 + (random()*2)::int] AS status,
+  now() - (random() * interval '365 days') AS created_at,
+  now() - (random() * interval '30 days')  AS updated_at,
+  (ARRAY['on_foot','bike','car','scooter'])[1 + (random()*3)::int] AS transport_type
+FROM generate_series(1, 100000) gs;
+
+-- 2) delivery: 1 000 000
+INSERT INTO delivery (courier_id, order_id, assigned_at, deadline)
+SELECT
+  1 + (random() * 99999)::int AS courier_id,
+  gen_random_uuid()::text     AS order_id,    -- UUID строкой
+  ts                          AS assigned_at,
+  ts + (15 + (random() * 180)) * interval '1 minute' AS deadline
+FROM (
+  SELECT
+    gs,
+    now() - (random() * interval '90 days') AS ts
+  FROM generate_series(1, 1000000) gs
+) s;
+
+COMMIT;
+
+ANALYZE couriers;
+ANALYZE delivery;

@@ -29,7 +29,7 @@ func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model
 	queryBuilder := sq.
 		Select(db.IDColumn, db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
 		From(db.CourierTable).
-		Where(sq.Eq{db.IDColumn: id}).
+		Where(sq.Eq{db.IDColumn: id}). //
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
@@ -152,14 +152,29 @@ func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Cou
 }
 
 func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) {
-	// Great idea to add index here on delivery.courier_id
+	subqueryCountDeliveries := sq.
+		Select(db.CourierIDColumn, "COUNT(*) AS cnt").
+		From(db.DeliveryTable).
+		GroupBy(db.CourierIDColumn).
+		PlaceholderFormat(sq.Dollar)
+
+	// Преобразуем подзапрос в строку для JOIN
+	subqueryCountDeliveriesSQL, subqueryArgs, err := subqueryCountDeliveries.ToSql()
+	if err != nil {
+		return model.Courier{}, err
+	}
+
+	// Основной запрос
 	queryBuilder := sq.
 		Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
 		From(db.CourierTable).
-		LeftJoin(fmt.Sprintf("%s ON %s = %s", db.DeliveryTable, db.CourierID, db.DeliveryCourierID)).
+		LeftJoin(fmt.Sprintf("(%s) d ON d.%s = %s",
+			subqueryCountDeliveriesSQL,
+			db.CourierIDColumn,
+			db.CourierID,
+		), subqueryArgs...).
 		Where(sq.Eq{db.CourierStatus: db.StatusAvailable}).
-		GroupBy(db.CourierID).
-		OrderBy(fmt.Sprintf("COUNT(%s) asc", db.DeliveryID)).
+		OrderBy("COALESCE(d.cnt, 0) ASC").
 		Limit(1).
 		PlaceholderFormat(sq.Dollar)
 
@@ -247,7 +262,7 @@ func (r *CourierRepository) GetCourierIDByOrderID(ctx context.Context, orderID s
 	queryBuilder := sq.
 		Select(db.DeliveryCourierID).
 		From(db.DeliveryTable).
-		Where(sq.Eq{db.DeliveryOrderID: orderID}).
+		Where(sq.Eq{db.DeliveryOrderID: orderID}). // order id
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()
