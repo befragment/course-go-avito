@@ -2,9 +2,10 @@ package unassign
 
 import (
 	"context"
+	"errors"
+
 	"courier-service/internal/model"
 	deliveryRepo "courier-service/internal/repository/delivery"
-	"errors"
 )
 
 type UnassignDelieveryUseCase struct {

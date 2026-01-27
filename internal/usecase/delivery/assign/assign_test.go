@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
 	"courier-service/internal/model"
 	courierstorage "courier-service/internal/repository/courier"
 	deliverystorage "courier-service/internal/repository/delivery"
 	"courier-service/internal/usecase/delivery/assign"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAssignDelivery(t *testing.T) {

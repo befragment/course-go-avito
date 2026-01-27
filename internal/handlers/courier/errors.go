@@ -2,8 +2,9 @@ package courier
 
 import (
 	"net/http"
-	"courier-service/internal/usecase/courier"
+
 	"courier-service/internal/handlers/utils"
+	"courier-service/internal/usecase/courier"
 )
 
 const (

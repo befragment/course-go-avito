@@ -13,11 +13,25 @@ func NewChiPathNormalizer() *ChiPathNormalizer {
 }
 
 func (n *ChiPathNormalizer) Normalize(r *http.Request) string {
-	routePattern := chi.RouteContext(r.Context()).RoutePattern()
-
-	if routePattern == "" {
+	rctx := chi.RouteContext(r.Context())
+	if rctx == nil {
 		return "unknown"
 	}
 
-	return routePattern
+	// If router already matched (e.g. after next.ServeHTTP)
+	if rp := rctx.RoutePattern(); rp != "" {
+		return rp
+	}
+
+	// Early stage: do a dry-run match against the same Routes tree
+	if rctx.Routes != nil {
+		tmp := chi.NewRouteContext()
+		if rctx.Routes.Match(tmp, r.Method, r.URL.Path) {
+			if rp := tmp.RoutePattern(); rp != "" {
+				return rp
+			}
+		}
+	}
+
+	return "unknown"
 }

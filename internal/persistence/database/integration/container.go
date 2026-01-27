@@ -47,8 +47,11 @@ func TestWithMigrations() (*postgres.PostgresContainer, string, error) {
 		if err != nil {
 			creationError = err
 		}
-		defer db.Close()
-
+		defer func() {
+			if cerr := db.Close(); cerr != nil && creationError == nil {
+				creationError = cerr
+			}
+		}()
 		if err := goose.Up(db, "../../../migrations"); err != nil {
 			creationError = err
 		}

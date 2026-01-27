@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"courier-service/internal/model"
 	"courier-service/internal/handlers/utils"
+	"courier-service/internal/model"
 	usecase "courier-service/internal/usecase/courier"
 )
 

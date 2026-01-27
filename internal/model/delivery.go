@@ -9,4 +9,3 @@ type Delivery struct {
 	AssignedAt time.Time
 	Deadline   time.Time
 }
-

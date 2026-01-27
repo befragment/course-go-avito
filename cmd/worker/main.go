@@ -2,45 +2,55 @@ package main
 
 import (
 	"context"
-	logger "courier-service/pkg/logger"
-	orderpb "courier-service/proto/order"
+	"errors"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	core "courier-service/internal/core"
+	interceptor "courier-service/internal/gateway/interceptor"
 	ordergw "courier-service/internal/gateway/order"
+	retryexec "courier-service/internal/gateway/retry"
 	orderhandler "courier-service/internal/handlers/queues/order/changed"
+	model "courier-service/internal/model"
 	courierRepo "courier-service/internal/repository/courier"
 	deliveryRepo "courier-service/internal/repository/delivery"
 	txRunner "courier-service/internal/repository/txrunner"
-
-	model "courier-service/internal/model"
 	deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
 	deliverycompleteusecase "courier-service/internal/usecase/delivery/complete"
 	deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
 	changed "courier-service/internal/usecase/order/changed"
 	processor "courier-service/internal/usecase/order/changed/processor"
 	deliverycalculator "courier-service/internal/usecase/utils"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	database "courier-service/pkg/database/postgres"
+	delay "courier-service/pkg/delay/fulljitter"
+	l "courier-service/pkg/logger/zap"
+	metrics "courier-service/pkg/metrics/prometheus"
+	shutdown "courier-service/pkg/shutdown"
+	orderpb "courier-service/proto/order"
 )
 
 func main() {
-	ctx := core.WaitForShutdown()
+	ctx := shutdown.WaitForShutdown()
+	cfg, err := core.LoadConfig()
 
-	logger, err := logger.New(logger.LogLevelInfo)
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	logger, err := l.New(cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
 
-	cfg, err := core.LoadConfig()
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-		
+	go initMetricsServer(ctx, ":9101", logger)
+
 	config := sarama.NewConfig()
 	configureKafkaClient(config)
 	logger.Info("Kafka client configured")
@@ -49,16 +59,32 @@ func main() {
 	groupID := cfg.KafkaGroupID
 	brokers := cfg.KafkaBrokers
 
-	grpcClient, err := grpc.NewClient(cfg.GRPCServiceOrderServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// Создаем метрики для worker
+	httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+	metricsWriter := metrics.NewMetricsWriter(httpMetrics)
+
+	grpcClient, err := grpc.NewClient(
+		cfg.GRPCServiceOrderServer,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithChainUnaryInterceptor(
+			interceptor.LoggingMetricsInterceptor(logger, metricsWriter),
+		),
+	)
 	if err != nil {
 		logger.Errorf("Failed to create grpc client: %v", err)
 	}
-	defer grpcClient.Close()
+	defer func() {
+		if err := grpcClient.Close(); err != nil {
+			logger.Errorf("Failed to close grpc client: %v", err)
+		}
+	}()
 
 	ordersClient := orderpb.NewOrdersServiceClient(grpcClient)
-	orderGateway := ordergw.NewGateway(ordersClient)
+	retryCfg := configureRetry(cfg.RetryMaxAttempts)
+	retry := retryexec.NewRetryExecutor(retryCfg, logger)
+	orderGateway := ordergw.NewGateway(ordersClient, retry, logger)
 
-	dbPool := core.MustInitPool(logger)
+	dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
 	defer dbPool.Close()
 	courierRepository := courierRepo.NewCourierRepository(dbPool, logger)
 	deliveryRepository := deliveryRepo.NewDeliveryRepository(dbPool)
@@ -113,7 +139,7 @@ func configureKafkaClient(config *sarama.Config) {
 
 func runKafkaConsumer(
 	ctx context.Context,
-	logger logger.Interface,
+	logger *l.Logger,
 	brokers []string,
 	groupID string,
 	topic string,
@@ -140,5 +166,34 @@ func runKafkaConsumer(
 			logger.Info("Context cancelled, exiting consume loop")
 			return nil
 		}
+	}
+}
+
+func configureRetry(maxAttemps int) retryexec.RetryConfig {
+	fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0, nil)
+	return retryexec.RetryConfig{
+		MaxAttempts: maxAttemps,
+		Strategy:    fullJitter,
+		ShouldRetry: nil,
+	}
+}
+
+func initMetricsServer(ctx context.Context, addr string, logger *l.Logger) {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	go func() {
+		<-ctx.Done()
+		_ = srv.Shutdown(context.Background())
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Errorf("metrics server listen failed on %s: %v", addr, err)
 	}
 }

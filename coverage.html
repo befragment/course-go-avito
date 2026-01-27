@@ -1,0 +1,4201 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>service: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">courier-service/cmd/service/main.go (0.0%)</option>
+				
+				<option value="file1">courier-service/cmd/worker/main.go (0.0%)</option>
+				
+				<option value="file2">courier-service/internal/core/config.go (0.0%)</option>
+				
+				<option value="file3">courier-service/internal/gateway/interceptor/interceptor.go (0.0%)</option>
+				
+				<option value="file4">courier-service/internal/gateway/order/dto.go (0.0%)</option>
+				
+				<option value="file5">courier-service/internal/gateway/order/order.go (0.0%)</option>
+				
+				<option value="file6">courier-service/internal/gateway/retry/retry.go (0.0%)</option>
+				
+				<option value="file7">courier-service/internal/handlers/common/common.go (75.0%)</option>
+				
+				<option value="file8">courier-service/internal/handlers/courier/courier.go (59.1%)</option>
+				
+				<option value="file9">courier-service/internal/handlers/courier/dto.go (100.0%)</option>
+				
+				<option value="file10">courier-service/internal/handlers/courier/errors.go (0.0%)</option>
+				
+				<option value="file11">courier-service/internal/handlers/delivery/delivery.go (100.0%)</option>
+				
+				<option value="file12">courier-service/internal/handlers/delivery/dto.go (100.0%)</option>
+				
+				<option value="file13">courier-service/internal/handlers/delivery/errors.go (100.0%)</option>
+				
+				<option value="file14">courier-service/internal/handlers/middleware/logging/logging.go (0.0%)</option>
+				
+				<option value="file15">courier-service/internal/handlers/middleware/ratelimit/ratelimit.go (0.0%)</option>
+				
+				<option value="file16">courier-service/internal/handlers/queues/order/changed/order.go (0.0%)</option>
+				
+				<option value="file17">courier-service/internal/handlers/utils/errorhandler.go (100.0%)</option>
+				
+				<option value="file18">courier-service/internal/handlers/utils/json.go (75.0%)</option>
+				
+				<option value="file19">courier-service/internal/model/courier.go (100.0%)</option>
+				
+				<option value="file20">courier-service/internal/persistence/database/integration/clear.go (0.0%)</option>
+				
+				<option value="file21">courier-service/internal/persistence/database/integration/container.go (0.0%)</option>
+				
+				<option value="file22">courier-service/internal/repository/courier/courier.go (0.0%)</option>
+				
+				<option value="file23">courier-service/internal/repository/delivery/delivery.go (0.0%)</option>
+				
+				<option value="file24">courier-service/internal/repository/entity/courier.go (0.0%)</option>
+				
+				<option value="file25">courier-service/internal/repository/txrunner/txrunner.go (0.0%)</option>
+				
+				<option value="file26">courier-service/internal/repository/utils/database/constants.go (0.0%)</option>
+				
+				<option value="file27">courier-service/internal/routing/common.go (0.0%)</option>
+				
+				<option value="file28">courier-service/internal/routing/courier.go (0.0%)</option>
+				
+				<option value="file29">courier-service/internal/routing/delivery.go (0.0%)</option>
+				
+				<option value="file30">courier-service/internal/routing/normalizer.go (0.0%)</option>
+				
+				<option value="file31">courier-service/internal/routing/root.go (0.0%)</option>
+				
+				<option value="file32">courier-service/internal/usecase/courier/courier.go (91.8%)</option>
+				
+				<option value="file33">courier-service/internal/usecase/delivery/assign/assign.go (90.3%)</option>
+				
+				<option value="file34">courier-service/internal/usecase/delivery/assign/dto.go (100.0%)</option>
+				
+				<option value="file35">courier-service/internal/usecase/delivery/complete/complete.go (0.0%)</option>
+				
+				<option value="file36">courier-service/internal/usecase/delivery/unassign/unassign.go (88.0%)</option>
+				
+				<option value="file37">courier-service/internal/usecase/order/changed/changed.go (100.0%)</option>
+				
+				<option value="file38">courier-service/internal/usecase/order/changed/factory.go (100.0%)</option>
+				
+				<option value="file39">courier-service/internal/usecase/order/changed/processor/cancelled.go (100.0%)</option>
+				
+				<option value="file40">courier-service/internal/usecase/order/changed/processor/completed.go (100.0%)</option>
+				
+				<option value="file41">courier-service/internal/usecase/order/changed/processor/created.go (100.0%)</option>
+				
+				<option value="file42">courier-service/internal/usecase/order/monitoring/monitoring.go (100.0%)</option>
+				
+				<option value="file43">courier-service/internal/usecase/utils/timecalculator.go (0.0%)</option>
+				
+				<option value="file44">courier-service/pkg/database/postgres/database.go (0.0%)</option>
+				
+				<option value="file45">courier-service/pkg/delay/fulljitter/fulljitter.go (100.0%)</option>
+				
+				<option value="file46">courier-service/pkg/logger/zap/logger.go (0.0%)</option>
+				
+				<option value="file47">courier-service/pkg/metrics/prometheus/handler.go (0.0%)</option>
+				
+				<option value="file48">courier-service/pkg/metrics/prometheus/metrics.go (0.0%)</option>
+				
+				<option value="file49">courier-service/pkg/ratelimiter/tokenbucket/tokenbucket.go (95.7%)</option>
+				
+				<option value="file50">courier-service/pkg/shutdown/shutdown.go (0.0%)</option>
+				
+				<option value="file51">courier-service/proto/order/order.pb.go (0.0%)</option>
+				
+				<option value="file52">courier-service/proto/order/order_grpc.pb.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "errors"
+        "log"
+        "net/http"
+        _ "net/http/pprof"
+        "time"
+
+        prometheus "github.com/prometheus/client_golang/prometheus"
+        "google.golang.org/grpc"
+        "google.golang.org/grpc/credentials/insecure"
+
+        core "courier-service/internal/core"
+        interceptor "courier-service/internal/gateway/interceptor"
+        courierhandlers "courier-service/internal/handlers/courier"
+        deliveryhandlers "courier-service/internal/handlers/delivery"
+        courierRepo "courier-service/internal/repository/courier"
+        deliveryRepo "courier-service/internal/repository/delivery"
+        txRunner "courier-service/internal/repository/txrunner"
+        routing "courier-service/internal/routing"
+        courierusecase "courier-service/internal/usecase/courier"
+        deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
+        deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
+        deliverycalculator "courier-service/internal/usecase/utils"
+        database "courier-service/pkg/database/postgres"
+        l "courier-service/pkg/logger/zap"
+        metrics "courier-service/pkg/metrics/prometheus"
+        rlimiter "courier-service/pkg/ratelimiter/tokenbucket"
+        shutdown "courier-service/pkg/shutdown"
+)
+
+func main() <span class="cov0" title="0">{
+        ctx := shutdown.WaitForShutdown()
+
+        cfg, err := core.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load config: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">logger, err := l.New(cfg.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to create logger: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">ratelimiter := rlimiter.NewTokenBucket(cfg.TokenBucketCapacity, cfg.TokenBucketRefillRate, time.Now)
+
+        dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
+        defer dbPool.Close()
+
+        // Создаем метрики до grpcClient, чтобы использовать в interceptor
+        httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+        metricsWriter := metrics.NewMetricsWriter(httpMetrics)
+
+        // Создаем grpcClient с interceptors
+        grpcClient, err := grpc.NewClient(
+                cfg.GRPCServiceOrderServer,
+                grpc.WithTransportCredentials(insecure.NewCredentials()),
+                grpc.WithChainUnaryInterceptor(
+                        interceptor.LoggingMetricsInterceptor(logger, metricsWriter),
+                ),
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("Failed to create grpc client: %v", err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err := grpcClient.Close(); err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Failed to close grpc client: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">courierRepo := courierRepo.NewCourierRepository(dbPool, logger)
+        deliveryRepo := deliveryRepo.NewDeliveryRepository(dbPool)
+        txRunner := txRunner.NewTxRunner(dbPool)
+
+        deliveryCalculator := deliverycalculator.NewTimeCalculatorFactory()
+        assignUseCase := deliveryassignusecase.NewAssignDelieveryUseCase(
+                courierRepo,
+                deliveryRepo,
+                txRunner,
+                deliveryCalculator,
+        )
+        unassignUseCase := deliveryunassignusecase.NewUnassignDelieveryUseCase(
+                courierRepo,
+                deliveryRepo,
+                txRunner,
+        )
+        courierUseCase := courierusecase.NewCourierUseCase(
+                courierRepo,
+                deliveryCalculator,
+                logger,
+        )
+
+        go courierUseCase.CheckFreeCouriersWithInterval(ctx, cfg.CheckFreeCouriersInterval)
+
+        pathNormalizer := routing.NewChiPathNormalizer()
+        metricsHandler := metrics.NewMetricsHandler()
+        router := routing.Router(
+                logger,
+                ratelimiter,
+                metricsWriter,
+                metricsHandler,
+                pathNormalizer,
+                courierhandlers.NewCourierController(
+                        courierUseCase,
+                ),
+                deliveryhandlers.NewDeliveryController(
+                        assignUseCase,
+                        unassignUseCase,
+                ),
+        )
+        logger.Info("Starting service server...")
+        go startServer(ctx, cfg.Port, router, logger)
+        logger.Info("Starting pprof server...")
+        go startPprofServer(ctx, cfg.PprofAddress, logger)
+        &lt;-ctx.Done()
+        logger.Info("Service stopped gracefully")</span>
+}
+
+func startServer(ctx context.Context, port string, handler http.Handler, logger *l.Logger) <span class="cov0" title="0">{
+        srv := &amp;http.Server{
+                Addr:    port,
+                Handler: handler,
+        }
+
+        serverErr := make(chan error, 1)
+        go func() </span><span class="cov0" title="0">{
+                if err := srv.ListenAndServe(); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                        serverErr &lt;- err
+                }</span>
+                <span class="cov0" title="0">close(serverErr)</span>
+        }()
+
+        <span class="cov0" title="0">select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                logger.Info("Shutdown signal received")</span>
+        case err := &lt;-serverErr:<span class="cov0" title="0">
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Server error: %v", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        defer cancel()
+
+        if err := srv.Shutdown(shutdownCtx); err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("error shutting down server: %v", err)
+        }</span>
+}
+
+func startPprofServer(ctx context.Context, addr string, logger *l.Logger) <span class="cov0" title="0">{
+        logger.Infof("%s", addr)
+        srv := &amp;http.Server{
+                Addr:              addr,
+                Handler:           http.DefaultServeMux,
+                ReadHeaderTimeout: 5 * time.Second,
+        }
+
+        serverErr := make(chan error, 1)
+        go func() </span><span class="cov0" title="0">{
+                logger.Infof("pprof listening on http://%s/debug/pprof/", addr)
+                if err := srv.ListenAndServe(); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                        serverErr &lt;- err
+                }</span>
+                <span class="cov0" title="0">close(serverErr)</span>
+        }()
+
+        <span class="cov0" title="0">select </span>{
+        case &lt;-ctx.Done():<span class="cov0" title="0">
+                logger.Info("pprof shutdown signal received")</span>
+        case err := &lt;-serverErr:<span class="cov0" title="0">
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("pprof server error: %v", err)
+                }</span>
+        }
+
+        <span class="cov0" title="0">shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        if err := srv.Shutdown(shutdownCtx); err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("error shutting down pprof server: %v", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "context"
+        "errors"
+        "log"
+        "net/http"
+        "time"
+
+        "github.com/IBM/sarama"
+        "github.com/prometheus/client_golang/prometheus"
+        "github.com/prometheus/client_golang/prometheus/promhttp"
+        "google.golang.org/grpc"
+        "google.golang.org/grpc/credentials/insecure"
+
+        core "courier-service/internal/core"
+        interceptor "courier-service/internal/gateway/interceptor"
+        ordergw "courier-service/internal/gateway/order"
+        retryexec "courier-service/internal/gateway/retry"
+        orderhandler "courier-service/internal/handlers/queues/order/changed"
+        model "courier-service/internal/model"
+        courierRepo "courier-service/internal/repository/courier"
+        deliveryRepo "courier-service/internal/repository/delivery"
+        txRunner "courier-service/internal/repository/txrunner"
+        deliveryassignusecase "courier-service/internal/usecase/delivery/assign"
+        deliverycompleteusecase "courier-service/internal/usecase/delivery/complete"
+        deliveryunassignusecase "courier-service/internal/usecase/delivery/unassign"
+        changed "courier-service/internal/usecase/order/changed"
+        processor "courier-service/internal/usecase/order/changed/processor"
+        deliverycalculator "courier-service/internal/usecase/utils"
+        database "courier-service/pkg/database/postgres"
+        delay "courier-service/pkg/delay/fulljitter"
+        l "courier-service/pkg/logger/zap"
+        metrics "courier-service/pkg/metrics/prometheus"
+        shutdown "courier-service/pkg/shutdown"
+        orderpb "courier-service/proto/order"
+)
+
+func main() <span class="cov0" title="0">{
+        ctx := shutdown.WaitForShutdown()
+        cfg, err := core.LoadConfig()
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load config: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">logger, err := l.New(cfg.LogLevel)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to create logger: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">go initMetricsServer(ctx, ":9101", logger)
+
+        config := sarama.NewConfig()
+        configureKafkaClient(config)
+        logger.Info("Kafka client configured")
+
+        topic := cfg.KafkaTopic
+        groupID := cfg.KafkaGroupID
+        brokers := cfg.KafkaBrokers
+
+        // Создаем метрики для worker
+        httpMetrics := metrics.NewHTTPMetrics(prometheus.DefaultRegisterer)
+        metricsWriter := metrics.NewMetricsWriter(httpMetrics)
+
+        grpcClient, err := grpc.NewClient(
+                cfg.GRPCServiceOrderServer,
+                grpc.WithTransportCredentials(insecure.NewCredentials()),
+                grpc.WithChainUnaryInterceptor(
+                        interceptor.LoggingMetricsInterceptor(logger, metricsWriter),
+                ),
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                logger.Errorf("Failed to create grpc client: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err := grpcClient.Close(); err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Failed to close grpc client: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">ordersClient := orderpb.NewOrdersServiceClient(grpcClient)
+        retryCfg := configureRetry(cfg.RetryMaxAttempts)
+        retry := retryexec.NewRetryExecutor(retryCfg, logger)
+        orderGateway := ordergw.NewGateway(ordersClient, retry, logger)
+
+        dbPool := database.MustInitPool(cfg.PostgresDSN(), logger)
+        defer dbPool.Close()
+        courierRepository := courierRepo.NewCourierRepository(dbPool, logger)
+        deliveryRepository := deliveryRepo.NewDeliveryRepository(dbPool)
+        transactionRunner := txRunner.NewTxRunner(dbPool)
+
+        deliveryCalculator := deliverycalculator.NewTimeCalculatorFactory()
+
+        assignUseCase := deliveryassignusecase.NewAssignDelieveryUseCase(
+                courierRepository,
+                deliveryRepository,
+                transactionRunner,
+                deliveryCalculator,
+        )
+        unassignUseCase := deliveryunassignusecase.NewUnassignDelieveryUseCase(
+                courierRepository,
+                deliveryRepository,
+                transactionRunner,
+        )
+        completeUseCase := deliverycompleteusecase.NewCompleteDeliveryUseCase(
+                courierRepository,
+        )
+
+        createdProcessor := processor.NewCreatedProcessor(assignUseCase)
+        cancelledProcessor := processor.NewCancelledProcessor(unassignUseCase)
+        completedProcessor := processor.NewCompletedProcessor(completeUseCase)
+
+        orderChangedFactory := changed.NewFactory(map[model.OrderStatus]changed.Processor{
+                model.OrderStatusCreated:   createdProcessor,
+                model.OrderStatusCancelled: cancelledProcessor,
+                model.OrderStatusCompleted: completedProcessor,
+        })
+
+        orderChangedUseCase := changed.NewOrderChangedUseCase(orderChangedFactory, orderGateway, logger)
+        orderChangedHandler := orderhandler.NewOrderStatusChangedHandler(orderChangedUseCase, logger)
+
+        go func() </span><span class="cov0" title="0">{
+                if err := runKafkaConsumer(ctx, logger, brokers, groupID, topic, config, orderChangedHandler); err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Kafka consumer stopped with error: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">&lt;-ctx.Done()
+        logger.Info("Kafka consumer exited gracefully")</span>
+}
+
+func configureKafkaClient(config *sarama.Config) <span class="cov0" title="0">{
+        config.Version = sarama.V2_8_0_0
+        config.Consumer.Offsets.Initial = sarama.OffsetOldest
+        config.Consumer.Offsets.AutoCommit.Enable = true
+        config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second
+}</span>
+
+func runKafkaConsumer(
+        ctx context.Context,
+        logger *l.Logger,
+        brokers []string,
+        groupID string,
+        topic string,
+        config *sarama.Config,
+        handler sarama.ConsumerGroupHandler,
+) error <span class="cov0" title="0">{
+        client, err := sarama.NewConsumerGroup(brokers, groupID, config)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if err := client.Close(); err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Failed to close kafka client: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">for </span><span class="cov0" title="0">{
+                if err := client.Consume(ctx, []string{topic}, handler); err != nil </span><span class="cov0" title="0">{
+                        logger.Errorf("Error from consumer: %v", err)
+                        time.Sleep(time.Second)
+                }</span>
+
+                <span class="cov0" title="0">if ctx.Err() != nil </span><span class="cov0" title="0">{
+                        logger.Info("Context cancelled, exiting consume loop")
+                        return nil
+                }</span>
+        }
+}
+
+func configureRetry(maxAttemps int) retryexec.RetryConfig <span class="cov0" title="0">{
+        fullJitter := delay.NewFullJitter(50*time.Millisecond, 1*time.Second, 2.0, nil)
+        return retryexec.RetryConfig{
+                MaxAttempts: maxAttemps,
+                Strategy:    fullJitter,
+                ShouldRetry: nil,
+        }
+}</span>
+
+func initMetricsServer(ctx context.Context, addr string, logger *l.Logger) <span class="cov0" title="0">{
+        mux := http.NewServeMux()
+        mux.Handle("/metrics", promhttp.Handler())
+
+        srv := &amp;http.Server{
+                Addr:              addr,
+                Handler:           mux,
+                ReadHeaderTimeout: 5 * time.Second,
+        }
+
+        go func() </span><span class="cov0" title="0">{
+                &lt;-ctx.Done()
+                _ = srv.Shutdown(context.Background())
+        }</span>()
+
+        <span class="cov0" title="0">if err := srv.ListenAndServe(); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+                logger.Errorf("metrics server listen failed on %s: %v", addr, err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package core
+
+import (
+        "context"
+        "fmt"
+        "net/url"
+        "os"
+        "strconv"
+        "strings"
+        "time"
+
+        "github.com/joho/godotenv"
+        "github.com/urfave/cli/v3"
+)
+
+type Config struct {
+        Port string
+
+        DBHost     string
+        DBPort     string
+        DBUser     string
+        DBPassword string
+        DBName     string
+        DBSSLMode  string
+
+        LogLevel string
+
+        CheckFreeCouriersInterval time.Duration
+        OrderCheckCursorDelta     time.Duration
+
+        KafkaPort    string
+        KafkaBrokers []string
+        KafkaGroupID string
+        KafkaTopic   string
+
+        GRPCServiceOrderServer string
+
+        TokenBucketCapacity   int
+        TokenBucketRefillRate int
+
+        RetryMaxAttempts int
+
+        PprofAddress string
+}
+
+func LoadConfig() (*Config, error) <span class="cov0" title="0">{
+        _ = godotenv.Load(".env")
+
+        cfg := &amp;Config{}
+
+        if err := getCmd(cfg).Run(context.Background(), os.Args); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">cfg.Port = ":" + cfg.Port
+
+        cfg.DBHost = os.Getenv("POSTGRES_HOST")
+        cfg.DBPort = os.Getenv("POSTGRES_PORT")
+        cfg.DBUser = os.Getenv("POSTGRES_USER")
+        cfg.DBPassword = os.Getenv("POSTGRES_PASSWORD")
+        cfg.DBName = os.Getenv("POSTGRES_DB")
+        cfg.DBSSLMode = os.Getenv("POSTGRES_SSLMODE")
+
+        cfg.LogLevel = os.Getenv("LOG_LEVEL")
+
+        cfg.OrderCheckCursorDelta = secondsStringToDuration(
+                os.Getenv("ORDER_CHECK_CURSOR_DELTA_SECONDS"))
+        cfg.CheckFreeCouriersInterval = secondsStringToDuration(
+                os.Getenv("CHECK_FREE_COURIERS_INTERVAL_SECONDS"))
+
+        cfg.KafkaBrokers = strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
+        cfg.KafkaGroupID = os.Getenv("KAFKA_GROUP_ID")
+        cfg.KafkaTopic = os.Getenv("KAFKA_TOPIC")
+        cfg.KafkaPort = os.Getenv("KAFKA_PORT")
+
+        cfg.GRPCServiceOrderServer = os.Getenv("GRPC_SERVICE_ORDER_SERVER")
+
+        cfg.TokenBucketCapacity = toInt(os.Getenv("TOKEN_BUCKET_CAPACITY"))
+        cfg.TokenBucketRefillRate = toInt(os.Getenv("TOKEN_BUCKET_REFILL_RATE"))
+        cfg.RetryMaxAttempts = toInt(os.Getenv("RETRY_MAX_ATTEMPTS"))
+
+        cfg.PprofAddress = os.Getenv("PPROF_ADDR")
+        return cfg, nil</span>
+}
+
+func getCmd(cfg *Config) *cli.Command <span class="cov0" title="0">{
+        return &amp;cli.Command{
+                Flags: []cli.Flag{
+                        &amp;cli.StringFlag{
+                                Name:        "port",
+                                Aliases:     []string{"p"},
+                                Value:       cfg.Port,
+                                Usage:       "server port",
+                                Sources:     cli.EnvVars("PORT"),
+                                Destination: &amp;cfg.Port,
+                        },
+                },
+                Action: func(ctx context.Context, cmd *cli.Command) error </span><span class="cov0" title="0">{ return nil }</span>,
+        }
+}
+
+func toInt(value string) int <span class="cov0" title="0">{
+        integer, err := strconv.Atoi(value)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(fmt.Sprintf("invalid integer config value %q: %v", value, err))</span>
+        }
+        <span class="cov0" title="0">return integer</span>
+}
+
+func secondsStringToDuration(value string) time.Duration <span class="cov0" title="0">{
+        duration := toInt(value)
+        return time.Duration(duration) * time.Second
+}</span>
+
+func (c *Config) PostgresDSN() string <span class="cov0" title="0">{
+        ssl := c.DBSSLMode
+        if ssl == "" </span><span class="cov0" title="0">{
+                ssl = "disable"
+        }</span>
+        <span class="cov0" title="0">host := c.DBHost
+        if host == "" </span><span class="cov0" title="0">{
+                host = "localhost"
+        }</span>
+        <span class="cov0" title="0">port := c.DBPort
+        if port == "" </span><span class="cov0" title="0">{
+                port = "5432"
+        }</span>
+
+        <span class="cov0" title="0">user := url.QueryEscape(c.DBUser)
+        pass := url.QueryEscape(c.DBPassword)
+        db := url.PathEscape(c.DBName)
+
+        return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+                user, pass, host, port, db, url.QueryEscape(ssl),
+        )</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package interceptor
+
+import (
+        "context"
+        "time"
+
+        "google.golang.org/grpc"
+        "google.golang.org/grpc/codes"
+        "google.golang.org/grpc/status"
+)
+
+// LoggingMetricsInterceptor создает unary interceptor для логирования и метрик
+func LoggingMetricsInterceptor(logger logger, metrics metricsWriter) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
+        return func(
+                ctx context.Context,
+                method string,
+                req, reply interface{},
+                cc *grpc.ClientConn,
+                invoker grpc.UnaryInvoker,
+                opts ...grpc.CallOption,
+        ) error </span><span class="cov0" title="0">{
+                start := time.Now()
+
+                logger.Infof("gRPC request started: method=%s", method)
+
+                // Выполняем запрос
+                err := invoker(ctx, method, req, reply, cc, opts...)
+
+                // Измеряем длительность
+                duration := time.Since(start)
+
+                // Логируем результат
+                if err != nil </span><span class="cov0" title="0">{
+                        grpcStatus, _ := status.FromError(err)
+                        logger.Errorf("gRPC request failed: method=%s, duration=%v, code=%s, error=%v",
+                                method, duration, grpcStatus.Code(), err)
+
+                        // Записываем метрику для каждой retryable ошибки
+                        // Для gRPC: HTTP метод всегда "POST", путь = gRPC метод
+                        if isRetryableError(grpcStatus.Code()) </span><span class="cov0" title="0">{
+                                metrics.RecordRetry("POST", method)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        logger.Infof("gRPC request succeeded: method=%s, duration=%v",
+                                method, duration)
+                }</span>
+
+                <span class="cov0" title="0">return err</span>
+        }
+}
+
+// MetricsInterceptor создает unary interceptor только для метрик
+func MetricsInterceptor(metrics metricsWriter) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
+        return func(
+                ctx context.Context,
+                method string,
+                req, reply interface{},
+                cc *grpc.ClientConn,
+                invoker grpc.UnaryInvoker,
+                opts ...grpc.CallOption,
+        ) error </span><span class="cov0" title="0">{
+                err := invoker(ctx, method, req, reply, cc, opts...)
+
+                // Записываем метрику если была ошибка
+                if err != nil </span><span class="cov0" title="0">{
+                        grpcStatus, _ := status.FromError(err)
+                        // Для gRPC: HTTP метод всегда "POST", путь = gRPC метод
+                        if isRetryableError(grpcStatus.Code()) </span><span class="cov0" title="0">{
+                                metrics.RecordRetry("POST", method)
+                        }</span>
+                }
+
+                <span class="cov0" title="0">return err</span>
+        }
+}
+
+// LoggingInterceptor создает unary interceptor только для логирования (без метрик)
+func LoggingInterceptor(logger logger) grpc.UnaryClientInterceptor <span class="cov0" title="0">{
+        return func(
+                ctx context.Context,
+                method string,
+                req, reply interface{},
+                cc *grpc.ClientConn,
+                invoker grpc.UnaryInvoker,
+                opts ...grpc.CallOption,
+        ) error </span><span class="cov0" title="0">{
+                start := time.Now()
+
+                // Логируем начало запроса
+                logger.Infof("gRPC request started: method=%s", method)
+
+                // Выполняем запрос
+                err := invoker(ctx, method, req, reply, cc, opts...)
+
+                // Измеряем длительность
+                duration := time.Since(start)
+
+                // Логируем результат
+                if err != nil </span><span class="cov0" title="0">{
+                        grpcStatus, _ := status.FromError(err)
+                        logger.Errorf("gRPC request failed: method=%s, duration=%v, code=%s, error=%v",
+                                method, duration, grpcStatus.Code(), err)
+                }</span> else<span class="cov0" title="0"> {
+                        logger.Infof("gRPC request succeeded: method=%s, duration=%v",
+                                method, duration)
+                }</span>
+
+                <span class="cov0" title="0">return err</span>
+        }
+}
+
+// isRetryableError определяет, является ли ошибка повторяемой
+func isRetryableError(code codes.Code) bool <span class="cov0" title="0">{
+        switch code </span>{
+        case codes.Unavailable,
+                codes.DeadlineExceeded,
+                codes.ResourceExhausted,
+                codes.Aborted,
+                codes.Internal:<span class="cov0" title="0">
+                return true</span>
+        default:<span class="cov0" title="0">
+                return false</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package order
+
+import (
+        "courier-service/internal/model"
+        pb "courier-service/proto/order"
+)
+
+func orderModelFromProto(o *pb.Order) model.Order <span class="cov0" title="0">{
+        return model.Order{
+                ID:        o.Id,
+                Status:    model.OrderStatus(o.Status),
+                CreatedAt: o.CreatedAt.AsTime(),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package order
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "time"
+
+        "google.golang.org/protobuf/types/known/timestamppb"
+
+        re "courier-service/internal/gateway/retry"
+        "courier-service/internal/model"
+        pb "courier-service/proto/order"
+)
+
+type Gateway struct {
+        client    client
+        retryexec retryexec
+        logger    logger
+}
+
+func NewGateway(client client, rexec retryexec, logger logger) *Gateway <span class="cov0" title="0">{
+        return &amp;Gateway{
+                client:    client,
+                retryexec: rexec,
+                logger:    logger,
+        }
+}</span>
+
+func (g *Gateway) GetOrders(ctx context.Context, from time.Time) ([]model.Order, error) <span class="cov0" title="0">{
+        var orders *pb.GetOrdersResponse
+
+        err := g.retryexec.ExecuteWithContext(ctx, func(ctx context.Context) error </span><span class="cov0" title="0">{
+                resp, err := g.client.GetOrders(ctx, &amp;pb.GetOrdersRequest{
+                        From: timestamppb.New(from),
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get orders: %w", err)
+                }</span>
+                <span class="cov0" title="0">if resp == nil </span><span class="cov0" title="0">{
+                        return errors.New("no orders found")
+                }</span>
+                <span class="cov0" title="0">orders = resp
+                return nil</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">ordersList := make([]model.Order, 0, len(orders.Orders))
+        for _, order := range orders.Orders </span><span class="cov0" title="0">{
+                ordersList = append(ordersList, orderModelFromProto(order))
+        }</span>
+        <span class="cov0" title="0">return ordersList, nil</span>
+}
+
+func (g *Gateway) GetOrderById(ctx context.Context, id string) (model.Order, error) <span class="cov0" title="0">{
+        var order *pb.GetOrderByIdResponse
+
+        g.logger.Infof("sending grpc request for order id %s", id)
+        err := g.retryexec.ExecuteWithContext(ctx, func(ctx context.Context) error </span><span class="cov0" title="0">{
+                resp, err := g.client.GetOrderById(ctx, &amp;pb.GetOrderByIdRequest{
+                        Id: id,
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get order by id: %w", err)
+                }</span>
+                <span class="cov0" title="0">if resp == nil </span><span class="cov0" title="0">{
+                        return errors.New("order not found")
+                }</span>
+                <span class="cov0" title="0">order = resp
+                return nil</span>
+        })
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, re.ErrMaxAttemptsExceeded) </span><span class="cov0" title="0">{
+                        return model.Order{}, ErrRetryLimitExceeded
+                }</span>
+                <span class="cov0" title="0">return model.Order{}, err</span>
+        }
+
+        <span class="cov0" title="0">return orderModelFromProto(order.Order), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package retry
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "time"
+)
+
+var ErrMaxAttemptsExceeded = errors.New("max retry attempts exceeded")
+
+type RetryConfig struct {
+        MaxAttempts int
+        Strategy    strategy
+        ShouldRetry func(error) bool
+}
+
+type RetryExecutor struct {
+        config RetryConfig
+        logger logger
+}
+
+func NewRetryExecutor(config RetryConfig, logger logger) *RetryExecutor <span class="cov0" title="0">{
+        if config.MaxAttempts == 0 </span><span class="cov0" title="0">{
+                config.MaxAttempts = 3
+        }</span>
+        <span class="cov0" title="0">if config.ShouldRetry == nil </span><span class="cov0" title="0">{
+                config.ShouldRetry = func(err error) bool </span><span class="cov0" title="0">{ return err != nil }</span>
+        }
+        <span class="cov0" title="0">return &amp;RetryExecutor{config: config, logger: logger}</span>
+}
+
+func (r *RetryExecutor) Execute(fn func() error) error <span class="cov0" title="0">{
+        var lastErr error
+
+        for attempt := 1; attempt &lt;= r.config.MaxAttempts; attempt++ </span><span class="cov0" title="0">{
+                err := fn()
+                if err == nil </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+
+                <span class="cov0" title="0">lastErr = err
+
+                if !r.config.ShouldRetry(err) </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">if attempt == r.config.MaxAttempts </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">delay := r.config.Strategy.NextDelay(attempt)
+                time.Sleep(delay)</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("%w: %v", ErrMaxAttemptsExceeded, lastErr)</span>
+}
+
+func (r *RetryExecutor) ExecuteWithContext(ctx context.Context, fn func(context.Context) error) error <span class="cov0" title="0">{
+        var lastErr error
+
+        for attempt := 1; attempt &lt;= r.config.MaxAttempts; attempt++ </span><span class="cov0" title="0">{
+
+                if err := ctx.Err(); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">err := fn(ctx)
+                if err == nil </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+
+                <span class="cov0" title="0">lastErr = err
+
+                if !r.config.ShouldRetry(err) </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">if attempt == r.config.MaxAttempts </span><span class="cov0" title="0">{
+                        r.logger.Warnf("Attempt %d failed (last), retrying is stopped", attempt)
+                        break</span>
+                } else<span class="cov0" title="0"> {
+                        r.logger.Warnf("Attempt %d failed, retrying...", attempt)
+                }</span>
+
+                <span class="cov0" title="0">delay := r.config.Strategy.NextDelay(attempt)
+
+                select </span>{
+                case &lt;-time.After(delay):<span class="cov0" title="0"></span>
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        return ctx.Err()</span>
+                }
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("%w: %v", ErrMaxAttemptsExceeded, lastErr)</span>
+}
+
+func (r *RetryExecutor) ExecuteWithCallback(
+        fn func() error,
+        onRetry func(attempt int, err error, delay time.Duration),
+) error <span class="cov0" title="0">{
+        var lastErr error
+
+        for attempt := 1; attempt &lt;= r.config.MaxAttempts; attempt++ </span><span class="cov0" title="0">{
+                err := fn()
+                if err == nil </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+
+                <span class="cov0" title="0">lastErr = err
+
+                if !r.config.ShouldRetry(err) </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov0" title="0">if attempt == r.config.MaxAttempts </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">delay := r.config.Strategy.NextDelay(attempt)
+
+                if onRetry != nil </span><span class="cov0" title="0">{
+                        onRetry(attempt, err, delay)
+                }</span>
+
+                <span class="cov0" title="0">time.Sleep(delay)</span>
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("%w: %v", ErrMaxAttemptsExceeded, lastErr)</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package common
+
+import (
+        "encoding/json"
+        "net/http"
+)
+
+func Ping(w http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        if err := json.NewEncoder(w).Encode(map[string]string{"message": "pong"}); err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+}
+
+func Healthcheck(w http.ResponseWriter, _ *http.Request) <span class="cov8" title="1">{
+        w.WriteHeader(http.StatusNoContent)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package courier
+
+import (
+        "encoding/json"
+        "errors"
+        "net/http"
+        "strconv"
+
+        "github.com/go-chi/chi/v5"
+
+        "courier-service/internal/handlers/utils"
+        "courier-service/internal/model"
+        usecase "courier-service/internal/usecase/courier"
+)
+
+type CourierController struct {
+        useCase courierUseCase
+}
+
+func NewCourierController(useCase courierUseCase) *CourierController <span class="cov8" title="1">{
+        return &amp;CourierController{useCase: useCase}
+}</span>
+
+func (c *CourierController) GetCourierById(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+        if err != nil </span><span class="cov8" title="1">{
+                utils.RespondWithError(w, http.StatusBadRequest, ErrInvalidID)
+                return
+        }</span>
+
+        <span class="cov8" title="1">courier, err := c.useCase.GetCourierById(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, usecase.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        utils.RespondWithError(w, http.StatusNotFound, ErrCourierNotFound)
+                        return
+                }</span>
+                <span class="cov8" title="1">utils.RespondInternalServerError(w, err)
+                return</span>
+        }
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, courier)</span>
+}
+
+func (c *CourierController) GetAllCouriers(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        ctx := r.Context()
+        couriers, err := c.useCase.GetAllCouriers(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.RespondInternalServerError(w, err)
+                return
+        }</span>
+        <span class="cov0" title="0">utils.RespondWithJSON(w, http.StatusOK, couriers)</span>
+}
+
+func (c *CourierController) CreateCourier(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        ctx := r.Context()
+        var req CourierCreateRequestDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov0" title="0">{
+                utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov0" title="0">id, err := c.useCase.CreateCourier(ctx, model.Courier{
+                Name:          req.Name,
+                Phone:         req.Phone,
+                TransportType: model.CourierTransportType(req.TransportType),
+                Status:        model.CourierStatus(req.Status),
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                handleCreateError(w, err)
+                return
+        }</span>
+
+        <span class="cov0" title="0">utils.RespondWithJSON(w, http.StatusCreated, map[string]string{
+                "id":      strconv.FormatInt(id, 10),
+                "message": "Courier created successfully",
+        })</span>
+}
+
+func (c *CourierController) UpdateCourier(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req CourierUpdateRequestDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">if req.ID == 0 </span><span class="cov8" title="1">{
+                utils.RespondWithError(w, http.StatusBadRequest, ErrIDRequired)
+                return
+        }</span>
+
+        <span class="cov8" title="1">courier := req.ToModel()
+        err := c.useCase.UpdateCourier(ctx, courier)
+        if err != nil </span><span class="cov0" title="0">{
+                handleUpdateError(w, err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+                "message": "Courier updated successfully",
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package courier
+
+import "courier-service/internal/model"
+
+type CourierCreateRequestDTO struct {
+        Name          string `json:"name"`
+        TransportType string `json:"transport_type"`
+        Phone         string `json:"phone"`
+        Status        string `json:"status"`
+}
+
+type CourierUpdateRequestDTO struct {
+        ID            int64   `json:"id"`
+        TransportType *string `json:"transport_type"`
+        Name          *string `json:"name"`
+        Phone         *string `json:"phone"`
+        Status        *string `json:"status"`
+}
+
+func (req CourierUpdateRequestDTO) ToModel() model.Courier <span class="cov8" title="1">{
+        courier := model.Courier{ID: req.ID}
+        if req.Name != nil </span><span class="cov8" title="1">{
+                courier.Name = *req.Name
+        }</span>
+        <span class="cov8" title="1">if req.Phone != nil </span><span class="cov8" title="1">{
+                courier.Phone = *req.Phone
+        }</span>
+        <span class="cov8" title="1">if req.TransportType != nil </span><span class="cov8" title="1">{
+                courier.TransportType = model.CourierTransportType(*req.TransportType)
+        }</span>
+        <span class="cov8" title="1">if req.Status != nil </span><span class="cov8" title="1">{
+                courier.Status = model.CourierStatus(*req.Status)
+        }</span>
+        <span class="cov8" title="1">return courier</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package courier
+
+import (
+        "net/http"
+
+        "courier-service/internal/handlers/utils"
+        "courier-service/internal/usecase/courier"
+)
+
+const (
+        ErrInvalidID             = "Invalid id"
+        ErrCourierNotFound       = "Courier not found"
+        ErrMissingRequiredFields = "Missing required fields"
+        ErrInvalidPhoneNumber    = "Invalid phone number"
+        ErrUnknownTransportType  = "Unknown transport type"
+        ErrPhoneAlreadyExists    = "Phone number already exists"
+        ErrInternalServer        = "Internal server error"
+        ErrIDRequired            = "Id is required"
+)
+
+func handleCreateError(w http.ResponseWriter, err error) <span class="cov0" title="0">{
+        switch err </span>{
+        case courier.ErrInvalidCreate:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case courier.ErrInvalidPhoneNumber:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrInvalidPhoneNumber)</span>
+        case courier.ErrUnknownTransportType:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrUnknownTransportType)</span>
+        case courier.ErrPhoneNumberExists:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusConflict, ErrPhoneAlreadyExists)</span>
+        default:<span class="cov0" title="0">
+                utils.RespondInternalServerError(w, err)</span>
+        }
+}
+
+func handleUpdateError(w http.ResponseWriter, err error) <span class="cov0" title="0">{
+        switch err </span>{
+        case courier.ErrInvalidUpdate:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case courier.ErrInvalidPhoneNumber:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrInvalidPhoneNumber)</span>
+        case courier.ErrUnknownTransportType:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrUnknownTransportType)</span>
+        case courier.ErrPhoneNumberExists:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusConflict, ErrPhoneAlreadyExists)</span>
+        case courier.ErrCourierNotFound:<span class="cov0" title="0">
+                utils.RespondWithError(w, http.StatusNotFound, ErrCourierNotFound)</span>
+        default:<span class="cov0" title="0">
+                utils.RespondInternalServerError(w, err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package delivery
+
+import (
+        "encoding/json"
+        "net/http"
+
+        "courier-service/internal/handlers/utils"
+)
+
+type DeliveryController struct {
+        assign   assignUsecase
+        unassign unassignUsecase
+}
+
+func NewDeliveryController(assign assignUsecase, unassign unassignUsecase) *DeliveryController <span class="cov8" title="1">{
+        return &amp;DeliveryController{assign: assign, unassign: unassign}
+}</span>
+
+func (c *DeliveryController) AssignDelivery(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req DeliveryAssignRequestDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">assignment, err := c.assign.Assign(ctx, req.OrderID)
+        response := ToAssignCourierResponse(assignment)
+
+        if err != nil </span><span class="cov8" title="1">{
+                handleAssignDeliveryError(w, err)
+                return
+        }</span>
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, response)</span>
+}
+
+func (c *DeliveryController) UnassignDelivery(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        ctx := r.Context()
+        var req DeliveryUnassignRequestDTO
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.RespondWithError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">courierID, err := c.unassign.Unassign(ctx, req.OrderID)
+        response := ToUnassignCourierResponse(courierID, req.OrderID)
+
+        if err != nil </span><span class="cov8" title="1">{
+                handleUnassignDeliveryError(w, err)
+                return
+        }</span>
+        <span class="cov8" title="1">utils.RespondWithJSON(w, http.StatusOK, response)</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package delivery
+
+import (
+        "time"
+
+        assign "courier-service/internal/usecase/delivery/assign"
+)
+
+const (
+        UnassignedStatus = "unassigned"
+)
+
+type DeliveryAssignRequestDTO struct {
+        OrderID string `json:"order_id"`
+}
+
+type DeliveryUnassignRequestDTO struct {
+        OrderID string `json:"order_id"`
+}
+
+type DeliveryAssignResponseDTO struct {
+        CourierID     int64     `json:"courier_id"`
+        OrderID       string    `json:"order_id"`
+        TransportType string    `json:"transport_type"`
+        Deadline      time.Time `json:"delivery_deadline"`
+}
+
+type DeliveryUnassignResponseDTO struct {
+        OrderID   string `json:"order_id"`
+        Status    string `json:"status"`
+        CourierID int64  `json:"courier_id"`
+}
+
+func ToUnassignCourierResponse(courierID int64, orderID string) DeliveryUnassignResponseDTO <span class="cov8" title="1">{
+        return DeliveryUnassignResponseDTO{
+                OrderID:   orderID,
+                Status:    UnassignedStatus,
+                CourierID: courierID,
+        }
+}</span>
+
+func ToAssignCourierResponse(delivery assign.DeliveryAssignResponse) DeliveryAssignResponseDTO <span class="cov8" title="1">{
+        return DeliveryAssignResponseDTO{
+                CourierID:     delivery.CourierID,
+                OrderID:       delivery.OrderID,
+                TransportType: delivery.TransportType,
+                Deadline:      delivery.Deadline,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package delivery
+
+import (
+        "net/http"
+
+        "courier-service/internal/handlers/utils"
+        assign "courier-service/internal/usecase/delivery/assign"
+        unassign "courier-service/internal/usecase/delivery/unassign"
+)
+
+const (
+        ErrInvalidID             = "Invalid id"
+        ErrCourierNotFound       = "Courier not found"
+        ErrMissingRequiredFields = "Missing required fields"
+        ErrInvalidPhoneNumber    = "Invalid phone number"
+        ErrUnknownTransportType  = "Unknown transport type"
+        ErrPhoneAlreadyExists    = "Phone number already exists"
+        ErrInternalServer        = "Internal server error"
+        ErrIDRequired            = "Id is required"
+        ErrCouriersBusy          = "All couriers are busy"
+        ErrOrderIDExists         = "Order id already exists"
+        ErrNoCourierForOrder     = "No courier found for the order"
+        ErrOrderIDNotFound       = "Order id not found"
+)
+
+func handleAssignDeliveryError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case assign.ErrCouriersBusy:<span class="cov8" title="1">
+                utils.RespondWithError(w, http.StatusConflict, ErrCouriersBusy)</span>
+        case assign.ErrNoOrderID:<span class="cov8" title="1">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case assign.ErrOrderIDExists:<span class="cov8" title="1">
+                utils.RespondWithError(w, http.StatusConflict, ErrOrderIDExists)</span>
+        default:<span class="cov8" title="1">
+                utils.RespondInternalServerError(w, err)</span>
+        }
+}
+
+func handleUnassignDeliveryError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        switch err </span>{
+        case unassign.ErrNoOrderID:<span class="cov8" title="1">
+                utils.RespondWithError(w, http.StatusBadRequest, ErrMissingRequiredFields)</span>
+        case unassign.ErrOrderIDNotFound:<span class="cov8" title="1">
+                utils.RespondWithError(w, http.StatusNotFound, ErrOrderIDNotFound)</span>
+        default:<span class="cov8" title="1">
+                utils.RespondInternalServerError(w, err)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package middleware
+
+import (
+        "net/http"
+        "strconv"
+        "time"
+)
+
+func LoggingMiddleware(
+        logger logger,
+        metricsWriter metricsWriter,
+        normalizer pathNormalizer,
+) func(http.Handler) http.Handler <span class="cov0" title="0">{
+        return func(next http.Handler) http.Handler </span><span class="cov0" title="0">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                        start := time.Now()
+
+                        rr := &amp;responseRecorder{ResponseWriter: w, status: 200}
+                        next.ServeHTTP(rr, r)
+                        path := normalizer.Normalize(r)
+
+                        ignored := map[string]bool{
+                                "/metrics": true,
+                                "/health":  true,
+                        }
+                        if ignored[path] </span><span class="cov0" title="0">{
+                                logger.Debugf("skipping path: %s", path)
+                                return
+                        }</span>
+                        <span class="cov0" title="0">duration := time.Since(start).Seconds()
+                        status := strconv.Itoa(rr.status)
+
+                        metricsWriter.RecordRequest(r.Method, path, status)
+                        metricsWriter.RecordDuration(r.Method, path, status, duration)
+
+                        logger.Infof(PrettyRequestLogFormat,
+                                time.Now().Format("2006/01/02 15:04:05"),
+                                r.Method,
+                                path,
+                                rr.status,
+                                duration*1000,
+                        )</span>
+                })
+        }
+}
+
+type responseRecorder struct {
+        http.ResponseWriter
+        status int
+}
+
+func (r *responseRecorder) WriteHeader(code int) <span class="cov0" title="0">{
+        r.status = code
+        r.ResponseWriter.WriteHeader(code)
+}</span>
+
+type Color string
+
+const (
+        ColorLightBlue   Color = "\x1b[94m"
+        ColorLightYellow Color = "\x1b[93m"
+        ColorLightRed    Color = "\x1b[91m"
+        ColorLightGreen  Color = "\x1b[92m"
+        ColorPurple      Color = "\x1b[95m"
+        ColorCyan        Color = "\x1b[96m"
+        ColorLightPink   Color = "\x1b[95m"
+
+        PrettyRequestLogFormat string = string(ColorPurple) + "time=%s " +
+                string(ColorLightBlue) + "method=%s " +
+                string(ColorLightGreen) + "path=%s " +
+                string(ColorLightYellow) + "status=%d " +
+                string(ColorCyan) + "duration=%fms" + "\x1b[0m"
+)
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package middleware
+
+import (
+        "net/http"
+)
+
+func RateLimitMiddleware(
+        limiter rateLimiter,
+        logger logger,
+        metricsWriter metricsWriter,
+        normalizer pathNormalizer,
+) func(http.Handler) http.Handler <span class="cov0" title="0">{
+        return func(next http.Handler) http.Handler </span><span class="cov0" title="0">{
+                return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                        if !limiter.Allow() </span><span class="cov0" title="0">{
+                                path := normalizer.Normalize(r)
+                                logger.Warnf("Rate limit exceeded for %s", path)
+                                metricsWriter.RecordRateLimitExceeded(r.Method, path)
+                                w.Header().Set("X-RateLimit-Limit", "10")
+                                w.Header().Set("X-RateLimit-Remaining", "0")
+                                w.WriteHeader(http.StatusTooManyRequests)
+                                if _, err := w.Write([]byte("Rate limit exceeded")); err != nil </span><span class="cov0" title="0">{
+                                        logger.Warnf("Failed to write rate limit response for %s: %v", path, err)
+                                }</span>
+                                <span class="cov0" title="0">return</span>
+                        }
+
+                        <span class="cov0" title="0">logger.Debugf("Request allowed: %s", r.URL.Path)
+                        next.ServeHTTP(w, r)</span>
+                })
+        }
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package order
+
+import (
+        "encoding/json"
+        "errors"
+
+        "github.com/IBM/sarama"
+
+        "courier-service/internal/model"
+        changed "courier-service/internal/usecase/order/changed"
+)
+
+type OrderStatusChangedHandler struct {
+        useCase orderChangedUseCase
+        logger  logger
+}
+
+func NewOrderStatusChangedHandler(useCase orderChangedUseCase, logger logger) *OrderStatusChangedHandler <span class="cov0" title="0">{
+        return &amp;OrderStatusChangedHandler{useCase: useCase, logger: logger}
+}</span>
+
+func (h *OrderStatusChangedHandler) Setup(sarama.ConsumerGroupSession) error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (h *OrderStatusChangedHandler) Cleanup(sarama.ConsumerGroupSession) error <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (h *OrderStatusChangedHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error <span class="cov0" title="0">{
+        for message := range claim.Messages() </span><span class="cov0" title="0">{
+                ctx := session.Context()
+
+                var msg orderChangedDto
+                if err := json.Unmarshal(message.Value, &amp;msg); err != nil </span><span class="cov0" title="0">{
+                        session.MarkMessage(message, "")
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">status := model.OrderStatus(msg.Status)
+
+                h.logger.Infof("fetched order with id %s and status %s", msg.OrderID, status)
+
+                if err := h.useCase.HandleOrderStatusChanged(ctx, status, msg.OrderID); err != nil </span><span class="cov0" title="0">{
+                        if errors.Is(err, changed.ErrOrderStatusMismatch) </span><span class="cov0" title="0">{
+                                session.MarkMessage(message, "")
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">h.logger.Errorf("order.changed handler: failed to process order: %v", err)</span>
+                }
+
+                <span class="cov0" title="0">session.MarkMessage(message, "")</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package utils
+
+import (
+        "log"
+        "net/http"
+)
+
+const (
+        ErrInternalServer = "Internal server error"
+)
+
+func RespondWithError(w http.ResponseWriter, httpStatus int, message string) <span class="cov8" title="1">{
+        RespondWithJSON(w, httpStatus, map[string]string{"error": message})
+}</span>
+
+func RespondInternalServerError(w http.ResponseWriter, err error) <span class="cov8" title="1">{
+        log.Printf("Internal server error: %v\n", err)
+        RespondWithError(w, http.StatusInternalServerError, ErrInternalServer)
+}</span>
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package utils
+
+import (
+        "encoding/json"
+        "net/http"
+)
+
+func RespondWithJSON(w http.ResponseWriter, httpStatus int, data interface{}) <span class="cov8" title="1">{
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(httpStatus)
+        if err := json.NewEncoder(w).Encode(data); err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">package model
+
+import "time"
+
+type Courier struct {
+        ID            int64
+        Name          string
+        Phone         string
+        Status        CourierStatus
+        TransportType CourierTransportType
+        CreatedAt     time.Time
+        UpdatedAt     time.Time
+}
+
+type CourierStatus string
+
+type CourierTransportType string
+
+const (
+        CourierStatusAvailable CourierStatus = "available"
+        CourierStatusBusy      CourierStatus = "busy"
+)
+
+const (
+        TransportTypeOnFoot  CourierTransportType = "on_foot"
+        TransportTypeScooter CourierTransportType = "scooter"
+        TransportTypeCar     CourierTransportType = "car"
+)
+
+func (c *Courier) ChangeStatus(status CourierStatus) <span class="cov8" title="1">{
+        c.Status = status
+}</span>
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">package integration
+
+import (
+        "context"
+
+        pgxpool "github.com/jackc/pgx/v5/pgxpool"
+)
+
+func TruncateAll(ctx context.Context, pool *pgxpool.Pool) error <span class="cov0" title="0">{
+        _, err := pool.Exec(ctx,
+                `
+                TRUNCATE TABLE couriers, delivery
+                RESTART IDENTITY
+                CASCADE
+        `)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package integration
+
+import (
+        "context"
+        "database/sql"
+        "sync"
+        "time"
+
+        _ "github.com/lib/pq"
+        "github.com/pressly/goose/v3"
+        "github.com/testcontainers/testcontainers-go"
+        "github.com/testcontainers/testcontainers-go/modules/postgres"
+        "github.com/testcontainers/testcontainers-go/wait"
+)
+
+var (
+        syncOnce  sync.Once
+        connStr   string
+        container *postgres.PostgresContainer
+)
+
+func TestWithMigrations() (*postgres.PostgresContainer, string, error) <span class="cov0" title="0">{
+        ctx := context.Background()
+        var creationError error
+
+        syncOnce.Do(func() </span><span class="cov0" title="0">{
+                container, creationError = postgres.RunContainer(ctx,
+                        testcontainers.WithImage("postgres:15-alpine"),
+                        postgres.WithDatabase("test_db"),
+                        postgres.WithUsername("testuser"),
+                        postgres.WithPassword("testpass"),
+                        testcontainers.WithWaitStrategy(
+                                wait.ForLog("database system is ready to accept connections").
+                                        WithOccurrence(2).
+                                        WithStartupTimeout(5*time.Minute)),
+                )
+                if creationError != nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+
+                <span class="cov0" title="0">connStr, creationError = container.ConnectionString(ctx, "sslmode=disable")
+                if creationError != nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+
+                <span class="cov0" title="0">db, err := sql.Open("postgres", connStr)
+                if err != nil </span><span class="cov0" title="0">{
+                        creationError = err
+                }</span>
+                <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                        if cerr := db.Close(); cerr != nil &amp;&amp; creationError == nil </span><span class="cov0" title="0">{
+                                creationError = cerr
+                        }</span>
+                }()
+                <span class="cov0" title="0">if err := goose.Up(db, "../../../migrations"); err != nil </span><span class="cov0" title="0">{
+                        creationError = err
+                }</span>
+        })
+
+        <span class="cov0" title="0">if creationError != nil </span><span class="cov0" title="0">{
+                return nil, "", creationError
+        }</span>
+
+        <span class="cov0" title="0">return container, connStr, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file22" style="display: none">package courier
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "strings"
+        "time"
+
+        sq "github.com/Masterminds/squirrel"
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgxpool"
+
+        "courier-service/internal/model"
+        entity "courier-service/internal/repository/entity"
+        db "courier-service/internal/repository/utils/database"
+)
+
+type CourierRepository struct {
+        pool   *pgxpool.Pool
+        logger logger
+}
+
+func NewCourierRepository(pool *pgxpool.Pool, logger logger) *CourierRepository <span class="cov0" title="0">{
+        return &amp;CourierRepository{pool: pool, logger: logger}
+}</span>
+
+func (r *CourierRepository) GetCourierById(ctx context.Context, id int64) (model.Courier, error) <span class="cov0" title="0">{
+        queryBuilder := sq.
+                Select(db.IDColumn, db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
+                From(db.CourierTable).
+                Where(sq.Eq{db.IDColumn: id}). //
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return model.Courier{}, err
+        }</span>
+
+        <span class="cov0" title="0">var c entity.CourierDB
+
+        err = r.pool.QueryRow(ctx, query, args...).Scan(
+                &amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType, &amp;c.CreatedAt, &amp;c.UpdatedAt,
+        )
+
+        if errors.Is(err, pgx.ErrNoRows) </span><span class="cov0" title="0">{
+                return model.Courier{}, ErrCourierNotFound
+        }</span>
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                return model.Courier{}, err
+        }</span>
+
+        <span class="cov0" title="0">return c.ToModel(), nil</span>
+}
+
+func (r *CourierRepository) GetAllCouriers(ctx context.Context) ([]model.Courier, error) <span class="cov0" title="0">{
+        queryBuilder := sq.
+                Select(db.IDColumn, db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
+                From(db.CourierTable).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">rows, err := r.pool.Query(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">defer rows.Close()
+
+        var couriers []model.Courier
+        for rows.Next() </span><span class="cov0" title="0">{
+                var c entity.CourierDB
+                err = rows.Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType, &amp;c.CreatedAt, &amp;c.UpdatedAt)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">couriers = append(couriers, c.ToModel())</span>
+        }
+        <span class="cov0" title="0">return couriers, nil</span>
+}
+
+func (r *CourierRepository) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) <span class="cov0" title="0">{
+        var id int64
+        queryBuilder := sq.
+                Insert(db.CourierTable).
+                Columns(db.NameColumn, db.PhoneColumn, db.StatusColumn, db.TransportTypeColumn, db.CreatedAtColumn, db.UpdatedAtColumn).
+                Values(courier.Name, courier.Phone, courier.Status, courier.TransportType, time.Now(), time.Now()).
+                Suffix(db.BuildReturningStatement(db.IDColumn)).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;id)
+        if err != nil </span><span class="cov0" title="0">{
+                if strings.Contains(err.Error(), "duplicate key value") </span><span class="cov0" title="0">{
+                        return 0, ErrPhoneNumberExists
+                }</span>
+                <span class="cov0" title="0">return 0, fmt.Errorf("database error: %w", err)</span>
+        }
+
+        <span class="cov0" title="0">return id, nil</span>
+}
+
+func (r *CourierRepository) UpdateCourier(ctx context.Context, courier model.Courier) error <span class="cov0" title="0">{
+        sets := sq.Eq{db.UpdatedAtColumn: time.Now()}
+        if courier.Name != "" </span><span class="cov0" title="0">{
+                sets[db.NameColumn] = courier.Name
+        }</span>
+        <span class="cov0" title="0">if courier.Phone != "" </span><span class="cov0" title="0">{
+                sets[db.PhoneColumn] = courier.Phone
+        }</span>
+        <span class="cov0" title="0">if courier.Status != "" </span><span class="cov0" title="0">{
+                sets[db.StatusColumn] = courier.Status
+        }</span>
+        <span class="cov0" title="0">if courier.TransportType != "" </span><span class="cov0" title="0">{
+                sets[db.TransportTypeColumn] = courier.TransportType
+        }</span>
+        <span class="cov0" title="0">if len(sets) == 1 </span><span class="cov0" title="0">{
+                return ErrNothingToUpdate
+        }</span>
+
+        <span class="cov0" title="0">queryBuilder := sq.
+                Update(db.CourierTable).
+                SetMap(sets).
+                Where(sq.Eq{db.IDColumn: courier.ID}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">result, err := r.pool.Exec(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("database error: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if result.RowsAffected() == 0 </span><span class="cov0" title="0">{
+                return ErrCourierNotFound
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (r *CourierRepository) FindAvailableCourier(ctx context.Context) (model.Courier, error) <span class="cov0" title="0">{
+        subqueryCountDeliveries := sq.
+                Select(db.CourierIDColumn, "COUNT(*) AS cnt").
+                From(db.DeliveryTable).
+                GroupBy(db.CourierIDColumn).
+                PlaceholderFormat(sq.Dollar)
+
+        // Преобразуем подзапрос в строку для JOIN
+        subqueryCountDeliveriesSQL, subqueryArgs, err := subqueryCountDeliveries.ToSql()
+        if err != nil </span>{
+                return model.Courier{}, err
+        }
+
+        // Основ�</span></span></span></span></span></span></span></span><span class="cov0" title="0">�ой запрос
+        queryBuilder := sq.
+                </span>Select(db.CourierID, db.CourierName, db.CourierPhone, db.CourierStatus, db.CourierTransportType).
+                From(db.CourierTable).
+                LeftJoin(fmt.Sprintf("(%s) d ON d.%s = %s",
+                        subqueryCountDeliveriesSQL,
+                        db.CourierIDColumn,
+                        db.CourierID,
+                ), subqueryArgs...).
+                Where(sq.Eq{db.CourierStatus: db.StatusAvailable}).
+                OrderBy("COALESCE(d.cnt, 0) ASC").
+                Limit(1).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span></span></span></span></span></span><span class="cov0" title="0">{
+                return model.Courier{}, err
+        }</span>
+
+        var c entity.CourierDB
+        err = r.pool.QueryRow(ctx, query, args...).
+                Scan(&amp;c.ID, &amp;c.Name, &amp;c.Phone, &amp;c.Status, &amp;c.TransportType)
+        if err != nil {
+                if errors.Is(err, pgx.ErrNoRows) {
+                        return model.Courier{}, ErrCouriersBusy
+                }
+                return model.Courier{}, err
+        }
+
+        return c.ToModel(), nil
+}
+
+func (r *CourierRepository) FreeCouriersWithInterval(ctx context.Context) error {
+        sm := sq.Eq{
+                db.UpdatedAtColumn: time.Now(),
+                db.StatusColumn:    db.StatusAvailable,
+        }
+
+        queryBuilder := sq.
+                Update(db.CourierTable + " c").
+                SetMap(sm).
+                Where(sq.Eq{db.StatusColumn: db.StatusBusy}).
+                Where(sq.Expr(`
+                        EXISTS (
+</span></span></span></span></span></span>                                SELECT 1
+                                FROM delivery d
+                                WHERE d.courier_id = c.id
+                                AND d.assigned_at = (
+                                        SELECT MAX(d2.assigned_at)
+                                        FROM delivery d2
+                                        WHERE d2.courier_id = c.id
+                                )
+                                AND d.deadline &lt; NOW()
+                        )
+                `)).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span></span></span></span></span></span></span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        ct, err := r.pool.Exec(ctx, query, args...)
+        if err != nil {
+                return err
+        }
+
+        if ct.RowsAffe</span></span></span>cted() &gt; 0 </span>{
+                r.logger.Debugf("FreeCouriers updated rows: %d", ct.RowsAffected())
+        }</span></span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+</span></span></span></span></span></span>func (r *CourierRepository) ExistsCourierByPhone(ctx context.Context, phone string) (bool, error) {
+        q</span>ueryBuilder := sq.
+                Select(db.CountAll).
+                From(db.CourierTable).
+                Where(sq.Eq{db.CourierPhone: phone}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span></span>{
+                return false, err
+        }
+
+        var count int64
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;count)
+        if err != nil </span></span></span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov0" title="0">return count &gt; 0, nil</span>
+}<span class="cov0" title="0">
+
+func (r *Courie</span><span class="cov0" title="0">rRepository) GetCourierIDByOrderID(ctx context.Context, orderID string) (int64, error) {
+        queryBuilder := sq.
+</span>                Select(db.DeliveryCourierID).
+                From(db.DeliveryTable).
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). // order id
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+
+        if err != nil </span></span></span></span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov0" title="0">var courierID int64
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;courierID)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, pgx.ErrNoRows) </span><span class="cov0" title="0">{
+                        return 0, ErrOrderNotFound
+                }</span>
+                <span class="cov0" title="0">return 0, fmt.Errorf("database error: %w", err)</span>
+        }
+        <span class="cov0" title="0">return courierID, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file23" style="display: none">package delivery
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "strings"
+
+        sq "github.com/Masterminds/squirrel"
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgxpool"
+
+        "courier-service/internal/model"
+        db "courier-service/internal/repository/utils/database"
+)
+
+type DeliveryRepository struct {
+        pool *pgxpool.Pool
+}
+
+func NewDeliveryRepository(pool *pgxpool.Pool) *DeliveryRepository <span class="cov0" title="0">{
+        return &amp;DeliveryRepository{pool: pool}
+}</span>
+
+func (r *DeliveryRepository) CreateDelivery(ctx context.Context, delivery model.Delivery) (model.Delivery, error) <span class="cov0" title="0">{
+        queryBuilder := sq.
+                Insert(db.DeliveryTable).
+                Columns(db.OrderIDColumn, db.CourierIDColumn, db.AssignedAtColumn, db.DeadlineColumn).
+                Values(delivery.OrderID, delivery.CourierID, delivery.AssignedAt, delivery.Deadline).
+                Suffix(db.BuildReturningStatement(db.IDColumn, db.CourierIDColumn, db.OrderIDColumn, db.DeadlineColumn)).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return model.Delivery{}, err
+        }</span>
+
+        <span class="cov0" title="0">err = r.pool.QueryRow(ctx, query, args...).Scan(
+                &amp;delivery.ID, &amp;delivery.CourierID, &amp;delivery.OrderID, &amp;delivery.Deadline,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                if strings.Contains(err.Error(), "duplicate key value") </span><span class="cov0" title="0">{
+                        return model.Delivery{}, ErrOrderIDExists
+                }</span>
+                <span class="cov0" title="0">return model.Delivery{}, err</span>
+        }
+
+        <span class="cov0" title="0">return delivery, nil</span>
+}
+
+func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID string) (model.Delivery, error) <span class="cov0" title="0">{
+        queryBuilder := sq.
+                Select(db.DeliveryOrderID, db.CourierID).
+                From(db.DeliveryTable).
+                Join(fmt.Sprintf("%s ON %s = %s", db.CourierTable, db.DeliveryCourierID, db.CourierID)).
+                Where(sq.Eq{db.DeliveryOrderID: orderID}). //
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return model.Delivery{}, err
+        }</span>
+
+        <span class="cov0" title="0">var delivery model.Delivery
+        err = r.pool.QueryRow(ctx, query, args...).Scan(&amp;delivery.OrderID, &amp;delivery.CourierID)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, pgx.ErrNoRows) </span><span class="cov0" title="0">{
+                        return model.Delivery{}, ErrOrderIDNotFound
+                }</span>
+                <span class="cov0" title="0">return model.Delivery{}, err</span>
+        }
+
+        <span class="cov0" title="0">return delivery, nil</span>
+}
+
+func (r *DeliveryRepository) DeleteDelivery(ctx context.Context, orderID string) error <span class="cov0" title="0">{
+        queryBuilder := sq.
+                Delete(db.DeliveryTable).
+                Where(sq.Eq{db.OrderIDColumn: orderID}).
+                PlaceholderFormat(sq.Dollar)
+
+        query, args, err := queryBuilder.ToSql()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">result, err := r.pool.Exec(ctx, query, args...)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">if result.RowsAffected() == 0 </span><span class="cov0" title="0">{
+                return ErrOrderIDNotFound
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file24" style="display: none">package entity
+
+import (
+        "time"
+
+        "courier-service/internal/model"
+)
+
+type CourierDB struct {
+        ID            int64     `db:"id"`
+        Name          string    `db:"name"`
+        Phone         string    `db:"phone"`
+        Status        string    `db:"status"`
+        TransportType string    `db:"transport_type"`
+        CreatedAt     time.Time `db:"created_at"`
+        UpdatedAt     time.Time `db:"updated_at"`
+}
+
+func (c CourierDB) ToModel() model.Courier <span class="cov0" title="0">{
+        return model.Courier{
+                ID:            c.ID,
+                Name:          c.Name,
+                Phone:         c.Phone,
+                Status:        model.CourierStatus(c.Status),
+                TransportType: model.CourierTransportType(c.TransportType),
+                CreatedAt:     c.CreatedAt,
+                UpdatedAt:     c.UpdatedAt,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file25" style="display: none">package txrunner
+
+import (
+        "context"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+type PgxTxRunner struct {
+        pool *pgxpool.Pool
+}
+
+func NewTxRunner(pool *pgxpool.Pool) *PgxTxRunner <span class="cov0" title="0">{
+        return &amp;PgxTxRunner{pool: pool}
+}</span>
+
+func (r *PgxTxRunner) Run(ctx context.Context, fn func(ctx context.Context) error) error <span class="cov0" title="0">{
+        tx, err := r.pool.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">ctxTx := context.WithValue(ctx, TxKey{}, tx)
+
+        if err := fn(ctxTx); err != nil </span><span class="cov0" title="0">{
+                _ = tx.Rollback(ctx)
+                return err
+        }</span>
+        <span class="cov0" title="0">return tx.Commit(ctx)</span>
+}
+
+type TxKey struct{}
+</pre>
+		
+		<pre class="file" id="file26" style="display: none">package database
+
+import (
+        "strings"
+)
+
+const (
+        IDColumn            = "id"
+        NameColumn          = "name"
+        PhoneColumn         = "phone"
+        StatusColumn        = "status"
+        TransportTypeColumn = "transport_type"
+        CreatedAtColumn     = "created_at"
+        UpdatedAtColumn     = "updated_at"
+        OrderIDColumn       = "order_id"
+        AssignedAtColumn    = "assigned_at"
+        DeadlineColumn      = "deadline"
+        CourierIDColumn     = "courier_id"
+
+        CourierTable  = "couriers"
+        DeliveryTable = "delivery"
+
+        StatusBusy      = "busy"
+        StatusAvailable = "available"
+
+        CourierID            = CourierTable + "." + IDColumn
+        CourierName          = CourierTable + "." + NameColumn
+        CourierPhone         = CourierTable + "." + PhoneColumn
+        CourierStatus        = CourierTable + "." + StatusColumn
+        CourierTransportType = CourierTable + "." + TransportTypeColumn
+
+        DeliveryID        = DeliveryTable + "." + IDColumn
+        DeliveryOrderID   = DeliveryTable + "." + OrderIDColumn
+        DeliveryCourierID = DeliveryTable + "." + CourierIDColumn
+
+        CountAll = "count(*)"
+)
+
+func BuildReturningStatement(args ...string) string <span class="cov0" title="0">{
+        if len(args) == 0 </span><span class="cov0" title="0">{
+                return ""
+        }</span>
+        <span class="cov0" title="0">return "RETURNING " + strings.Join(args, ", ")</span>
+}
+</pre>
+		
+		<pre class="file" id="file27" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+
+        "courier-service/internal/handlers/common"
+)
+
+func registerCommonRoutes(r chi.Router) <span class="cov0" title="0">{
+        r.Get("/ping", common.Ping)
+        r.Get("/health", common.Healthcheck)
+}</span>
+</pre>
+		
+		<pre class="file" id="file28" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+)
+
+func registerCourierRoutes(r chi.Router, c courierHandler) <span class="cov0" title="0">{
+        r.Get("/couriers", c.GetAllCouriers)
+        r.Get("/courier/{id}", c.GetCourierById)
+        r.Post("/courier", c.CreateCourier)
+        r.Put("/courier", c.UpdateCourier)
+}</span>
+</pre>
+		
+		<pre class="file" id="file29" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+)
+
+func registerDeliveryRoutes(r chi.Router, c deliveryHandler) <span class="cov0" title="0">{
+        r.Post("/delivery/assign", c.AssignDelivery)
+        r.Post("/delivery/unassign", c.UnassignDelivery)
+}</span>
+</pre>
+		
+		<pre class="file" id="file30" style="display: none">package routing
+
+import (
+        "net/http"
+
+        "github.com/go-chi/chi/v5"
+)
+
+type ChiPathNormalizer struct{}
+
+func NewChiPathNormalizer() *ChiPathNormalizer <span class="cov0" title="0">{
+        return &amp;ChiPathNormalizer{}
+}</span>
+
+func (n *ChiPathNormalizer) Normalize(r *http.Request) string <span class="cov0" title="0">{
+        rctx := chi.RouteContext(r.Context())
+        if rctx == nil </span><span class="cov0" title="0">{
+                return "unknown"
+        }</span>
+
+        // If router already matched (e.g. after next.ServeHTTP)
+        <span class="cov0" title="0">if rp := rctx.RoutePattern(); rp != "" </span><span class="cov0" title="0">{
+                return rp
+        }</span>
+
+        // Early stage: do a dry-run match against the same Routes tree
+        <span class="cov0" title="0">if rctx.Routes != nil </span><span class="cov0" title="0">{
+                tmp := chi.NewRouteContext()
+                if rctx.Routes.Match(tmp, r.Method, r.URL.Path) </span><span class="cov0" title="0">{
+                        if rp := tmp.RoutePattern(); rp != "" </span><span class="cov0" title="0">{
+                                return rp
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return "unknown"</span>
+}
+</pre>
+		
+		<pre class="file" id="file31" style="display: none">package routing
+
+import (
+        "github.com/go-chi/chi/v5"
+
+        loggingmiddleware "courier-service/internal/handlers/middleware/logging"
+        ratelimitmiddleware "courier-service/internal/handlers/middleware/ratelimit"
+)
+
+func Router(
+        logger logger,
+        rateLimiter rateLimiter,
+        metricsWriter httpMetricsWriter,
+        metricsHandler metricsHandler,
+        pathNormalizer pathNormalizer,
+        courierController courierHandler,
+        deliveryController deliveryHandler,
+) *chi.Mux <span class="cov0" title="0">{
+        r := chi.NewRouter()
+
+        // /metrics endpoint БЕЗ rate limiting
+        r.Handle("/metrics", metricsHandler)
+
+        r.Group(func(r chi.Router) </span><span class="cov0" title="0">{
+                r.Use(
+                        ratelimitmiddleware.RateLimitMiddleware(
+                                rateLimiter,
+                                logger,
+                                metricsWriter,
+                                pathNormalizer,
+                        ),
+                        loggingmiddleware.LoggingMiddleware(
+                                logger,
+                                metricsWriter,
+                                pathNormalizer,
+                        ),
+                )
+
+                registerCommonRoutes(r)
+                registerCourierRoutes(r, courierController)
+                registerDeliveryRoutes(r, deliveryController)
+        }</span>)
+
+        <span class="cov0" title="0">return r</span>
+}
+</pre>
+		
+		<pre class="file" id="file32" style="display: none">package courier
+
+import (
+        "context"
+        "errors"
+        "regexp"
+        "time"
+
+        "courier-service/internal/model"
+        courierRepo "courier-service/internal/repository/courier"
+)
+
+type CourierUseCase struct {
+        repository courierRepository
+        factory    deliveryCalculatorFactory
+        logger     logger
+}
+
+func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger) *CourierUseCase <span class="cov8" title="1">{
+        return &amp;CourierUseCase{
+                repository: repository,
+                factory:    factory,
+                logger:     logger,
+        }
+}</span>
+
+func (u *CourierUseCase) CheckFreeCouriersWithInterval(ctx context.Context, interval time.Duration) <span class="cov8" title="1">{
+        ticker := time.NewTicker(interval)
+        defer ticker.Stop()
+
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov8" title="1">
+                        return</span>
+                case t := &lt;-ticker.C:<span class="cov8" title="1">
+                        if err := u.repository.FreeCouriersWithInterval(ctx); err != nil </span><span class="cov8" title="1">{
+                                u.logger.Errorf("Failed to check free couriers: %v", err)
+                        }</span>
+                        <span class="cov8" title="1">u.logger.Debugf("Checked free couriers at %s", t.Format(time.RFC3339))</span>
+                }
+        }
+}
+
+func (u *CourierUseCase) GetCourierById(ctx context.Context, id int64) (model.Courier, error) <span class="cov8" title="1">{
+        courier, err := u.repository.GetCourierById(ctx, id)
+
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, courierRepo.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        return model.Courier{}, ErrCourierNotFound
+                }</span>
+                <span class="cov0" title="0">return model.Courier{}, err</span>
+        }
+
+        <span class="cov8" title="1">return courier, nil</span>
+}
+
+func (u *CourierUseCase) GetAllCouriers(ctx context.Context) ([]model.Courier, error) <span class="cov8" title="1">{
+        couriers, err := u.repository.GetAllCouriers(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return couriers, nil</span>
+}
+
+func (u *CourierUseCase) CreateCourier(ctx context.Context, courier model.Courier) (int64, error) <span class="cov8" title="1">{
+        if courier.Name == "" || courier.Phone == "" || courier.Status == "" || courier.TransportType == "" </span><span class="cov8" title="1">{
+                return 0, ErrInvalidCreate
+        }</span>
+
+        <span class="cov8" title="1">if u.factory.GetDeliveryCalculator(courier.TransportType) == nil </span><span class="cov8" title="1">{
+                return 0, ErrUnknownTransportType
+        }</span>
+
+        <span class="cov8" title="1">if !ValidPhoneNumber(courier.Phone) </span><span class="cov8" title="1">{
+                return 0, ErrInvalidPhoneNumber
+        }</span>
+
+        <span class="cov8" title="1">if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, courier.Phone); phoneExists </span><span class="cov8" title="1">{
+                return 0, ErrPhoneNumberExists
+        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov0" title="0">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return u.repository.CreateCourier(ctx, courier)</span>
+}
+
+func (u *CourierUseCase) UpdateCourier(ctx context.Context, courier model.Courier) error <span class="cov8" title="1">{
+        if courier.Name == "" &amp;&amp; courier.Phone == "" &amp;&amp; courier.Status == "" &amp;&amp; courier.TransportType == "" </span><span class="cov8" title="1">{
+                return ErrInvalidUpdate
+        }</span>
+        <span class="cov8" title="1">if courier.TransportType != "" </span><span class="cov8" title="1">{
+                if u.factory.GetDeliveryCalculator(courier.TransportType) == nil </span><span class="cov8" title="1">{
+                        return ErrUnknownTransportType
+                }</span>
+        }
+        <span class="cov8" title="1">if courier.Phone != "" </span><span class="cov8" title="1">{
+                if !ValidPhoneNumber(courier.Phone) </span><span class="cov8" title="1">{
+                        return ErrInvalidPhoneNumber
+                }</span>
+                <span class="cov8" title="1">if phoneExists, err := u.repository.ExistsCourierByPhone(ctx, courier.Phone); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span> else<span class="cov8" title="1"> if phoneExists </span><span class="cov8" title="1">{
+                        return ErrPhoneNumberExists
+                }</span>
+        }
+
+        <span class="cov8" title="1">if err := u.repository.UpdateCourier(ctx, courier); err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, courierRepo.ErrCourierNotFound) </span><span class="cov8" title="1">{
+                        return ErrCourierNotFound
+                }</span>
+                <span class="cov8" title="1">return err</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+func ValidPhoneNumber(phone string) bool <span class="cov8" title="1">{
+        phoneRegex := `^\+[0-9]{11}$`
+        return regexp.MustCompile(phoneRegex).MatchString(phone)
+}</span>
+</pre>
+		
+		<pre class="file" id="file33" style="display: none">package assign
+
+import (
+        "context"
+        "errors"
+        "time"
+
+        "courier-service/internal/model"
+        courierrepoerrors "courier-service/internal/repository/courier"
+        deliveryrepoerrors "courier-service/internal/repository/delivery"
+)
+
+type AssignDelieveryUseCase struct {
+        courierRepository  courierRepository
+        deliveryRepository deliveryRepository
+        txRunner           txRunner
+        factory            deliveryCalculatorFactory
+}
+
+func NewAssignDelieveryUseCase(
+        courierRepository courierRepository,
+        deliveryRepository deliveryRepository,
+        txRunner txRunner,
+        factory deliveryCalculatorFactory,
+) *AssignDelieveryUseCase <span class="cov8" title="1">{
+        return &amp;AssignDelieveryUseCase{
+                courierRepository:  courierRepository,
+                deliveryRepository: deliveryRepository,
+                txRunner:           txRunner,
+                factory:            factory,
+        }
+}</span>
+
+func (u *AssignDelieveryUseCase) Assign(ctx context.Context, OrderID string) (DeliveryAssignResponse, error) <span class="cov8" title="1">{
+        if OrderID == "" </span><span class="cov8" title="1">{
+                return DeliveryAssignResponse{}, ErrNoOrderID
+        }</span>
+        <span class="cov8" title="1">var resp DeliveryAssignResponse
+        var courier model.Courier
+        var delivery model.Delivery
+        err := u.txRunner.Run(ctx, func(txCtx context.Context) error </span><span class="cov8" title="1">{
+                c, err := u.courierRepository.FindAvailableCourier(txCtx)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, courierrepoerrors.ErrCouriersBusy) </span><span class="cov8" title="1">{
+                                return ErrCouriersBusy
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">dc := u.factory.GetDeliveryCalculator(c.TransportType)
+                if dc == nil </span><span class="cov0" title="0">{
+                        return ErrUnknownTransportType
+                }</span>
+                <span class="cov8" title="1">deliveryDomain := model.Delivery{
+                        OrderID:    OrderID,
+                        CourierID:  c.ID,
+                        AssignedAt: time.Now(),
+                        Deadline:   dc.CalculateDeadline(),
+                }
+
+                d, err := u.deliveryRepository.CreateDelivery(txCtx, deliveryDomain)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, deliveryrepoerrors.ErrOrderIDExists) </span><span class="cov8" title="1">{
+                                return ErrOrderIDExists
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">c.ChangeStatus(model.CourierStatusBusy)
+                if err := u.courierRepository.UpdateCourier(txCtx, c); err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courier = c
+                delivery = d
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return DeliveryAssignResponse{}, err
+        }</span>
+        <span class="cov8" title="1">resp = deliveryAssignResponse(courier, delivery)
+        return resp, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file34" style="display: none">package assign
+
+import (
+        "time"
+
+        "courier-service/internal/model"
+)
+
+type DeliveryAssignResponse struct {
+        CourierID     int64
+        OrderID       string
+        TransportType string
+        Deadline      time.Time
+}
+
+func deliveryAssignResponse(courier model.Courier, delivery model.Delivery) DeliveryAssignResponse <span class="cov8" title="1">{
+        return DeliveryAssignResponse{
+                CourierID:     courier.ID,
+                OrderID:       delivery.OrderID,
+                TransportType: string(courier.TransportType),
+                Deadline:      delivery.Deadline,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file35" style="display: none">package complete
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        "courier-service/internal/model"
+        courierrepo "courier-service/internal/repository/courier"
+)
+
+type CompleteDeliveryUseCase struct {
+        courierRepository courierRepository
+}
+
+func NewCompleteDeliveryUseCase(courierRepository courierRepository) *CompleteDeliveryUseCase <span class="cov0" title="0">{
+        return &amp;CompleteDeliveryUseCase{courierRepository: courierRepository}
+}</span>
+
+func (u *CompleteDeliveryUseCase) Complete(ctx context.Context, OrderID string) error <span class="cov0" title="0">{
+        courierID, err := u.courierRepository.GetCourierIDByOrderID(ctx, OrderID)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, courierrepo.ErrOrderNotFound) </span><span class="cov0" title="0">{
+                        return ErrOrderNotFound
+                }</span>
+                <span class="cov0" title="0">return fmt.Errorf("database error: %w", err)</span>
+        }
+
+        <span class="cov0" title="0">err = u.courierRepository.UpdateCourier(ctx, model.Courier{
+                ID: courierID, Status: model.CourierStatusAvailable,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file36" style="display: none">package unassign
+
+import (
+        "context"
+        "errors"
+
+        "courier-service/internal/model"
+        deliveryRepo "courier-service/internal/repository/delivery"
+)
+
+type UnassignDelieveryUseCase struct {
+        courierRepository  courierRepository
+        deliveryRepository deliveryRepository
+        txRunner           txRunner
+}
+
+func NewUnassignDelieveryUseCase(
+        courierRepository courierRepository,
+        deliveryRepository deliveryRepository,
+        txRunner txRunner,
+) *UnassignDelieveryUseCase <span class="cov8" title="1">{
+        return &amp;UnassignDelieveryUseCase{
+                courierRepository:  courierRepository,
+                deliveryRepository: deliveryRepository,
+                txRunner:           txRunner,
+        }
+}</span>
+
+func (u *UnassignDelieveryUseCase) Unassign(ctx context.Context, OrderID string) (int64, error) <span class="cov8" title="1">{
+        if OrderID == "" </span><span class="cov8" title="1">{
+                return 0, ErrNoOrderID
+        }</span>
+
+        <span class="cov8" title="1">var courierID int64
+        err := u.txRunner.Run(ctx, func(txCtx context.Context) error </span><span class="cov8" title="1">{
+                couriersDelivery, err := u.deliveryRepository.CouriersDelivery(txCtx, OrderID)
+                if err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, deliveryRepo.ErrOrderIDNotFound) </span><span class="cov8" title="1">{
+                                return ErrOrderIDNotFound
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">if err := u.deliveryRepository.DeleteDelivery(txCtx, OrderID); err != nil </span><span class="cov8" title="1">{
+                        if errors.Is(err, deliveryRepo.ErrOrderIDNotFound) </span><span class="cov8" title="1">{
+                                return ErrOrderIDNotFound
+                        }</span>
+                        <span class="cov0" title="0">return err</span>
+                }
+
+                <span class="cov8" title="1">courier, err := u.courierRepository.GetCourierById(txCtx, couriersDelivery.CourierID)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courier.ChangeStatus(model.CourierStatusAvailable)
+                if err := u.courierRepository.UpdateCourier(txCtx, courier); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">courierID = courier.ID
+
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">return courierID, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file37" style="display: none">package changed
+
+import (
+        "context"
+
+        "courier-service/internal/model"
+)
+
+type OrderChangedUseCase struct {
+        factory      orderChangedFactory
+        orderGateway orderGateway
+        logger       logger
+}
+
+func NewOrderChangedUseCase(factory orderChangedFactory, gateway orderGateway, log logger) *OrderChangedUseCase <span class="cov8" title="1">{
+        return &amp;OrderChangedUseCase{
+                factory:      factory,
+                orderGateway: gateway,
+                logger:       log,
+        }
+}</span>
+
+func (uc *OrderChangedUseCase) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
+        if status != model.OrderStatusCompleted </span><span class="cov8" title="1">{
+                uc.logger.Debugf("sending grpc request for checking status for order %s", orderID)
+                order, err := uc.orderGateway.GetOrderById(ctx, orderID)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">if order.Status != status </span><span class="cov8" title="1">{
+                        uc.logger.Warnf("order status mismatch: expected %s, got %s for order %s", status, order.Status, orderID)
+                        return ErrOrderStatusMismatch
+                }</span>
+        }
+
+        <span class="cov8" title="1">processor, ok := uc.factory.Get(status)
+        if !ok </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+        <span class="cov8" title="1">return processor.HandleOrderStatusChanged(ctx, status, orderID)</span>
+}
+</pre>
+		
+		<pre class="file" id="file38" style="display: none">package changed
+
+import "courier-service/internal/model"
+
+type Factory struct {
+        processors map[model.OrderStatus]Processor
+}
+
+func NewFactory(processors map[model.OrderStatus]Processor) *Factory <span class="cov8" title="1">{
+        return &amp;Factory{processors: processors}
+}</span>
+
+func (f *Factory) Get(status model.OrderStatus) (Processor, bool) <span class="cov8" title="1">{
+        p, ok := f.processors[status]
+        return p, ok
+}</span>
+</pre>
+		
+		<pre class="file" id="file39" style="display: none">package processor
+
+import (
+        "context"
+
+        "courier-service/internal/model"
+)
+
+type CancelledProcessor struct {
+        unassignUC unassignUseCase
+}
+
+func NewCancelledProcessor(unassignUC unassignUseCase) *CancelledProcessor <span class="cov8" title="1">{
+        return &amp;CancelledProcessor{unassignUC: unassignUC}
+}</span>
+
+func (p *CancelledProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
+        _, err := p.unassignUC.Unassign(ctx, orderID)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file40" style="display: none">package processor
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        "courier-service/internal/model"
+        complete "courier-service/internal/usecase/delivery/complete"
+        changed "courier-service/internal/usecase/order/changed"
+)
+
+type CompletedProcessor struct {
+        completeUC completeUseCase
+}
+
+func NewCompletedProcessor(completeUC completeUseCase) *CompletedProcessor <span class="cov8" title="1">{
+        return &amp;CompletedProcessor{completeUC: completeUC}
+}</span>
+
+func (p *CompletedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
+        err := p.completeUC.Complete(ctx, orderID)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, complete.ErrOrderNotFound) </span><span class="cov8" title="1">{
+                        return changed.ErrOrderNotFound
+                }</span>
+                <span class="cov8" title="1">return fmt.Errorf("database error: %w", err)</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file41" style="display: none">package processor
+
+import (
+        "context"
+
+        "courier-service/internal/model"
+)
+
+type CreatedProcessor struct {
+        assignUC assignUseCase
+}
+
+func NewCreatedProcessor(assignUC assignUseCase) *CreatedProcessor <span class="cov8" title="1">{
+        return &amp;CreatedProcessor{assignUC: assignUC}
+}</span>
+
+func (p *CreatedProcessor) HandleOrderStatusChanged(ctx context.Context, status model.OrderStatus, orderID string) error <span class="cov8" title="1">{
+        _, err := p.assignUC.Assign(ctx, orderID)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file42" style="display: none">package ordermonitoring
+
+import (
+        "context"
+        "log"
+        "time"
+)
+
+type OrderMonitoringUseCase struct {
+        orderGateway              orderGateway
+        courierRepository         courierRepository
+        txRunner                  txRunner
+        deliveryRepository        deliveryRepository
+        deliveryCalculatorFactory deliveryCalculatorFactory
+        assignUseCase             assignUseCase
+}
+
+func NewOrderMonitoringUseCase(
+        orderGateway orderGateway,
+        courierRepository courierRepository,
+        deliveryRepository deliveryRepository,
+        txRunner txRunner,
+        deliveryCalculatorFactory deliveryCalculatorFactory,
+        assignUseCase assignUseCase,
+) *OrderMonitoringUseCase <span class="cov8" title="1">{
+        return &amp;OrderMonitoringUseCase{
+                orderGateway:              orderGateway,
+                courierRepository:         courierRepository,
+                deliveryRepository:        deliveryRepository,
+                txRunner:                  txRunner,
+                deliveryCalculatorFactory: deliveryCalculatorFactory,
+                assignUseCase:             assignUseCase,
+        }
+}</span>
+
+func (u *OrderMonitoringUseCase) MonitorOrders(ctx context.Context, interval time.Duration) <span class="cov8" title="1">{
+        ticker := time.NewTicker(interval)
+        defer ticker.Stop()
+
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov8" title="1">
+                        return</span>
+                case &lt;-ticker.C:<span class="cov8" title="1">
+                        from := time.Now().Add(-interval)
+                        log.Printf("getting orders from gateway, cursor: %s\n", from.Format(time.RFC3339))
+                        orders, err := u.orderGateway.GetOrders(ctx, from)
+                        if err != nil </span><span class="cov8" title="1">{
+                                log.Printf("failed to get orders from gateway: %v\n", err)
+                                continue</span>
+                        }
+                        <span class="cov8" title="1">for _, order := range orders </span><span class="cov8" title="1">{
+                                assignment, err := u.assignUseCase.Assign(ctx, order.ID)
+                                if err != nil </span><span class="cov8" title="1">{
+                                        log.Printf("failed to create assignment for order %s: %v\n", order.ID, err)
+                                        continue</span>
+                                }
+                                <span class="cov8" title="1">log.Printf("applied courier %d to order %s", assignment.CourierID, order.ID)</span>
+                        }
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file43" style="display: none">package utils
+
+import (
+        "time"
+
+        "courier-service/internal/model"
+)
+
+type DeliveryCalculator interface {
+        CalculateDeadline() time.Time
+}
+
+type TimeCalculatorFactory struct{}
+
+func NewTimeCalculatorFactory() *TimeCalculatorFactory <span class="cov0" title="0">{
+        return &amp;TimeCalculatorFactory{}
+}</span>
+
+type OnFootCalculator struct{}
+type ScooterCalculator struct{}
+type CarCalculator struct{}
+
+func (c *OnFootCalculator) CalculateDeadline() time.Time <span class="cov0" title="0">{
+        return time.Now().Add(15 * time.Minute)
+}</span>
+
+func (c *ScooterCalculator) CalculateDeadline() time.Time <span class="cov0" title="0">{
+        return time.Now().Add(10 * time.Minute)
+}</span>
+
+func (c *CarCalculator) CalculateDeadline() time.Time <span class="cov0" title="0">{
+        return time.Now().Add(5 * time.Minute)
+}</span>
+
+func (f TimeCalculatorFactory) GetDeliveryCalculator(courierType model.CourierTransportType) DeliveryCalculator <span class="cov0" title="0">{
+        switch courierType </span>{
+        case model.TransportTypeOnFoot:<span class="cov0" title="0">
+                return &amp;OnFootCalculator{}</span>
+        case model.TransportTypeScooter:<span class="cov0" title="0">
+                return &amp;ScooterCalculator{}</span>
+        case model.TransportTypeCar:<span class="cov0" title="0">
+                return &amp;CarCalculator{}</span>
+        default:<span class="cov0" title="0">
+                return nil</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file44" style="display: none">package database
+
+import (
+        "context"
+        "log"
+        "time"
+
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+func MustInitPool(connString string, l logger) *pgxpool.Pool <span class="cov0" title="0">{
+        cfg, err := pgxpool.ParseConfig(connString)
+        if err != nil </span><span class="cov0" title="0">{
+                l.Fatal("Failed to parse database configuration: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">cfg.MaxConns = 10
+        cfg.MinConns = 2
+        cfg.MaxConnLifetime = time.Hour
+        cfg.MaxConnIdleTime = time.Minute * 30
+
+        ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+        defer cancel()
+
+        pool, err := pgxpool.NewWithConfig(ctx, cfg)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal(err)
+        }</span>
+
+        <span class="cov0" title="0">pingAttemptLimit := 3
+        var pingErr error
+        for i := 0; i &lt; pingAttemptLimit; i++ </span><span class="cov0" title="0">{
+                pingCtx, pingCancel := context.WithTimeout(ctx, 5*time.Second)
+                pingErr = pool.Ping(pingCtx)
+                pingCancel()
+                if pingErr == nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">l.Warnf("db ping attempt %d failed: %v", i+1, pingErr)
+                if i &lt; pingAttemptLimit </span><span class="cov0" title="0">{
+                        time.Sleep(500 * time.Millisecond)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if pingErr != nil </span><span class="cov0" title="0">{
+                l.Fatal("Unable to ping database")
+        }</span>
+        <span class="cov0" title="0">l.Info("Database connection pool established")
+
+        return pool</span>
+}
+</pre>
+		
+		<pre class="file" id="file45" style="display: none">package fulljitter
+
+import (
+        "math"
+        "math/rand"
+        "time"
+)
+
+// FullJitter implements exponential backoff with full jitter strategy.
+// It calculates delay as: random(0, min(base * multiplier^(attempt-1), max))
+type FullJitter struct {
+        BaseDelay  time.Duration
+        MaxDelay   time.Duration
+        Multiplier float64
+        rnd        *rand.Rand
+}
+
+func NewFullJitter(base, max time.Duration, multiplier float64, initialSeed *int64) *FullJitter <span class="cov8" title="1">{
+        var seed int64
+        if initialSeed == nil </span><span class="cov8" title="1">{
+                seed = time.Now().UnixNano()
+        }</span> else<span class="cov8" title="1"> {
+                seed = *initialSeed
+        }</span>
+        <span class="cov8" title="1">return &amp;FullJitter{
+                BaseDelay:  base,
+                MaxDelay:   max,
+                Multiplier: multiplier,
+                rnd:        rand.New(rand.NewSource(seed)),
+        }</span>
+}
+
+func (f *FullJitter) NextDelay(attempt int) time.Duration <span class="cov8" title="1">{
+        maxDelay := float64(f.BaseDelay) * math.Pow(f.Multiplier, float64(attempt-1))
+        if maxDelay &gt; float64(f.MaxDelay) </span><span class="cov8" title="1">{
+                maxDelay = float64(f.MaxDelay)
+        }</span>
+
+        <span class="cov8" title="1">return time.Duration(f.rnd.Float64() * maxDelay)</span>
+}
+</pre>
+		
+		<pre class="file" id="file46" style="display: none">package logger
+
+import (
+        "os"
+        "time"
+
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+type LogLevel string
+
+const (
+        LogLevelError LogLevel = "error"
+        LogLevelWarn  LogLevel = "warn"
+        LogLevelInfo  LogLevel = "info"
+        LogLevelDebug LogLevel = "debug"
+)
+
+type Color string
+
+const (
+        ColorLightBlue   Color = "\x1b[94m"
+        ColorLightYellow Color = "\x1b[93m"
+        ColorLightRed    Color = "\x1b[91m"
+        ColorLightGreen  Color = "\x1b[92m"
+        ColorPurple      Color = "\x1b[95m"
+        ColorCyan        Color = "\x1b[96m"
+        ColorLightPink   Color = "\x1b[95m"
+)
+
+func parseLevel(level LogLevel) zapcore.Level <span class="cov0" title="0">{
+        switch level </span>{
+        case LogLevelInfo:<span class="cov0" title="0">
+                return zapcore.InfoLevel</span>
+        case LogLevelError:<span class="cov0" title="0">
+                return zapcore.ErrorLevel</span>
+        case LogLevelWarn:<span class="cov0" title="0">
+                return zapcore.WarnLevel</span>
+        case LogLevelDebug:<span class="cov0" title="0">
+                return zapcore.DebugLevel</span>
+        default:<span class="cov0" title="0">
+                return zapcore.InfoLevel</span>
+        }
+}
+
+func levelColor(l zapcore.Level) Color <span class="cov0" title="0">{
+        switch l </span>{
+        case zapcore.InfoLevel:<span class="cov0" title="0">
+                return ColorLightGreen</span>
+        case zapcore.DebugLevel:<span class="cov0" title="0">
+                return ColorLightBlue</span>
+        case zapcore.WarnLevel:<span class="cov0" title="0">
+                return ColorLightYellow</span>
+        case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:<span class="cov0" title="0">
+                return ColorLightRed</span>
+        default:<span class="cov0" title="0">
+                return ColorLightGreen</span>
+        }
+}
+
+func levelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) <span class="cov0" title="0">{
+        const reset = "\x1b[0m"
+        enc.AppendString(string(levelColor(l)) + "[" + l.CapitalString() + "]" + reset)
+}</span>
+
+type Logger struct {
+        l *zap.SugaredLogger
+}
+
+func New(level string) (*Logger, error) <span class="cov0" title="0">{
+        zapLevel := parseLevel(LogLevel(level))
+
+        encoderCfg := zapcore.EncoderConfig{
+                TimeKey:        zapcore.OmitKey,
+                LevelKey:       "level",
+                MessageKey:     "msg",
+                CallerKey:      "caller",
+                EncodeTime:     timeEncoder,
+                EncodeDuration: zapcore.StringDurationEncoder,
+                EncodeLevel:    levelEncoder,
+        }
+
+        core := zapcore.NewCore(
+                zapcore.NewConsoleEncoder(encoderCfg),
+                zapcore.AddSync(os.Stdout),
+                zapLevel,
+        )
+
+        logger := zap.New(core)
+        return &amp;Logger{l: logger.Sugar()}, nil
+}</span>
+
+func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) <span class="cov0" title="0">{
+        enc.AppendString(t.Format("2006/01/02 15:04:05"))
+}</span>
+
+func (l *Logger) Debug(args ...interface{}) <span class="cov0" title="0">{
+        l.l.Debug(args...)
+}</span>
+
+func (l *Logger) Debugf(format string, args ...interface{}) <span class="cov0" title="0">{
+        l.l.Debugf(format, args...)
+}</span>
+
+func (l *Logger) Debugw(msg string, keysAndValues ...interface{}) <span class="cov0" title="0">{
+        l.l.Debugw(msg, keysAndValues...)
+}</span>
+
+func (l *Logger) Info(args ...interface{}) <span class="cov0" title="0">{
+        l.l.Info(args...)
+}</span>
+
+func (l *Logger) Infof(format string, args ...interface{}) <span class="cov0" title="0">{
+        l.l.Infof(format, args...)
+}</span>
+
+func (l *Logger) Infow(msg string, keysAndValues ...interface{}) <span class="cov0" title="0">{
+        l.l.Infow(msg, keysAndValues...)
+}</span>
+
+func (l *Logger) Warn(args ...interface{}) <span class="cov0" title="0">{
+        l.l.Warn(args...)
+}</span>
+
+func (l *Logger) Warnf(format string, args ...interface{}) <span class="cov0" title="0">{
+        l.l.Warnf(format, args...)
+}</span>
+
+func (l *Logger) Warnw(msg string, keysAndValues ...interface{}) <span class="cov0" title="0">{
+        l.l.Warnw(msg, keysAndValues...)
+}</span>
+
+func (l *Logger) Error(args ...interface{}) <span class="cov0" title="0">{
+        l.l.Error(args...)
+}</span>
+
+func (l *Logger) Errorf(format string, args ...interface{}) <span class="cov0" title="0">{
+        l.l.Errorf(format, args...)
+}</span>
+
+func (l *Logger) Errorw(msg string, keysAndValues ...interface{}) <span class="cov0" title="0">{
+        l.l.Errorw(msg, keysAndValues...)
+}</span>
+
+func (l *Logger) Fatal(args ...interface{}) <span class="cov0" title="0">{
+        l.l.Fatal(args...)
+}</span>
+
+func (l *Logger) Fatalf(format string, args ...interface{}) <span class="cov0" title="0">{
+        l.l.Fatalf(format, args...)
+}</span>
+</pre>
+		
+		<pre class="file" id="file47" style="display: none">package metrics
+
+import (
+        "net/http"
+
+        "github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+type MetricsHandler struct {
+        handler http.Handler
+}
+
+func NewMetricsHandler() *MetricsHandler <span class="cov0" title="0">{
+        return &amp;MetricsHandler{
+                handler: promhttp.Handler(),
+        }
+}</span>
+
+func (h *MetricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        h.handler.ServeHTTP(w, r)
+}</span>
+</pre>
+		
+		<pre class="file" id="file48" style="display: none">package metrics
+
+import (
+        "github.com/prometheus/client_golang/prometheus"
+)
+
+type HTTPMetrics struct {
+        RequestTotal           *prometheus.CounterVec
+        RequestDuration        *prometheus.HistogramVec
+        RateLimitExceededTotal *prometheus.CounterVec
+        GatewayRetries         *prometheus.CounterVec
+}
+
+func NewHTTPMetrics(reg prometheus.Registerer) *HTTPMetrics <span class="cov0" title="0">{
+        metrics := &amp;HTTPMetrics{
+                RequestTotal: prometheus.NewCounterVec(
+                        prometheus.CounterOpts{
+                                Name: "http_requests_total",
+                                Help: "Total number of HTTP requests",
+                        },
+                        []string{"method", "path", "status"},
+                ),
+                RequestDuration: prometheus.NewHistogramVec(
+                        prometheus.HistogramOpts{
+                                Name:    "http_request_duration_seconds",
+                                Help:    "HTTP request duration",
+                                Buckets: prometheus.DefBuckets,
+                        },
+                        []string{"method", "path", "status"},
+                ),
+                RateLimitExceededTotal: prometheus.NewCounterVec(
+                        prometheus.CounterOpts{
+                                Name: "rate_limit_exceeded_total",
+                                Help: "Total number of rate limiting",
+                        },
+                        []string{"method", "path"},
+                ),
+                GatewayRetries: prometheus.NewCounterVec(
+                        prometheus.CounterOpts{
+                                Name: "gateway_retries_total",
+                                Help: "Total number of gateway retries",
+                        },
+                        []string{"method", "path"},
+                ),
+        }
+        reg.MustRegister(
+                metrics.RequestTotal,
+                metrics.RequestDuration,
+                metrics.RateLimitExceededTotal,
+                metrics.GatewayRetries,
+        )
+        return metrics
+}</span>
+
+type MetricsWriter struct {
+        metrics *HTTPMetrics
+}
+
+func NewMetricsWriter(metrics *HTTPMetrics) *MetricsWriter <span class="cov0" title="0">{
+        return &amp;MetricsWriter{
+                metrics: metrics,
+        }
+}</span>
+
+func (w *MetricsWriter) RecordRequest(method, path, status string) <span class="cov0" title="0">{
+        w.metrics.RequestTotal.WithLabelValues(method, path, status).Inc()
+}</span>
+
+func (w *MetricsWriter) RecordDuration(method, path, status string, duration float64) <span class="cov0" title="0">{
+        w.metrics.RequestDuration.WithLabelValues(method, path, status).Observe(duration)
+}</span>
+
+func (w *MetricsWriter) RecordRetry(method, path string) <span class="cov0" title="0">{
+        w.metrics.GatewayRetries.WithLabelValues(method, path).Inc()
+}</span>
+
+func (w *MetricsWriter) RecordRateLimitExceeded(method, path string) <span class="cov0" title="0">{
+        w.metrics.RateLimitExceededTotal.WithLabelValues(method, path).Inc()
+}</span>
+</pre>
+		
+		<pre class="file" id="file49" style="display: none">package tokenbucket
+
+import (
+        "sync"
+        "time"
+)
+
+type TokenBucket struct {
+        capacity   int
+        tokens     int
+        refillRate int
+        lastRefill time.Time
+        mu         sync.Mutex
+
+        now func() time.Time
+}
+
+func NewTokenBucket(capacity, refillRate int, nowFn func() time.Time) *TokenBucket <span class="cov8" title="1">{
+        if nowFn == nil </span><span class="cov0" title="0">{
+                nowFn = time.Now
+        }</span>
+        <span class="cov8" title="1">tb := &amp;TokenBucket{
+                capacity:   capacity,
+                tokens:     capacity,
+                refillRate: refillRate,
+                now:        nowFn,
+        }
+        tb.lastRefill = tb.now()
+        return tb</span>
+}
+
+func (tb *TokenBucket) Allow() bool <span class="cov8" title="1">{
+        tb.mu.Lock()
+        defer tb.mu.Unlock()
+
+        tb.refill()
+
+        if tb.tokens &gt; 0 </span><span class="cov8" title="1">{
+                tb.tokens--
+                return true
+        }</span>
+
+        <span class="cov8" title="1">return false</span>
+}
+
+func (tb *TokenBucket) refill() <span class="cov8" title="1">{
+        now := tb.now()
+        elapsed := now.Sub(tb.lastRefill)
+
+        tokensToAdd := int(elapsed.Seconds()) * tb.refillRate
+        if tokensToAdd &gt; 0 </span><span class="cov8" title="1">{
+                tb.tokens += tokensToAdd
+                if tb.tokens &gt; tb.capacity </span><span class="cov8" title="1">{
+                        tb.tokens = tb.capacity
+                }</span>
+                <span class="cov8" title="1">tb.lastRefill = now</span>
+        }
+}
+
+func (tb *TokenBucket) Tokens() int <span class="cov8" title="1">{
+        tb.mu.Lock()
+        defer tb.mu.Unlock()
+        return tb.tokens
+}</span>
+</pre>
+		
+		<pre class="file" id="file50" style="display: none">package shutdown
+
+import (
+        "context"
+        "os"
+        "os/signal"
+        "syscall"
+)
+
+func WaitForShutdown() context.Context <span class="cov0" title="0">{
+        ctx, cancel := context.WithCancel(context.Background())
+
+        sigCh := make(chan os.Signal, 1)
+        signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+        go func() </span><span class="cov0" title="0">{
+                &lt;-sigCh
+                cancel()
+        }</span>()
+
+        <span class="cov0" title="0">return ctx</span>
+}
+</pre>
+		
+		<pre class="file" id="file51" style="display: none">// orders.proto
+
+// Code generated by protoc-gen-go. DO NOT EDIT.
+// versions:
+//         protoc-gen-go v1.36.11
+//         protoc        v5.27.3
+// source: proto/order/order.proto
+
+// Пакет для определённых сущностей и служб
+
+package order
+
+import (
+        protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+        protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+        timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+        reflect "reflect"
+        sync "sync"
+        unsafe "unsafe"
+)
+
+const (
+        // Verify that this generated code is sufficiently up-to-date.
+        _ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
+        // Verify that runtime/protoimpl is sufficiently up-to-date.
+        _ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+)
+
+// Модель заказанного товара
+type Item struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+        Price         int64                  `protobuf:"varint,2,opt,name=price,proto3" json:"price,omitempty"`
+        Quantity      int64                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *Item) Reset() <span class="cov0" title="0">{
+        *x = Item{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[0]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *Item) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*Item) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *Item) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[0]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use Item.ProtoReflect.Descriptor instead.
+func (*Item) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{0}
+}</span>
+
+func (x *Item) GetName() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Name
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Item) GetPrice() int64 <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Price
+        }</span>
+        <span class="cov0" title="0">return 0</span>
+}
+
+func (x *Item) GetQuantity() int64 <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Quantity
+        }</span>
+        <span class="cov0" title="0">return 0</span>
+}
+
+// Адрес доставки
+type DeliveryAddress struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        Street        string                 `protobuf:"bytes,1,opt,name=street,proto3" json:"street,omitempty"`
+        House         string                 `protobuf:"bytes,2,opt,name=house,proto3" json:"house,omitempty"`
+        Apartment     string                 `protobuf:"bytes,3,opt,name=apartment,proto3" json:"apartment,omitempty"`
+        Floor         string                 `protobuf:"bytes,4,opt,name=floor,proto3" json:"floor,omitempty"`
+        Comment       string                 `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeliveryAddress) Reset() <span class="cov0" title="0">{
+        *x = DeliveryAddress{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[1]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *DeliveryAddress) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*DeliveryAddress) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *DeliveryAddress) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[1]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use DeliveryAddress.ProtoReflect.Descriptor instead.
+func (*DeliveryAddress) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{1}
+}</span>
+
+func (x *DeliveryAddress) GetStreet() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Street
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *DeliveryAddress) GetHouse() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.House
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *DeliveryAddress) GetApartment() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Apartment
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *DeliveryAddress) GetFloor() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Floor
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *DeliveryAddress) GetComment() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Comment
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+// Основной объект заказа
+type Order struct {
+        state             protoimpl.MessageState `protogen:"open.v1"`
+        Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+        UserId            string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+        OrderNumber       string                 `protobuf:"bytes,3,opt,name=order_number,json=orderNumber,proto3" json:"order_number,omitempty"`
+        Fio               string                 `protobuf:"bytes,4,opt,name=fio,proto3" json:"fio,omitempty"`
+        RestaurantId      string                 `protobuf:"bytes,5,opt,name=restaurant_id,json=restaurantId,proto3" json:"restaurant_id,omitempty"`
+        Items             []*Item                `protobuf:"bytes,6,rep,name=items,proto3" json:"items,omitempty"`
+        TotalPrice        int64                  `protobuf:"varint,7,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+        Address           *DeliveryAddress       `protobuf:"bytes,8,opt,name=address,proto3" json:"address,omitempty"`
+        Status            string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+        CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+        UpdatedAt         *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+        EstimatedDelivery *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=estimated_delivery,json=estimatedDelivery,proto3" json:"estimated_delivery,omitempty"`
+        unknownFields     protoimpl.UnknownFields
+        sizeCache         protoimpl.SizeCache
+}
+
+func (x *Order) Reset() <span class="cov0" title="0">{
+        *x = Order{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[2]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *Order) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*Order) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *Order) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[2]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use Order.ProtoReflect.Descriptor instead.
+func (*Order) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{2}
+}</span>
+
+func (x *Order) GetId() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Id
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetUserId() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.UserId
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetOrderNumber() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.OrderNumber
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetFio() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Fio
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetRestaurantId() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.RestaurantId
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetItems() []*Item <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Items
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (x *Order) GetTotalPrice() int64 <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.TotalPrice
+        }</span>
+        <span class="cov0" title="0">return 0</span>
+}
+
+func (x *Order) GetAddress() *DeliveryAddress <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Address
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (x *Order) GetStatus() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Status
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (x *Order) GetCreatedAt() *timestamppb.Timestamp <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.CreatedAt
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (x *Order) GetUpdatedAt() *timestamppb.Timestamp <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.UpdatedAt
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (x *Order) GetEstimatedDelivery() *timestamppb.Timestamp <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.EstimatedDelivery
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Запрос на получение списка заказов
+type GetOrdersRequest struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        From          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"` // Фильтрация заказов по дате
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrdersRequest) Reset() <span class="cov0" title="0">{
+        *x = GetOrdersRequest{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[3]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *GetOrdersRequest) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*GetOrdersRequest) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *GetOrdersRequest) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[3]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use GetOrdersRequest.ProtoReflect.Descriptor instead.
+func (*GetOrdersRequest) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{3}
+}</span>
+
+func (x *GetOrdersRequest) GetFrom() *timestamppb.Timestamp <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.From
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Запрос на получение заказ по id
+type GetOrderByIdRequest struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderByIdRequest) Reset() <span class="cov0" title="0">{
+        *x = GetOrderByIdRequest{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[4]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *GetOrderByIdRequest) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*GetOrderByIdRequest) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *GetOrderByIdRequest) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[4]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use GetOrderByIdRequest.ProtoReflect.Descriptor instead.
+func (*GetOrderByIdRequest) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{4}
+}</span>
+
+func (x *GetOrderByIdRequest) GetId() string <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Id
+        }</span>
+        <span class="cov0" title="0">return ""</span>
+}
+
+// Ответ на запрос получения заказов
+type GetOrdersResponse struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        Orders        []*Order               `protobuf:"bytes,1,rep,name=orders,proto3" json:"orders,omitempty"`
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrdersResponse) Reset() <span class="cov0" title="0">{
+        *x = GetOrdersResponse{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[5]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *GetOrdersResponse) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*GetOrdersResponse) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *GetOrdersResponse) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[5]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use GetOrdersResponse.ProtoReflect.Descriptor instead.
+func (*GetOrdersResponse) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{5}
+}</span>
+
+func (x *GetOrdersResponse) GetOrders() []*Order <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Orders
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Ответ на запрос получения заказов
+type GetOrderByIdResponse struct {
+        state         protoimpl.MessageState `protogen:"open.v1"`
+        Order         *Order                 `protobuf:"bytes,1,opt,name=order,proto3" json:"order,omitempty"`
+        unknownFields protoimpl.UnknownFields
+        sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderByIdResponse) Reset() <span class="cov0" title="0">{
+        *x = GetOrderByIdResponse{}
+        mi := &amp;file_proto_order_order_proto_msgTypes[6]
+        ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+        ms.StoreMessageInfo(mi)
+}</span>
+
+func (x *GetOrderByIdResponse) String() string <span class="cov0" title="0">{
+        return protoimpl.X.MessageStringOf(x)
+}</span>
+
+func (*GetOrderByIdResponse) ProtoMessage() {<span class="cov0" title="0">}</span>
+
+func (x *GetOrderByIdResponse) ProtoReflect() protoreflect.Message <span class="cov0" title="0">{
+        mi := &amp;file_proto_order_order_proto_msgTypes[6]
+        if x != nil </span><span class="cov0" title="0">{
+                ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+                if ms.LoadMessageInfo() == nil </span><span class="cov0" title="0">{
+                        ms.StoreMessageInfo(mi)
+                }</span>
+                <span class="cov0" title="0">return ms</span>
+        }
+        <span class="cov0" title="0">return mi.MessageOf(x)</span>
+}
+
+// Deprecated: Use GetOrderByIdResponse.ProtoReflect.Descriptor instead.
+func (*GetOrderByIdResponse) Descriptor() ([]byte, []int) <span class="cov0" title="0">{
+        return file_proto_order_order_proto_rawDescGZIP(), []int{6}
+}</span>
+
+func (x *GetOrderByIdResponse) GetOrder() *Order <span class="cov0" title="0">{
+        if x != nil </span><span class="cov0" title="0">{
+                return x.Order
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+var File_proto_order_order_proto protoreflect.FileDescriptor
+
+const file_proto_order_order_proto_rawDesc = "" +
+        "\n" +
+        "\x17proto/order/order.proto\x12\torders.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"L\n" +
+        "\x04Item\x12\x12\n" +
+        "\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+        "\x05price\x18\x02 \x01(\x03R\x05price\x12\x1a\n" +
+        "\bquantity\x18\x03 \x01(\x03R\bquantity\"\x8d\x01\n" +
+        "\x0fDeliveryAddress\x12\x16\n" +
+        "\x06street\x18\x01 \x01(\tR\x06street\x12\x14\n" +
+        "\x05house\x18\x02 \x01(\tR\x05house\x12\x1c\n" +
+        "\tapartment\x18\x03 \x01(\tR\tapartment\x12\x14\n" +
+        "\x05floor\x18\x04 \x01(\tR\x05floor\x12\x18\n" +
+        "\acomment\x18\x05 \x01(\tR\acomment\"\xe1\x03\n" +
+        "\x05Order\x12\x0e\n" +
+        "\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+        "\auser_id\x18\x02 \x01(\tR\x06userId\x12!\n" +
+        "\forder_number\x18\x03 \x01(\tR\vorderNumber\x12\x10\n" +
+        "\x03fio\x18\x04 \x01(\tR\x03fio\x12#\n" +
+        "\rrestaurant_id\x18\x05 \x01(\tR\frestaurantId\x12%\n" +
+        "\x05items\x18\x06 \x03(\v2\x0f.orders.v1.ItemR\x05items\x12\x1f\n" +
+        "\vtotal_price\x18\a \x01(\x03R\n" +
+        "totalPrice\x124\n" +
+        "\aaddress\x18\b \x01(\v2\x1a.orders.v1.DeliveryAddressR\aaddress\x12\x16\n" +
+        "\x06status\x18\t \x01(\tR\x06status\x129\n" +
+        "\n" +
+        "created_at\x18\n" +
+        " \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+        "\n" +
+        "updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12I\n" +
+        "\x12estimated_delivery\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\x11estimatedDelivery\"B\n" +
+        "\x10GetOrdersRequest\x12.\n" +
+        "\x04from\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04from\"%\n" +
+        "\x13GetOrderByIdRequest\x12\x0e\n" +
+        "\x02id\x18\x01 \x01(\tR\x02id\"=\n" +
+        "\x11GetOrdersResponse\x12(\n" +
+        "\x06orders\x18\x01 \x03(\v2\x10.orders.v1.OrderR\x06orders\"&gt;\n" +
+        "\x14GetOrderByIdResponse\x12&amp;\n" +
+        "\x05order\x18\x01 \x01(\v2\x10.orders.v1.OrderR\x05order2\xa8\x01\n" +
+        "\rOrdersService\x12F\n" +
+        "\tGetOrders\x12\x1b.orders.v1.GetOrdersRequest\x1a\x1c.orders.v1.GetOrdersResponse\x12O\n" +
+        "\fGetOrderById\x12\x1e.orders.v1.GetOrderByIdRequest\x1a\x1f.orders.v1.GetOrderByIdResponseB\rZ\vproto/orderb\x06proto3"
+
+var (
+        file_proto_order_order_proto_rawDescOnce sync.Once
+        file_proto_order_order_proto_rawDescData []byte
+)
+
+func file_proto_order_order_proto_rawDescGZIP() []byte <span class="cov0" title="0">{
+        file_proto_order_order_proto_rawDescOnce.Do(func() </span><span class="cov0" title="0">{
+                file_proto_order_order_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_order_order_proto_rawDesc), len(file_proto_order_order_proto_rawDesc)))
+        }</span>)
+        <span class="cov0" title="0">return file_proto_order_order_proto_rawDescData</span>
+}
+
+var file_proto_order_order_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_order_order_proto_goTypes = []any{
+        (*Item)(nil),                  // 0: orders.v1.Item
+        (*DeliveryAddress)(nil),       // 1: orders.v1.DeliveryAddress
+        (*Order)(nil),                 // 2: orders.v1.Order
+        (*GetOrdersRequest)(nil),      // 3: orders.v1.GetOrdersRequest
+        (*GetOrderByIdRequest)(nil),   // 4: orders.v1.GetOrderByIdRequest
+        (*GetOrdersResponse)(nil),     // 5: orders.v1.GetOrdersResponse
+        (*GetOrderByIdResponse)(nil),  // 6: orders.v1.GetOrderByIdResponse
+        (*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+}
+var file_proto_order_order_proto_depIdxs = []int32{
+        0,  // 0: orders.v1.Order.items:type_name -&gt; orders.v1.Item
+        1,  // 1: orders.v1.Order.address:type_name -&gt; orders.v1.DeliveryAddress
+        7,  // 2: orders.v1.Order.created_at:type_name -&gt; google.protobuf.Timestamp
+        7,  // 3: orders.v1.Order.updated_at:type_name -&gt; google.protobuf.Timestamp
+        7,  // 4: orders.v1.Order.estimated_delivery:type_name -&gt; google.protobuf.Timestamp
+        7,  // 5: orders.v1.GetOrdersRequest.from:type_name -&gt; google.protobuf.Timestamp
+        2,  // 6: orders.v1.GetOrdersResponse.orders:type_name -&gt; orders.v1.Order
+        2,  // 7: orders.v1.GetOrderByIdResponse.order:type_name -&gt; orders.v1.Order
+        3,  // 8: orders.v1.OrdersService.GetOrders:input_type -&gt; orders.v1.GetOrdersRequest
+        4,  // 9: orders.v1.OrdersService.GetOrderById:input_type -&gt; orders.v1.GetOrderByIdRequest
+        5,  // 10: orders.v1.OrdersService.GetOrders:output_type -&gt; orders.v1.GetOrdersResponse
+        6,  // 11: orders.v1.OrdersService.GetOrderById:output_type -&gt; orders.v1.GetOrderByIdResponse
+        10, // [10:12] is the sub-list for method output_type
+        8,  // [8:10] is the sub-list for method input_type
+        8,  // [8:8] is the sub-list for extension type_name
+        8,  // [8:8] is the sub-list for extension extendee
+        0,  // [0:8] is the sub-list for field type_name
+}
+
+func init() <span class="cov0" title="0">{ file_proto_order_order_proto_init() }</span>
+func file_proto_order_order_proto_init() <span class="cov0" title="0">{
+        if File_proto_order_order_proto != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">type x struct{}
+        out := protoimpl.TypeBuilder{
+                File: protoimpl.DescBuilder{
+                        GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+                        RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_order_order_proto_rawDesc), len(file_proto_order_order_proto_rawDesc)),
+                        NumEnums:      0,
+                        NumMessages:   7,
+                        NumExtensions: 0,
+                        NumServices:   1,
+                },
+                GoTypes:           file_proto_order_order_proto_goTypes,
+                DependencyIndexes: file_proto_order_order_proto_depIdxs,
+                MessageInfos:      file_proto_order_order_proto_msgTypes,
+        }.Build()
+        File_proto_order_order_proto = out.File
+        file_proto_order_order_proto_goTypes = nil
+        file_proto_order_order_proto_depIdxs = nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file52" style="display: none">// orders.proto
+
+// Code generated by protoc-gen-go-grpc. DO NOT EDIT.
+// versions:
+// - protoc-gen-go-grpc v1.6.0
+// - protoc             v5.27.3
+// source: proto/order/order.proto
+
+// Пакет для определённых сущностей и служб
+
+package order
+
+import (
+        context "context"
+        grpc "google.golang.org/grpc"
+        codes "google.golang.org/grpc/codes"
+        status "google.golang.org/grpc/status"
+)
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.64.0 or later.
+const _ = grpc.SupportPackageIsVersion9
+
+const (
+        OrdersService_GetOrders_FullMethodName    = "/orders.v1.OrdersService/GetOrders"
+        OrdersService_GetOrderById_FullMethodName = "/orders.v1.OrdersService/GetOrderById"
+)
+
+// OrdersServiceClient is the client API for OrdersService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Интерфейс службы, возвращающей заказы
+type OrdersServiceClient interface {
+        GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*GetOrdersResponse, error)
+        GetOrderById(ctx context.Context, in *GetOrderByIdRequest, opts ...grpc.CallOption) (*GetOrderByIdResponse, error)
+}
+
+type ordersServiceClient struct {
+        cc grpc.ClientConnInterface
+}
+
+func NewOrdersServiceClient(cc grpc.ClientConnInterface) OrdersServiceClient <span class="cov0" title="0">{
+        return &amp;ordersServiceClient{cc}
+}</span>
+
+func (c *ordersServiceClient) GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*GetOrdersResponse, error) <span class="cov0" title="0">{
+        cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+        out := new(GetOrdersResponse)
+        err := c.cc.Invoke(ctx, OrdersService_GetOrders_FullMethodName, in, out, cOpts...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return out, nil</span>
+}
+
+func (c *ordersServiceClient) GetOrderById(ctx context.Context, in *GetOrderByIdRequest, opts ...grpc.CallOption) (*GetOrderByIdResponse, error) <span class="cov0" title="0">{
+        cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+        out := new(GetOrderByIdResponse)
+        err := c.cc.Invoke(ctx, OrdersService_GetOrderById_FullMethodName, in, out, cOpts...)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return out, nil</span>
+}
+
+// OrdersServiceServer is the server API for OrdersService service.
+// All implementations must embed UnimplementedOrdersServiceServer
+// for forward compatibility.
+//
+// Интерфейс службы, возвращающей заказы
+type OrdersServiceServer interface {
+        GetOrders(context.Context, *GetOrdersRequest) (*GetOrdersResponse, error)
+        GetOrderById(context.Context, *GetOrderByIdRequest) (*GetOrderByIdResponse, error)
+        mustEmbedUnimplementedOrdersServiceServer()
+}
+
+// UnimplementedOrdersServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedOrdersServiceServer struct{}
+
+func (UnimplementedOrdersServiceServer) GetOrders(context.Context, *GetOrdersRequest) (*GetOrdersResponse, error) <span class="cov0" title="0">{
+        return nil, status.Error(codes.Unimplemented, "method GetOrders not implemented")
+}</span>
+func (UnimplementedOrdersServiceServer) GetOrderById(context.Context, *GetOrderByIdRequest) (*GetOrderByIdResponse, error) <span class="cov0" title="0">{
+        return nil, status.Error(codes.Unimplemented, "method GetOrderById not implemented")
+}</span>
+func (UnimplementedOrdersServiceServer) mustEmbedUnimplementedOrdersServiceServer() {<span class="cov0" title="0">}</span>
+func (UnimplementedOrdersServiceServer) testEmbeddedByValue()                       {<span class="cov0" title="0">}</span>
+
+// UnsafeOrdersServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OrdersServiceServer will
+// result in compilation errors.
+type UnsafeOrdersServiceServer interface {
+        mustEmbedUnimplementedOrdersServiceServer()
+}
+
+func RegisterOrdersServiceServer(s grpc.ServiceRegistrar, srv OrdersServiceServer) <span class="cov0" title="0">{
+        // If the following call panics, it indicates UnimplementedOrdersServiceServer was
+        // embedded by pointer and is nil.  This will cause panics if an
+        // unimplemented method is ever invoked, so we test this at initialization
+        // time to prevent it from happening at runtime later due to I/O.
+        if t, ok := srv.(interface{ testEmbeddedByValue() }); ok </span><span class="cov0" title="0">{
+                t.testEmbeddedByValue()
+        }</span>
+        <span class="cov0" title="0">s.RegisterService(&amp;OrdersService_ServiceDesc, srv)</span>
+}
+
+func _OrdersService_GetOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) <span class="cov0" title="0">{
+        in := new(GetOrdersRequest)
+        if err := dec(in); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">if interceptor == nil </span><span class="cov0" title="0">{
+                return srv.(OrdersServiceServer).GetOrders(ctx, in)
+        }</span>
+        <span class="cov0" title="0">info := &amp;grpc.UnaryServerInfo{
+                Server:     srv,
+                FullMethod: OrdersService_GetOrders_FullMethodName,
+        }
+        handler := func(ctx context.Context, req interface{}) (interface{}, error) </span><span class="cov0" title="0">{
+                return srv.(OrdersServiceServer).GetOrders(ctx, req.(*GetOrdersRequest))
+        }</span>
+        <span class="cov0" title="0">return interceptor(ctx, in, info, handler)</span>
+}
+
+func _OrdersService_GetOrderById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) <span class="cov0" title="0">{
+        in := new(GetOrderByIdRequest)
+        if err := dec(in); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">if interceptor == nil </span><span class="cov0" title="0">{
+                return srv.(OrdersServiceServer).GetOrderById(ctx, in)
+        }</span>
+        <span class="cov0" title="0">info := &amp;grpc.UnaryServerInfo{
+                Server:     srv,
+                FullMethod: OrdersService_GetOrderById_FullMethodName,
+        }
+        handler := func(ctx context.Context, req interface{}) (interface{}, error) </span><span class="cov0" title="0">{
+                return srv.(OrdersServiceServer).GetOrderById(ctx, req.(*GetOrderByIdRequest))
+        }</span>
+        <span class="cov0" title="0">return interceptor(ctx, in, info, handler)</span>
+}
+
+// OrdersService_ServiceDesc is the grpc.ServiceDesc for OrdersService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var OrdersService_ServiceDesc = grpc.ServiceDesc{
+        ServiceName: "orders.v1.OrdersService",
+        HandlerType: (*OrdersServiceServer)(nil),
+        Methods: []grpc.MethodDesc{
+                {
+                        MethodName: "GetOrders",
+                        Handler:    _OrdersService_GetOrders_Handler,
+                },
+                {
+                        MethodName: "GetOrderById",
+                        Handler:    _OrdersService_GetOrderById_Handler,
+                },
+        },
+        Streams:  []grpc.StreamDesc{},
+        Metadata: "proto/order/order.proto",
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

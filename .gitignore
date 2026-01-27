@@ -1,1 +1,9 @@
 .env 
+
+# Binaries
+main
+service
+worker
+
+# Coverage
+coverage.*

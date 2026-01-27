@@ -2,10 +2,11 @@ package complete
 
 import (
 	"context"
-	"courier-service/internal/model"
-	courierrepo "courier-service/internal/repository/courier"
 	"errors"
 	"fmt"
+
+	"courier-service/internal/model"
+	courierrepo "courier-service/internal/repository/courier"
 )
 
 type CompleteDeliveryUseCase struct {

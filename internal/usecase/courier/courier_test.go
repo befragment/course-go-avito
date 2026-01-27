@@ -6,14 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"courier-service/internal/model"
-	courierRepo "courier-service/internal/repository/courier"
-	"courier-service/internal/usecase/courier"
-	logger "courier-service/pkg/logger"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/goleak"
+
+	"courier-service/internal/model"
+	courierRepo "courier-service/internal/repository/courier"
+	"courier-service/internal/usecase/courier"
 )
 
 func TestCourierUseCase_GetById(t *testing.T) {
@@ -73,11 +72,8 @@ func TestCourierUseCase_GetById(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			logger, err := logger.New(logger.LogLevelInfo)
-			if err != nil {
-				t.Fatalf("Failed to create logger: %v", err)
-			}
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
+			mockLogger := NewMocklogger(ctrl)
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, mockLogger)
 
 			ctx := context.Background()
 
@@ -145,11 +141,8 @@ func TestCourierUseCase_GetAll(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			logger, err := logger.New(logger.LogLevelInfo)
-			if err != nil {
-				t.Fatalf("Failed to create logger: %v", err)
-			}
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
+			mockLogger := NewMocklogger(ctrl)
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, mockLogger)
 
 			ctx := context.Background()
 
@@ -335,11 +328,8 @@ func TestCourierUseCase_Create(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			logger, err := logger.New(logger.LogLevelInfo)
-			if err != nil {
-				t.Fatalf("Failed to create logger: %v", err)
-			}
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
+			mockLogger := NewMocklogger(ctrl)
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, mockLogger)
 
 			ctx := context.Background()
 
@@ -484,11 +474,8 @@ func TestCourierUseCase_Update(t *testing.T) {
 
 			mockRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			logger, err := logger.New(logger.LogLevelInfo)
-			if err != nil {
-				t.Fatalf("Failed to create logger: %v", err)
-			}
-			uc := courier.NewCourierUseCase(mockRepo, mockFactory, logger)
+			mockLogger := NewMocklogger(ctrl)
+			uc := courier.NewCourierUseCase(mockRepo, mockFactory, mockLogger)
 
 			ctx := context.Background()
 
@@ -496,7 +483,7 @@ func TestCourierUseCase_Update(t *testing.T) {
 				tc.prepare(mockRepo, mockFactory, ctrl)
 			}
 
-			err = uc.UpdateCourier(ctx, tc.request)
+			err := uc.UpdateCourier(ctx, tc.request)
 
 			if tc.expectations != nil {
 				tc.expectations(t, err)
@@ -535,7 +522,7 @@ func TestCheckFreeCouriers(t *testing.T) {
 		tickerInterval    time.Duration
 		runDuration       time.Duration
 		cancelImmediately bool
-		prepare           func(repo *MockcourierRepository)
+		prepare           func(repo *MockcourierRepository, logger *Mocklogger)
 		expectations      func(t *testing.T)
 	}{
 		{
@@ -543,11 +530,14 @@ func TestCheckFreeCouriers(t *testing.T) {
 			tickerInterval:    50 * time.Millisecond,
 			runDuration:       150 * time.Millisecond,
 			cancelImmediately: false,
-			prepare: func(repo *MockcourierRepository) {
+			prepare: func(repo *MockcourierRepository, logger *Mocklogger) {
 				repo.EXPECT().
 					FreeCouriersWithInterval(gomock.Any()).
 					Return(nil).
 					MinTimes(2)
+				logger.EXPECT().
+					Debugf(gomock.Any(), gomock.Any()).
+					AnyTimes()
 			},
 			expectations: func(t *testing.T) {
 			},
@@ -557,11 +547,17 @@ func TestCheckFreeCouriers(t *testing.T) {
 			tickerInterval:    50 * time.Millisecond,
 			runDuration:       150 * time.Millisecond,
 			cancelImmediately: false,
-			prepare: func(repo *MockcourierRepository) {
+			prepare: func(repo *MockcourierRepository, logger *Mocklogger) {
 				repo.EXPECT().
 					FreeCouriersWithInterval(gomock.Any()).
 					Return(courierRepo.ErrCouriersBusy).
 					MinTimes(2)
+				logger.EXPECT().
+					Errorf(gomock.Any(), gomock.Any()).
+					AnyTimes()
+				logger.EXPECT().
+					Debugf(gomock.Any(), gomock.Any()).
+					AnyTimes()
 			},
 			expectations: func(t *testing.T) {
 			},
@@ -571,7 +567,7 @@ func TestCheckFreeCouriers(t *testing.T) {
 			tickerInterval:    50 * time.Millisecond,
 			runDuration:       0,
 			cancelImmediately: true,
-			prepare: func(repo *MockcourierRepository) {
+			prepare: func(repo *MockcourierRepository, logger *Mocklogger) {
 			},
 			expectations: func(t *testing.T) {
 			},
@@ -588,17 +584,14 @@ func TestCheckFreeCouriers(t *testing.T) {
 
 			mockCourierRepo := NewMockcourierRepository(ctrl)
 			mockFactory := NewMockdeliveryCalculatorFactory(ctrl)
-			logger, err := logger.New(logger.LogLevelInfo)
-			if err != nil {
-				t.Fatalf("Failed to create logger: %v", err)
-			}
-			uc := courier.NewCourierUseCase(mockCourierRepo, mockFactory, logger)
+			mockLogger := NewMocklogger(ctrl)
+			uc := courier.NewCourierUseCase(mockCourierRepo, mockFactory, mockLogger)
 
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
 			if tc.prepare != nil {
-				tc.prepare(mockCourierRepo)
+				tc.prepare(mockCourierRepo, mockLogger)
 			}
 
 			go uc.CheckFreeCouriersWithInterval(ctx, tc.tickerInterval)

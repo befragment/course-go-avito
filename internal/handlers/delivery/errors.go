@@ -2,9 +2,10 @@ package delivery
 
 import (
 	"net/http"
+
+	"courier-service/internal/handlers/utils"
 	assign "courier-service/internal/usecase/delivery/assign"
 	unassign "courier-service/internal/usecase/delivery/unassign"
-	"courier-service/internal/handlers/utils"
 )
 
 const (

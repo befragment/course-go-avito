@@ -3,13 +3,13 @@ package model
 import "time"
 
 type Courier struct {
-	ID        		int64
-	Name      		string
-	Phone     		string
-	Status    		CourierStatus
-	TransportType 	CourierTransportType
-	CreatedAt 		time.Time
-	UpdatedAt 		time.Time
+	ID            int64
+	Name          string
+	Phone         string
+	Status        CourierStatus
+	TransportType CourierTransportType
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type CourierStatus string
@@ -17,8 +17,8 @@ type CourierStatus string
 type CourierTransportType string
 
 const (
-	CourierStatusAvailable 	CourierStatus = "available"
-	CourierStatusBusy 		CourierStatus = "busy"
+	CourierStatusAvailable CourierStatus = "available"
+	CourierStatusBusy      CourierStatus = "busy"
 )
 
 const (

@@ -1,9 +1,9 @@
 package delivery
 
-
 import (
-	assign "courier-service/internal/usecase/delivery/assign"
 	"time"
+
+	assign "courier-service/internal/usecase/delivery/assign"
 )
 
 const (
@@ -11,11 +11,11 @@ const (
 )
 
 type DeliveryAssignRequestDTO struct {
-    OrderID string `json:"order_id"`
+	OrderID string `json:"order_id"`
 }
 
 type DeliveryUnassignRequestDTO struct {
-    OrderID string `json:"order_id"`
+	OrderID string `json:"order_id"`
 }
 
 type DeliveryAssignResponseDTO struct {

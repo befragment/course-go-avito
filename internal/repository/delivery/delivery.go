@@ -54,7 +54,7 @@ func (r *DeliveryRepository) CouriersDelivery(ctx context.Context, orderID strin
 		Select(db.DeliveryOrderID, db.CourierID).
 		From(db.DeliveryTable).
 		Join(fmt.Sprintf("%s ON %s = %s", db.CourierTable, db.DeliveryCourierID, db.CourierID)).
-		Where(sq.Eq{db.DeliveryOrderID: orderID}).
+		Where(sq.Eq{db.DeliveryOrderID: orderID}). //
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := queryBuilder.ToSql()

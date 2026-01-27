@@ -2,22 +2,21 @@ package courier
 
 import (
 	"context"
-	"courier-service/internal/core"
-	"courier-service/internal/model"
-	courierRepo "courier-service/internal/repository/courier"
 	"errors"
 	"regexp"
 	"time"
-	logger "courier-service/pkg/logger"
+
+	"courier-service/internal/model"
+	courierRepo "courier-service/internal/repository/courier"
 )
 
 type CourierUseCase struct {
 	repository courierRepository
 	factory    deliveryCalculatorFactory
-	logger     logger.Interface
+	logger     logger
 }
 
-func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger.Interface) *CourierUseCase {
+func NewCourierUseCase(repository courierRepository, factory deliveryCalculatorFactory, logger logger) *CourierUseCase {
 	return &CourierUseCase{
 		repository: repository,
 		factory:    factory,
@@ -115,5 +114,6 @@ func (u *CourierUseCase) UpdateCourier(ctx context.Context, courier model.Courie
 }
 
 func ValidPhoneNumber(phone string) bool {
-	return regexp.MustCompile(core.PhoneRegex).MatchString(phone)
+	phoneRegex := `^\+[0-9]{11}$`
+	return regexp.MustCompile(phoneRegex).MatchString(phone)
 }

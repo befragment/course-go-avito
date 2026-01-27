@@ -16,9 +16,9 @@ const (
 	AssignedAtColumn    = "assigned_at"
 	DeadlineColumn      = "deadline"
 	CourierIDColumn     = "courier_id"
-	
-	CourierTable        = "couriers"
-	DeliveryTable       = "delivery"
+
+	CourierTable  = "couriers"
+	DeliveryTable = "delivery"
 
 	StatusBusy      = "busy"
 	StatusAvailable = "available"
@@ -29,8 +29,8 @@ const (
 	CourierStatus        = CourierTable + "." + StatusColumn
 	CourierTransportType = CourierTable + "." + TransportTypeColumn
 
-	DeliveryID      = DeliveryTable + "." + IDColumn
-	DeliveryOrderID = DeliveryTable + "." + OrderIDColumn
+	DeliveryID        = DeliveryTable + "." + IDColumn
+	DeliveryOrderID   = DeliveryTable + "." + OrderIDColumn
 	DeliveryCourierID = DeliveryTable + "." + CourierIDColumn
 
 	CountAll = "count(*)"

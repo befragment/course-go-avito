@@ -1,19 +1,23 @@
+//go:build integration
+// +build integration
+
 package delivery_test
 
 import (
 	"context"
-	"courier-service/internal/model"
 	"testing"
 	"time"
 
-	integration "courier-service/internal/persistence/database/integration"
-	courierstorage "courier-service/internal/repository/courier"
-	deliverystorage "courier-service/internal/repository/delivery"
-	logger "courier-service/pkg/logger"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+
+	"courier-service/internal/model"
+	integration "courier-service/internal/persistence/database/integration"
+	courierstorage "courier-service/internal/repository/courier"
+	deliverystorage "courier-service/internal/repository/delivery"
 )
 
 type DeliveryTestSuite struct {
@@ -23,6 +27,8 @@ type DeliveryTestSuite struct {
 	deliveryRepo *deliverystorage.DeliveryRepository
 	courierRepo  *courierstorage.CourierRepository
 	pgContainer  *postgres.PostgresContainer
+	ctrl         *gomock.Controller
+	mockLogger   *Mocklogger
 }
 
 func (s *DeliveryTestSuite) SetupSuite() {
@@ -36,14 +42,33 @@ func (s *DeliveryTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.pool = pool
 	s.deliveryRepo = deliverystorage.NewDeliveryRepository(s.pool)
-	logger, err := logger.New(logger.LogLevelInfo)
-	s.Require().NoError(err)
-	s.courierRepo = courierstorage.NewCourierRepository(s.pool, logger)
 }
 
 func (s *DeliveryTestSuite) SetupTest() {
+	s.ctrl = gomock.NewController(s.T())
+	s.mockLogger = NewMocklogger(s.ctrl)
+
+	// Allow any logging calls during tests
+	s.mockLogger.EXPECT().Debug(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Debugf(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Debugw(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Info(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Warn(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Error(gomock.Any()).AnyTimes()
+	s.mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+
+	s.courierRepo = courierstorage.NewCourierRepository(s.pool, s.mockLogger)
+
 	err := integration.TruncateAll(s.ctx, s.pool)
 	s.Require().NoError(err)
+}
+
+func (s *DeliveryTestSuite) TearDownTest() {
+	if s.ctrl != nil {
+		s.ctrl.Finish()
+	}
 }
 
 func TestDeliveryRepositoryTestSuite(t *testing.T) {

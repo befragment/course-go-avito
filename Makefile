@@ -14,9 +14,12 @@ help:
 	@echo "  build-worker    - build worker binary"
 	@echo "  run-service     - run HTTP service with go run"
 	@echo "  run-worker      - run worker with go run"
-	@echo "  test            - run go test ./..."
+	@echo "  test            - run go test ./... -race"
 	@echo "  test-nocache    - run go test ./... -count=1"
-	@echo "  lint            - run go vet ./..."
+	@echo "  tcoverage       - generate and open html with test coverage report"
+	@echo "  fmt             - run golangci-lint fmt ./..."
+	@echo "  lint            - run golangci-lint run"
+	@echo "  migrate-create  - create new migration (usage: make migrate-create NAME=migration_name)"
 	@echo "  migrate-up      - apply DB migrations (scripts/migrate.sh up)"
 	@echo "  migrate-down    - rollback last DB migration (scripts/migrate.sh down)"
 	@echo "  migrate-status  - show DB migrations status"
@@ -48,15 +51,19 @@ run-worker:
 
 .PHONY: test
 test:
-	go test ./...
+	go test ./... -race
 
 .PHONY: test-nocache
 test-nocache:
 	go test ./... -count=1
 
-.PHONY: lint
-lint:
-	go vet ./...
+.PHONY: migrate-create
+migrate-create:
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	goose -dir ./migrations create $(NAME) sql
 
 .PHONY: migrate-up
 migrate-up:
@@ -93,3 +100,18 @@ dc-logs:
 .PHONY: dc-psql
 dc-psql:
 	sh ./scripts/psql-container.sh
+
+.PHONY:
+tcoverage:
+	go test ./... -coverprofile=coverage.out -coverpkg=./...
+	go tool cover -func=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
+	open coverage.html
+
+.PHONY:
+fmt:
+	golangci-lint fmt ./...
+
+.PHONY:
+lint:
+	golangci-lint run
